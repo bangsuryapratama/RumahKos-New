@@ -150,7 +150,12 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
             Route::get('/payment/finish/{payment}', [PaymentController::class, 'finish'])->name('payment.finish');
             Route::get('/payment/manual/{payment}', [PaymentController::class, 'manual'])->name('payment.manual');
             Route::post('/payment/upload/{payment}', [PaymentController::class, 'uploadProof'])->name('payment.upload-proof');
-    
+            // Route untuk check status manual (debugging)
+            Route::get('/payment/{payment}/check-status', [PaymentController::class, 'checkStatus'])
+                ->name('payment.check-status');
+
+            Route::post('/payment/callback', [PaymentController::class, 'callback'])
+                    ->name('payment.callback');
         // Logout
         Route::post('logout', [LoginController::class, 'logout'])->name('logout');
     });

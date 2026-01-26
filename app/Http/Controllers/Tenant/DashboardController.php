@@ -13,7 +13,18 @@ class DashboardController extends Controller
     {
         /** @var User $user */
         $user = Auth::guard('tenant')->user();
-        $resident = $user->resident; // Data kos aktif
+        
+        // Load resident with payments untuk dashboard
+        $resident = $user->residents()
+            ->with([
+                'room.property',
+                'payments' => function($query) {
+                    $query->orderBy('billing_month', 'asc');
+                }
+            ])
+            ->where('status', '!=', 'cancelled')
+            ->latest()
+            ->first();
         
         return view('tenant.dashboard', compact('user', 'resident'));
     }
@@ -47,17 +58,31 @@ class DashboardController extends Controller
             'name' => $validated['name'],
         ]);
 
-        // Update profile
-        $user->profile->update([
-            'phone' => $validated['phone'] ?? null,
-            'address' => $validated['address'] ?? null,
-            'identity_number' => $validated['identity_number'] ?? null,
-            'date_of_birth' => $validated['date_of_birth'] ?? null,
-            'occupation' => $validated['occupation'] ?? null,
-            'emergency_contact' => $validated['emergency_contact'] ?? null,
-            'emergency_contact_name' => $validated['emergency_contact_name'] ?? null,
-            'gender' => $validated['gender'] ?? null,
-        ]);
+        // Update or create profile
+        if ($user->profile) {
+            $user->profile->update([
+                'phone' => $validated['phone'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'identity_number' => $validated['identity_number'] ?? null,
+                'date_of_birth' => $validated['date_of_birth'] ?? null,
+                'occupation' => $validated['occupation'] ?? null,
+                'emergency_contact' => $validated['emergency_contact'] ?? null,
+                'emergency_contact_name' => $validated['emergency_contact_name'] ?? null,
+                'gender' => $validated['gender'] ?? null,
+            ]);
+        } else {
+            // Create profile if doesn't exist
+            $user->profile()->create([
+                'phone' => $validated['phone'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'identity_number' => $validated['identity_number'] ?? null,
+                'date_of_birth' => $validated['date_of_birth'] ?? null,
+                'occupation' => $validated['occupation'] ?? null,
+                'emergency_contact' => $validated['emergency_contact'] ?? null,
+                'emergency_contact_name' => $validated['emergency_contact_name'] ?? null,
+                'gender' => $validated['gender'] ?? null,
+            ]);
+        }
 
         return back()->with('success', 'Profil berhasil diperbarui!');
     }
@@ -66,14 +91,25 @@ class DashboardController extends Controller
     {
         /** @var User $user */
         $user = Auth::guard('tenant')->user();
-        $resident = $user->resident;
+        
+        // Get active resident with payments
+        $resident = $user->residents()
+            ->with([
+                'room.property',
+                'payments' => function($query) {
+                    $query->orderBy('billing_month', 'desc');
+                }
+            ])
+            ->where('status', '!=', 'cancelled')
+            ->latest()
+            ->first();
         
         if (!$resident) {
             return redirect()->route('tenant.dashboard')
                 ->with('error', 'Anda belum terdaftar sebagai penghuni kos.');
         }
         
-        $payments = $resident->payments()->latest()->get();
+        $payments = $resident->payments;
         
         return view('tenant.payments', compact('user', 'resident', 'payments'));
     }

@@ -103,11 +103,22 @@
                     <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
                         <i class="fas fa-calendar-check text-2xl"></i>
                     </div>
-                    <span class="text-sm opacity-90">Pembayaran</span>
+                    <span class="text-sm opacity-90">Status Pembayaran</span>
                 </div>
                 @if($resident)
-                    <div class="text-3xl font-bold mb-1">Lunas</div>
-                    <div class="text-sm opacity-90">Semua tagihan lunas</div>
+                    @php
+                        $unpaidPayments = $resident->payments()->where('status', 'pending')->count();
+                        $paidPayments = $resident->payments()->where('status', 'paid')->count();
+                    @endphp
+                    @if($unpaidPayments > 0)
+                        <div class="text-3xl font-bold mb-1">{{ $unpaidPayments }} Tagihan</div>
+                        <div class="text-sm opacity-90">
+                            <a href="{{ route('tenant.bookings.index') }}" class="underline hover:text-green-100">Lihat & bayar</a>
+                        </div>
+                    @else
+                        <div class="text-3xl font-bold mb-1">Lunas</div>
+                        <div class="text-sm opacity-90">{{ $paidPayments }} pembayaran selesai</div>
+                    @endif
                 @else
                     <div class="text-3xl font-bold mb-1">-</div>
                     <div class="text-sm opacity-90">Belum ada tagihan</div>
@@ -269,6 +280,27 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Contract Info -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div class="bg-white border-2 border-gray-200 rounded-xl p-4">
+                                <div class="text-sm text-gray-600 mb-1">Periode Kontrak</div>
+                                <div class="font-semibold text-gray-900">
+                                    {{ $resident->start_date->format('d M Y') }} - {{ $resident->end_date->format('d M Y') }}
+                                </div>
+                            </div>
+                            <div class="bg-white border-2 border-gray-200 rounded-xl p-4">
+                                <div class="text-sm text-gray-600 mb-1">Harga Sewa per Bulan</div>
+                                <div class="font-semibold text-gray-900">
+                                    Rp {{ number_format($resident->room->price, 0, ',', '.') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <a href="{{ route('tenant.bookings.index') }}" 
+                           class="inline-block px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-semibold">
+                            <i class="fas fa-receipt mr-2"></i>Lihat Detail Pembayaran
+                        </a>
                     @else
                         <div class="text-center py-12">
                             <div class="bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -285,9 +317,53 @@
 
                 <!-- Keuangan Tab -->
                 <div id="content-keuangan" class="tab-content hidden">
-                    <h3 class="text-xl font-bold text-gray-900 mb-6">Riwayat Pembayaran</h3>
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-gray-900">Riwayat Pembayaran</h3>
+                        @if($resident)
+                            <a href="{{ route('tenant.bookings.index') }}" 
+                               class="text-blue-600 hover:text-blue-700 font-semibold text-sm">
+                                <i class="fas fa-external-link-alt mr-1"></i>Lihat Semua
+                            </a>
+                        @endif
+                    </div>
                     
-                    @if($resident)
+                    @if($resident && $resident->payments->count() > 0)
+                        <div class="space-y-4">
+                            @foreach($resident->payments->take(5) as $payment)
+                                <div class="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-300 transition">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-gray-900 mb-1">
+                                                {{ $payment->billing_month->format('F Y') }}
+                                            </div>
+                                            <div class="text-sm text-gray-600">
+                                                Jatuh tempo: {{ $payment->due_date->format('d M Y') }}
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-bold text-gray-900 mb-1">
+                                                Rp {{ number_format($payment->amount, 0, ',', '.') }}
+                                            </div>
+                                            @if($payment->status === 'paid')
+                                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                                                    <i class="fas fa-check-circle mr-1"></i>Lunas
+                                                </span>
+                                            @elseif($payment->status === 'pending')
+                                                <a href="{{ route('tenant.payment.midtrans', $payment->id) }}" 
+                                                   class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold hover:bg-yellow-200 transition">
+                                                    <i class="fas fa-clock mr-1"></i>Bayar
+                                                </a>
+                                            @else
+                                                <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">
+                                                    {{ ucfirst($payment->status) }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @elseif($resident)
                         <div class="text-center py-12">
                             <div class="bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <i class="fas fa-wallet text-4xl text-gray-400"></i>

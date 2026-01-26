@@ -3,159 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pembayaran - Midtrans</title>
+    <title>Pembayaran - {{ $room->name }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" 
-            data-client-key="{{ config('midtrans.client_key') }}"></script>
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
 </head>
 <body class="bg-gray-50">
 
-    {{-- Navbar --}}
     @include('landing.navbar')
 
-    <div class="min-h-screen flex items-center justify-center px-4 py-24">
-        <div class="max-w-md w-full">
+    <section class="pt-24 pb-12">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            {{-- Payment Card --}}
-            <div class="bg-white rounded-2xl shadow-xl p-8">
-                
-                {{-- Header --}}
-                <div class="text-center mb-8">
-                    <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <i class="fas fa-credit-card text-4xl text-white"></i>
-                    </div>
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Pembayaran Sewa</h1>
-                    <p class="text-gray-600">{{ $room->name }}</p>
-                </div>
+            {{-- Header --}}
+            <div class="mb-8 text-center">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Pembayaran Sewa Kos</h1>
+                <p class="text-gray-600">Selesaikan pembayaran Anda dengan aman</p>
+            </div>
 
-                {{-- Payment Details --}}
-                <div class="space-y-4 mb-8">
-                    <div class="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-5 border border-blue-100">
-                        <div class="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
-                            <span class="text-sm font-medium text-gray-600">Kamar</span>
-                            <span class="font-bold text-gray-900">{{ $room->name }}</span>
-                        </div>
-                        <div class="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
-                            <span class="text-sm font-medium text-gray-600">Periode Sewa</span>
-                            <div class="text-right">
-                                <div class="font-semibold text-gray-900 text-sm">
-                                    {{ \Carbon\Carbon::parse($resident->start_date)->format('d M Y') }}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                {{-- Payment Summary --}}
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                        
+                        <h2 class="text-xl font-bold text-gray-900 mb-6">Detail Pembayaran</h2>
+
+                        {{-- Room Info --}}
+                        <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 mb-6">
+                            <div class="flex gap-4">
+                                <div class="w-20 h-20 bg-white rounded-lg overflow-hidden flex-shrink-0">
+                                    @if($room->image)
+                                        <img src="{{ asset('storage/' . $room->image) }}" 
+                                             alt="{{ $room->name }}" class="w-full h-full object-cover">
+                                    @else
+                                        <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=200&h=200&fit=crop" 
+                                             alt="{{ $room->name }}" class="w-full h-full object-cover">
+                                    @endif
                                 </div>
-                                <div class="text-xs text-gray-500">sampai</div>
-                                <div class="font-semibold text-gray-900 text-sm">
-                                    {{ \Carbon\Carbon::parse($resident->end_date)->format('d M Y') }}
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900 mb-1">{{ $room->name }}</h3>
+                                    <p class="text-sm text-gray-600">{{ $room->property->name }}</p>
+                                    <p class="text-sm text-gray-600"><i class="fas fa-layer-group mr-1"></i>Lantai {{ $room->floor }}</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center pt-3">
-                            <span class="text-base font-bold text-gray-700">Total Pembayaran</span>
-                            <span class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                Rp {{ number_format($payment->amount, 0, ',', '.') }}
-                            </span>
+
+                        {{-- Payment Details --}}
+                        <div class="space-y-3 mb-6 pb-6 border-b">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Periode Pembayaran</span>
+                                <span class="font-semibold text-gray-900">{{ $payment->billing_month->format('F Y') }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Jatuh Tempo</span>
+                                <span class="font-semibold text-gray-900">{{ $payment->due_date->format('d M Y') }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Harga Sewa</span>
+                                <span class="font-semibold text-gray-900">Rp {{ number_format($payment->amount, 0, ',', '.') }}</span>
+                            </div>
                         </div>
+
+                        {{-- Total --}}
+                        <div class="bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-100 mb-6">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-700 font-semibold">Total Pembayaran</span>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-blue-600">Rp {{ number_format($payment->amount, 0, ',', '.') }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Payment Methods Info --}}
+                        <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                            <div class="font-semibold text-gray-900 mb-3">Metode Pembayaran yang Tersedia:</div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-credit-card text-blue-600"></i>
+                                    <span class="text-gray-700">Kartu Kredit</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-university text-blue-600"></i>
+                                    <span class="text-gray-700">Transfer Bank</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-wallet text-blue-600"></i>
+                                    <span class="text-gray-700">E-Wallet</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-store text-blue-600"></i>
+                                    <span class="text-gray-700">Gerai</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Pay Button --}}
+                        <button id="pay-button" 
+                                class="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 transition shadow-lg hover:shadow-xl">
+                            <i class="fas fa-lock mr-2"></i>Bayar Sekarang
+                        </button>
+
+                        <p class="text-xs text-gray-500 text-center mt-4">
+                            <i class="fas fa-shield-alt mr-1"></i>Pembayaran Anda dijamin aman oleh Midtrans
+                        </p>
+
                     </div>
                 </div>
 
-                {{-- Payment Methods Info --}}
-                <div class="bg-blue-50 rounded-lg p-4 mb-6">
-                    <div class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                        <i class="fas fa-info-circle text-blue-600"></i>
-                        Metode Pembayaran Tersedia:
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="flex items-center gap-2 text-xs text-gray-700">
-                            <i class="fas fa-credit-card text-blue-600"></i>
-                            <span>Kartu Kredit</span>
+                {{-- Sidebar Info --}}
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
+                        
+                        <h3 class="font-bold text-gray-900 mb-4">Informasi Penting</h3>
+                        
+                        <div class="space-y-4 text-sm text-gray-600">
+                            <div class="flex gap-3">
+                                <i class="fas fa-shield-alt text-green-600 mt-1"></i>
+                                <div>
+                                    <div class="font-semibold text-gray-900">Pembayaran Aman</div>
+                                    <div>Transaksi Anda dilindungi dengan enkripsi SSL</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex gap-3">
+                                <i class="fas fa-clock text-blue-600 mt-1"></i>
+                                <div>
+                                    <div class="font-semibold text-gray-900">Konfirmasi Otomatis</div>
+                                    <div>Pembayaran langsung terverifikasi secara otomatis</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex gap-3">
+                                <i class="fas fa-bell text-purple-600 mt-1"></i>
+                                <div>
+                                    <div class="font-semibold text-gray-900">Notifikasi Real-time</div>
+                                    <div>Anda akan menerima notifikasi status pembayaran</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex gap-3">
+                                <i class="fas fa-headset text-orange-600 mt-1"></i>
+                                <div>
+                                    <div class="font-semibold text-gray-900">Dukungan 24/7</div>
+                                    <div>Tim kami siap membantu kapan saja</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2 text-xs text-gray-700">
-                            <i class="fas fa-university text-blue-600"></i>
-                            <span>Transfer Bank</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-xs text-gray-700">
-                            <i class="fas fa-wallet text-blue-600"></i>
-                            <span>E-Wallet</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-xs text-gray-700">
-                            <i class="fas fa-mobile-alt text-blue-600"></i>
-                            <span>QRIS</span>
-                        </div>
+
+                        @if($contact && $contact->whatsapp)
+                            <div class="mt-6 pt-6 border-t">
+                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $contact->whatsapp) }}" 
+                                   target="_blank"
+                                   class="flex items-center justify-center gap-2 px-4 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition font-semibold">
+                                    <i class="fab fa-whatsapp"></i>
+                                    Hubungi via WhatsApp
+                                </a>
+                            </div>
+                        @endif
+
                     </div>
                 </div>
 
-                {{-- Payment Button --}}
-                <button id="pay-button" 
-                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-bold hover:from-blue-700 hover:to-purple-700 transition shadow-lg hover:shadow-xl transform hover:scale-105 duration-200">
-                    <i class="fas fa-lock mr-2"></i>Bayar Sekarang
-                </button>
-
-                {{-- Security Info --}}
-                <div class="mt-6 space-y-2">
-                    <div class="flex items-center justify-center gap-2 text-xs text-gray-500">
-                        <i class="fas fa-shield-alt text-green-600"></i>
-                        <span>Pembayaran aman & terenkripsi 256-bit SSL</span>
-                    </div>
-                    <div class="flex items-center justify-center gap-2 text-xs text-gray-500">
-                        <i class="fas fa-check-circle text-green-600"></i>
-                        <span>Powered by Midtrans Payment Gateway</span>
-                    </div>
-                </div>
-
-                {{-- Back Link --}}
-                <div class="mt-6 text-center">
-                    <a href="{{ route('tenant.bookings.index') }}" class="text-sm text-gray-600 hover:text-gray-900 font-medium">
-                        <i class="fas fa-arrow-left mr-1"></i>Kembali ke Dashboard
-                    </a>
-                </div>
-
-            </div>
-
-            {{-- Payment Logos --}}
-            <div class="text-center mt-8">
-                <p class="text-xs text-gray-400 mb-3">Didukung oleh:</p>
-                <div class="flex justify-center items-center gap-4 flex-wrap">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/200px-Visa_Inc._logo.svg.png" alt="Visa" class="h-6 opacity-60">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="Mastercard" class="h-6 opacity-60">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/American_Express_logo_%282018%29.svg/200px-American_Express_logo_%282018%29.svg.png" alt="Amex" class="h-5 opacity-60">
-                </div>
             </div>
 
         </div>
-    </div>
+    </section>
 
-    {{-- Footer --}}
     @include('landing.footer')
 
     <script type="text/javascript">
-        document.getElementById('pay-button').addEventListener('click', function () {
+        const payButton = document.getElementById('pay-button');
+        
+        payButton.addEventListener('click', function () {
             snap.pay('{{ $snapToken }}', {
                 onSuccess: function(result) {
                     console.log('Payment success:', result);
-                    window.location.href = '{{ route("tenant.payment.finish", $payment->id) }}';
+                    window.location.href = "{{ route('tenant.payment.finish', $payment->id) }}";
                 },
                 onPending: function(result) {
                     console.log('Payment pending:', result);
-                    window.location.href = '{{ route("tenant.payment.finish", $payment->id) }}';
+                    window.location.href = "{{ route('tenant.payment.finish', $payment->id) }}";
                 },
                 onError: function(result) {
                     console.log('Payment error:', result);
-                    alert('Pembayaran gagal. Silakan coba lagi.');
-                    window.location.href = '{{ route("tenant.payment.midtrans", $payment->id) }}';
+                    alert('Pembayaran gagal! Silakan coba lagi.');
                 },
                 onClose: function() {
-                    console.log('Payment popup closed');
-                    // User closed without completing payment
+                    console.log('Customer closed the popup without finishing payment');
                 }
             });
         });
-
-        // Auto trigger payment popup on page load (optional)
-        // Uncomment if you want automatic popup
-        // window.addEventListener('load', function() {
-        //     setTimeout(function() {
-        //         document.getElementById('pay-button').click();
-        //     }, 500);
-        // });
     </script>
 
 </body>
