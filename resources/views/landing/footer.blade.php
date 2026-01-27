@@ -19,6 +19,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M3 5.5a2.5 2.5 0 012.5-2.5h2.1a2 2 0 011.8 1.2l.8 1.8a2 2 0 01-.4 2.1l-1.1 1.1a11.1 11.1 0 005.2 5.2l1.1-1.1a2 2 0 012.1-.4l1.8.8a2 2 0 011.2 1.8v2.1A2.5 2.5 0 0118.5 21H16a16 16 0 01-13-13V5.5z" />
             </svg>
+           <?php $contact = isset($contact) ? $contact : (object) ['phone' => '08123456789', 'whatsapp' => '08123456789']; ?>
             {{ $contact->phone }}
           </p>
 
@@ -34,6 +35,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 22s8-4.5 8-13a8 8 0 10-16 0c0 8.5 8 13 8 13z" />
             </svg>
+           <?php $address = isset($address) ? $address : (object) ['address' => 'Jl. Contoh Alamat No.123, Bandung']; ?>
             {{ $address->address }}
           </p>
         </div>

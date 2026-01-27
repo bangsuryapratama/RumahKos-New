@@ -9,6 +9,8 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\Tenant\Auth\LoginController;
 use App\Http\Controllers\Tenant\Auth\RegisterController;
 use App\Http\Controllers\Tenant\Auth\SocialAuthController;
+use App\Http\Controllers\Tenant\Auth\ForgotPasswordController;
+use App\Http\Controllers\Tenant\Auth\ResetPasswordController;
 use App\Http\Controllers\Tenant\DashboardController;
 use App\Http\Controllers\Tenant\BookingController;
 use App\Http\Controllers\Tenant\PaymentController;
@@ -48,15 +50,13 @@ Route::middleware(['auth'])->get('/dashboard', function () {
 Route::middleware(['auth'])->prefix('admin')->group(function () {
 
     // Dashboard Admin
-Route::get('/dashboard', [DashboardAdminController::class, 'index'])
-    ->name('admin.dashboard');
+    Route::get('/dashboard', [DashboardAdminController::class, 'index'])
+        ->name('admin.dashboard');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-
 
     //Room CRUD
     Route::resource('rooms', RoomController::class)
@@ -125,10 +125,17 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
         Route::get('auth/{provider}', [SocialAuthController::class, 'redirect'])->name('social.redirect');
         Route::get('auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
         
-        // Password Reset
-        Route::get('password/reset', function () {
-            return view('tenant.auth.forgot-password');
-        })->name('password.request');
+        // ⭐ Forgot Password
+        Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])
+            ->name('password.request');
+        Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])
+            ->name('password.email');
+        
+        // ⭐ Reset Password
+        Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])
+            ->name('password.reset');
+        Route::post('password/reset', [ResetPasswordController::class, 'reset'])
+            ->name('password.update');
     });
     
     // Authenticated Routes (sudah login)
@@ -141,25 +148,27 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
         Route::put('profile', [DashboardController::class, 'updateProfile'])->name('profile.update');
         
         // Booking
-           Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
-            Route::get('/booking/{room}', [BookingController::class, 'create'])->name('booking.create');
-            Route::post('/booking/{room}', [BookingController::class, 'store'])->name('booking.store');
-            
-            // Payment Routes
-            Route::get('/payment/midtrans/{payment}', [PaymentController::class, 'midtrans'])->name('payment.midtrans');
-            Route::get('/payment/finish/{payment}', [PaymentController::class, 'finish'])->name('payment.finish');
-            Route::get('/payment/manual/{payment}', [PaymentController::class, 'manual'])->name('payment.manual');
-            Route::post('/payment/upload/{payment}', [PaymentController::class, 'uploadProof'])->name('payment.upload-proof');
-            // Route untuk check status manual (debugging)
-            Route::get('/payment/{payment}/check-status', [PaymentController::class, 'checkStatus'])
-                ->name('payment.check-status');
-
-            Route::post('/payment/callback', [PaymentController::class, 'callback'])
-                    ->name('payment.callback');
+        Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
+        Route::get('/booking/{room}', [BookingController::class, 'create'])->name('booking.create');
+        Route::post('/booking/{room}', [BookingController::class, 'store'])->name('booking.store');
+        
+        // Payment Routes
+        Route::get('/payment/midtrans/{payment}', [PaymentController::class, 'midtrans'])
+            ->name('payment.midtrans');
+        Route::get('/payment/finish/{payment}', [PaymentController::class, 'finish'])
+            ->name('payment.finish');
+        Route::get('/payment/manual/{payment}', [PaymentController::class, 'manual'])
+            ->name('payment.manual');
+        Route::post('/payment/upload/{payment}', [PaymentController::class, 'uploadProof'])
+            ->name('payment.upload-proof');
+        Route::get('/payment/{payment}/check-status', [PaymentController::class, 'checkStatus'])
+            ->name('payment.check-status');
+        
         // Logout
         Route::post('logout', [LoginController::class, 'logout'])->name('logout');
     });
 
-    // Midtrans Callback (tanpa auth middleware)
-    Route::post('/payment/midtrans/callback', [PaymentController::class, 'callback'])->name('payment.callback');
+ 
+    Route::post('/payment/callback', [PaymentController::class, 'callback'])
+        ->name('payment.callback');
 });

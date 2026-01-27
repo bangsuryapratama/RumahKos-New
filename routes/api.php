@@ -1,12 +1,6 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\RoomController;
+use App\Http\Controllers\Tenant\PaymentController;
 
-Route::middleware(['auth'])->prefix('admin')->group(function () {
-
-    // Rooms CRUD
-    Route::resource('rooms', RoomController::class);
-
-});
+Route::post('/payment/midtrans/callback', [PaymentController::class, 'callback']);
