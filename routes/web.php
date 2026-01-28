@@ -69,7 +69,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     //Management Role
     Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class)
         ->names('admin.roles');
-    
+
     //Management Property
     Route::resource('properties', \App\Http\Controllers\Admin\PropertyController::class)
         ->names('admin.properties');
@@ -84,7 +84,10 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
 });
 
-Route::post('/rooms/{room}/review', [ReviewController::class, 'store'])->name('room.review.store');
+Route::middleware(['auth:tenant'])->group(function () {
+    Route::post('/room/{room}/review', [ReviewController::class, 'store'])
+        ->name('room.review.store');
+});
 
 
 /*
@@ -109,49 +112,49 @@ Route::get('/no-access', function () {
 */
 
 Route::prefix('tenant')->name('tenant.')->group(function () {
-    
+
     // Guest Routes (belum login)
     Route::middleware('guest:tenant')->group(function () {
-        
+
         // Login
         Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
         Route::post('login', [LoginController::class, 'login']);
-        
+
         // Register
         Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
         Route::post('register', [RegisterController::class, 'register']);
-        
+
         // Social Login
         Route::get('auth/{provider}', [SocialAuthController::class, 'redirect'])->name('social.redirect');
         Route::get('auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
-        
+
         //  Forgot Password
         Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])
             ->name('password.request');
         Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])
             ->name('password.email');
-        
+
         //  Reset Password
         Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])
             ->name('password.reset');
         Route::post('password/reset', [ResetPasswordController::class, 'reset'])
             ->name('password.update');
     });
-    
+
     // Authenticated Routes (sudah login)
     Route::middleware('auth:tenant')->group(function () {
-        
+
         // Dashboard
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        
+
         // Profile Update
         Route::put('profile', [DashboardController::class, 'updateProfile'])->name('profile.update');
-        
+
         // Booking
         Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
         Route::get('/booking/{room}', [BookingController::class, 'create'])->name('booking.create');
         Route::post('/booking/{room}', [BookingController::class, 'store'])->name('booking.store');
-        
+
         // Payment Routes
         Route::get('/payment/midtrans/{payment}', [PaymentController::class, 'midtrans'])
             ->name('payment.midtrans');
@@ -163,12 +166,12 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
         //     ->name('payment.upload-proof');
         Route::get('/payment/{payment}/check-status', [PaymentController::class, 'checkStatus'])
             ->name('payment.check-status');
-        
+
         // Logout
         Route::post('logout', [LoginController::class, 'logout'])->name('logout');
     });
 
- 
+
     Route::post('/payment/callback', [PaymentController::class, 'callback'])
         ->name('payment.callback');
 });

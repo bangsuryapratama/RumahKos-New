@@ -10,7 +10,14 @@ class Review extends Model
         'room_id',
         'user_id',
         'rating',
-        'review'
+        'comment'
+    ];
+
+    protected $casts = [
+
+        'rating' => 'integer',
+        'created_at' => 'datetime',
+
     ];
 
     public function room()

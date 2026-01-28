@@ -13,13 +13,18 @@ use Illuminate\Support\Str;
 
 class SocialAuthController extends Controller
 {
-    public function redirect($provider)
+     public function redirect($provider)
     {
-        return Socialite::driver($provider)->redirect();
+
+    if (Auth::guard('tenant')->check()) {
+        Auth::guard('tenant')->logout();
+    }
+
+    return Socialite::driver($provider)->redirect();
     }
 
    public function callback($provider)
-{
+  {
     try {
         $socialUser = Socialite::driver($provider)
             ->user();

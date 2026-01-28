@@ -26,7 +26,7 @@
                         <i class="fas fa-home mr-2"></i>
                         <span class="hidden sm:inline">Beranda</span>
                     </a>
-                    
+
                     <div class="relative group">
                         <button class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition">
                             @if($user->avatar)
@@ -37,7 +37,7 @@
                             <span class="hidden sm:inline font-medium">{{ $user->name }}</span>
                             <i class="fas fa-chevron-down text-xs"></i>
                         </button>
-                        
+
                         <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                             <form method="POST" action="{{ route('tenant.logout') }}">
                                 @csrf
@@ -54,11 +54,11 @@
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         <!-- Welcome Section -->
         <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900 mb-2">
-                Selamat Datang, {{ $user->name }}! 
+                Selamat Datang, {{ $user->name }}!
             </h1>
             <p class="text-gray-600">Kelola data kos dan keuangan Anda di sini</p>
         </div>
@@ -146,7 +146,7 @@
         <div class="bg-white rounded-2xl shadow-sm mb-6">
             <div class="border-b border-gray-200">
                 <nav class="flex -mb-px overflow-x-auto">
-                    <button onclick="showTab('data-pribadi')" id="tab-data-pribadi" 
+                    <button onclick="showTab('data-pribadi')" id="tab-data-pribadi"
                             class="tab-button active px-6 py-4 text-sm font-semibold border-b-2 border-blue-600 text-blue-600 whitespace-nowrap">
                         <i class="fas fa-user mr-2"></i>Data Pribadi
                     </button>
@@ -163,11 +163,11 @@
 
             <!-- Tab Contents -->
             <div class="p-6">
-                
+
                 <!-- Data Pribadi Tab -->
                 <div id="content-data-pribadi" class="tab-content">
                     <h3 class="text-xl font-bold text-gray-900 mb-6">Informasi Pribadi</h3>
-                    
+
                     <form method="POST" action="{{ route('tenant.profile.update') }}" class="space-y-6">
                         @csrf
                         @method('PUT')
@@ -181,20 +181,20 @@
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
-                            
+
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
                                 <input type="email" value="{{ $user->email }}" disabled
                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-100 cursor-not-allowed">
                             </div>
-                            
+
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Telepon</label>
                                 <input type="tel" name="phone" value="{{ old('phone', $user->profile->phone ?? '') }}"
                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                            
-                            <div>
+
+                            <div>\
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Lahir</label>
                                 <input type="date" name="date_of_birth" value="{{ old('date_of_birth', $user->profile->date_of_birth?->format('Y-m-d') ?? '') }}"
                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -214,38 +214,38 @@
                                 <input type="text" name="identity_number" value="{{ old('identity_number', $user->profile->identity_number ?? '') }}"
                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                            
+
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Alamat Asal</label>
-                                <textarea name="address" rows="3" 
-                                          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                <textarea name="address" rows="3"
+                                          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                           placeholder="Masukkan alamat lengkap...">{{ old('address', $user->profile->address ?? '') }}</textarea>
                             </div>
-                            
+
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Pekerjaan</label>
                                 <input type="text" name="occupation" value="{{ old('occupation', $user->profile->occupation ?? '') }}"
-                                       placeholder="Mahasiswa / Karyawan" 
+                                       placeholder="Mahasiswa / Karyawan"
                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                            
+
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Nama Kontak Darurat</label>
                                 <input type="text" name="emergency_contact_name" value="{{ old('emergency_contact_name', $user->profile->emergency_contact_name ?? '') }}"
-                                       placeholder="Nama (keluarga)" 
+                                       placeholder="Nama (keluarga)"
                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
 
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">No. Kontak Darurat</label>
                                 <input type="tel" name="emergency_contact" value="{{ old('emergency_contact', $user->profile->emergency_contact ?? '') }}"
-                                       placeholder="08xxx (keluarga)" 
+                                       placeholder="08xxx (keluarga)"
                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
                         </div>
-                        
+
                         <div class="flex gap-3">
-                            <button type="submit" 
+                            <button type="submit"
                                     class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition">
                                 <i class="fas fa-save mr-2"></i>Simpan Perubahan
                             </button>
@@ -256,16 +256,16 @@
                 <!-- Data Kos Tab -->
                 <div id="content-data-kos" class="tab-content hidden">
                     <h3 class="text-xl font-bold text-gray-900 mb-6">Informasi Kos Saya</h3>
-                    
+
                     @if($resident)
                         <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 mb-6">
                             <div class="flex items-start gap-4">
                                 <div class="w-24 h-24 bg-white rounded-xl overflow-hidden flex-shrink-0">
                                     @if($resident->room->image)
-                                        <img src="{{ asset('storage/' . $resident->room->image) }}" 
+                                        <img src="{{ asset('storage/' . $resident->room->image) }}"
                                              alt="{{ $resident->room->name }}" class="w-full h-full object-cover">
                                     @else
-                                        <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=200&h=200&fit=crop" 
+                                        <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=200&h=200&fit=crop"
                                              alt="Kamar" class="w-full h-full object-cover">
                                     @endif
                                 </div>
@@ -297,7 +297,7 @@
                             </div>
                         </div>
 
-                        <a href="{{ route('tenant.bookings.index') }}" 
+                        <a href="{{ route('tenant.bookings.index') }}"
                            class="inline-block px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-semibold">
                             <i class="fas fa-receipt mr-2"></i>Lihat Detail Pembayaran
                         </a>
@@ -320,13 +320,13 @@
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-xl font-bold text-gray-900">Riwayat Pembayaran</h3>
                         @if($resident)
-                            <a href="{{ route('tenant.bookings.index') }}" 
+                            <a href="{{ route('tenant.bookings.index') }}"
                                class="text-blue-600 hover:text-blue-700 font-semibold text-sm">
                                 <i class="fas fa-external-link-alt mr-1"></i>Lihat Semua
                             </a>
                         @endif
                     </div>
-                    
+
                     @if($resident && $resident->payments->count() > 0)
                         <div class="space-y-4">
                             @foreach($resident->payments->take(5) as $payment)
@@ -349,7 +349,7 @@
                                                     <i class="fas fa-check-circle mr-1"></i>Lunas
                                                 </span>
                                             @elseif($payment->status === 'pending')
-                                                <a href="{{ route('tenant.payment.midtrans', $payment->id) }}" 
+                                                <a href="{{ route('tenant.payment.midtrans', $payment->id) }}"
                                                    class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold hover:bg-yellow-200 transition">
                                                     <i class="fas fa-clock mr-1"></i>Bayar
                                                 </a>
@@ -393,16 +393,16 @@
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.add('hidden');
             });
-            
+
             // Remove active class from all buttons
             document.querySelectorAll('.tab-button').forEach(btn => {
                 btn.classList.remove('active', 'border-blue-600', 'text-blue-600');
                 btn.classList.add('border-transparent', 'text-gray-500');
             });
-            
+
             // Show selected content
             document.getElementById('content-' + tabName).classList.remove('hidden');
-            
+
             // Add active class to selected button
             const activeBtn = document.getElementById('tab-' + tabName);
             activeBtn.classList.add('active', 'border-blue-600', 'text-blue-600');
