@@ -125,13 +125,13 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
         Route::get('auth/{provider}', [SocialAuthController::class, 'redirect'])->name('social.redirect');
         Route::get('auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
         
-        // ⭐ Forgot Password
+        //  Forgot Password
         Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])
             ->name('password.request');
         Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])
             ->name('password.email');
         
-        // ⭐ Reset Password
+        //  Reset Password
         Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])
             ->name('password.reset');
         Route::post('password/reset', [ResetPasswordController::class, 'reset'])
@@ -157,10 +157,10 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
             ->name('payment.midtrans');
         Route::get('/payment/finish/{payment}', [PaymentController::class, 'finish'])
             ->name('payment.finish');
-        Route::get('/payment/manual/{payment}', [PaymentController::class, 'manual'])
-            ->name('payment.manual');
-        Route::post('/payment/upload/{payment}', [PaymentController::class, 'uploadProof'])
-            ->name('payment.upload-proof');
+        // Route::get('/payment/manual/{payment}', [PaymentController::class, 'manual'])
+        //     ->name('payment.manual');
+        // Route::post('/payment/upload/{payment}', [PaymentController::class, 'uploadProof'])
+        //     ->name('payment.upload-proof');
         Route::get('/payment/{payment}/check-status', [PaymentController::class, 'checkStatus'])
             ->name('payment.check-status');
         

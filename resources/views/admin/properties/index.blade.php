@@ -47,7 +47,7 @@
                                 {{-- PHONE --}}
                                 @if($property->phone)
                                 <div class="flex items-center gap-3">
-                                    <p class="fa-solid dfa-phone text-lg"></p>
+                                    <p class="fa-solid fa-phone text-lg"></p>
                                     <span class="text-gray-700 leading-none">
                                         {{ $property->phone }}
                                     </span>

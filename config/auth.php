@@ -42,9 +42,14 @@ return [
     ],
     'tenant' => [
         'driver' => 'session',
-        'provider' => 'users', // SAMA, tapi filter by role
+        'provider' => 'users',
+    ],
+    'api' => [
+        'driver' => 'sanctum',
+        'provider' => 'users',
     ],
 ],
+
 
     /*
     |--------------------------------------------------------------------------
