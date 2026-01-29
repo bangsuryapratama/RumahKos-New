@@ -82,11 +82,30 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::resource('facility_rooms', \App\Http\Controllers\Admin\FacilityRoomController::class)
         ->names('admin.facility_rooms');
 
+
+
+    Route::post('/review/{review}/reply', [ReviewController::class, 'reply'])
+        ->name('admin.review.reply');
+
+    // Delete reply
+    Route::delete('/review-reply/{reply}', [ReviewController::class, 'deleteReply'])
+        ->name('admin.review.reply.delete');
 });
 
+
+
 Route::middleware(['auth:tenant'])->group(function () {
+     // Create review
     Route::post('/room/{room}/review', [ReviewController::class, 'store'])
         ->name('room.review.store');
+
+    // Update review
+    Route::put('/review/{review}', [ReviewController::class, 'update'])
+        ->name('review.update');
+
+    // Delete review
+    Route::delete('/review/{review}', [ReviewController::class, 'destroy'])
+        ->name('review.destroy');
 });
 
 

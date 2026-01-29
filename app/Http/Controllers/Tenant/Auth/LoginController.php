@@ -16,42 +16,46 @@ class LoginController extends Controller
     }
 
     public function login(Request $request)
-    {
-        $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+{
+    $request->validate([
+        'email' => ['required', 'email'],
+        'password' => ['required'],
+    ]);
 
-        // Coba login dengan guard tenant
-        if (Auth::guard('tenant')->attempt($request->only('email', 'password'), $request->filled('remember'))) {
-            
-            // Cek apakah user yang login adalah penghuni
-            /** @var User $user */
-            $user = Auth::guard('tenant')->user();
-            
-            if (!$user->isPenghuni()) {
-                Auth::guard('tenant')->logout();
-                
-                throw ValidationException::withMessages([
-                    'email' => 'Akun ini bukan akun penghuni. Silakan gunakan halaman login admin.',
-                ]);
-            }
-            
-            $request->session()->regenerate();
+    if (Auth::attempt($request->only('email', 'password'), $request->filled('remember'))) {
+
+        $request->session()->regenerate();
+        $user = Auth::user();
+
+        if ($user->isAdmin()) {
+            return redirect()->intended(route('admin.dashboard'));
+        }
+
+
+        if ($user->isPenghuni()) {
+            Auth::shouldUse('tenant');
             return redirect()->intended(route('tenant.dashboard'));
         }
 
+        
+        Auth::logout();
         throw ValidationException::withMessages([
-            'email' => 'Email atau password salah.',
+            'email' => 'Akun tidak memiliki akses.',
         ]);
     }
+
+    throw ValidationException::withMessages([
+        'email' => 'Email atau password salah.',
+    ]);
+}
+
 
     public function logout(Request $request)
     {
         Auth::guard('tenant')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
+
         return redirect('/');
     }
 }

@@ -126,11 +126,78 @@ class RoomController extends Controller
             ->with('success', 'Kamar berhasil diupdate');
     }
 
-    public function show(Room $room)
+    public function show($id)
     {
-        Room::with('property', 'facilities', 'residents')->find($room->id);
-        return view('admin.rooms.show', compact('room'));
+        // Get room with relationships
+        $room = Room::with(['property', 'facilities'])->findOrFail($id);
 
+        // Get reviews with pagination - MUST use paginate() not get()
+        $reviews = Review::where('room_id', $room->id)
+            ->with('user')
+            ->latest()
+            ->paginate(10); // This creates paginator instance
+
+        // Calculate average rating
+        $averageRating = Review::where('room_id', $room->id)->avg('rating') ?? 0;
+        $totalReviews = Review::where('room_id', $room->id)->count();
+
+        // Get category averages
+        $categoryAverages = $this->getCategoryAverages($room->id);
+
+        // Get similar rooms
+        $similarRooms = Room::where('property_id', $room->property_id)
+            ->where('id', '!=', $room->id)
+            ->where('status', 'available')
+            ->limit(3)
+            ->get();
+
+        return view('landing.room-detail', compact(
+            'room',
+            'reviews',
+            'averageRating',
+            'totalReviews',
+            'categoryAverages',
+            'similarRooms'
+        ));
+    }
+
+    /**
+     * Calculate average scores per category
+     */
+    private function getCategoryAverages($roomId)
+    {
+        $reviews = Review::where('room_id', $roomId)
+            ->whereNotNull('category_ratings')
+            ->get();
+
+        if ($reviews->isEmpty()) {
+            return [];
+        }
+
+        $categories = ReviewAutoScoring::getCategories();
+        $averages = [];
+
+        foreach ($categories as $key => $category) {
+            $scores = [];
+
+            foreach ($reviews as $review) {
+                $ratings = $review->category_ratings;
+                if (is_array($ratings) && isset($ratings[$key]) && $ratings[$key] > 0) {
+                    $scores[] = $ratings[$key];
+                }
+            }
+
+            if (!empty($scores)) {
+                $averages[$key] = [
+                    'name' => $category['name'],
+                    'score' => round(array_sum($scores) / count($scores), 1),
+                    'icon' => $category['icon'],
+                    'color' => $category['color']
+                ];
+            }
+        }
+
+        return $averages;
     }
 
     public function destroy(Room $room)
