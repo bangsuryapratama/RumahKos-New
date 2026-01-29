@@ -86,8 +86,8 @@
                         {{ $room->property->address ?? 'Bandung' }}
                     </span>
                     <span class="hidden sm:inline">•</span>
-                    <div class="flex items-center gap-1.5 bg-green-50 px-2 py-1 rounded">
-                        <i class="fas fa-star text-green-600 text-sm"></i>
+                    <div class="flex items-center gap-1.5 bg-blue-50 px-2 py-1 rounded">
+                        <i class="fas fa-star text-blue-600 text-sm"></i>
                         <span class="font-bold text-gray-900">{{ number_format($averageRating, 1) }}</span>
                         <span class="text-gray-500">({{ $totalReviews }})</span>
                     </div>
