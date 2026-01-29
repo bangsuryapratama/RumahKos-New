@@ -39,7 +39,7 @@ class UserController extends Controller
 
         return redirect()
             ->route('admin.users.index')
-            ->with('success', 'User berhasil dibuat 🔥');
+            ->with('success', 'User berhasil dibuat ');
     }
 
     public function edit(User $user)

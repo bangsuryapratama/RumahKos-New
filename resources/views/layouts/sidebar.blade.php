@@ -1,8 +1,8 @@
-<!-- resources/views/components/sidebar.blade.php -->
+
 @props(['sidebarOpen' => true])
 
 <aside :class="sidebarOpen ? 'w-64' : 'w-20'" class="bg-white border-r border-gray-200 transition-all duration-300 ease-in-out fixed h-full z-30 shadow-lg">
-    
+
     <!-- Logo & Brand -->
     <div class="flex items-center p-5 border-b border-gray-200">
         <div class="flex items-center gap-3">
@@ -18,9 +18,9 @@
     <!-- Navigation Menu -->
     <nav class="mt-4 px-3">
         <div class="space-y-1">
-            
+
             <!-- Dashboard -->
-            <a href="{{ route('dashboard') }}" 
+            <a href="{{ route('dashboard') }}"
                class="flex items-center gap-3 px-4 py-3 rounded-lg transition {{ request()->routeIs('dashboard') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -29,14 +29,14 @@
             </a>
 
             <!-- Users dan Roles -->
-            <div 
+            <div
                 x-data="{
                     open: {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') ? 'true' : 'false' }}
                 }"
                 class="relative"
             >
                 {{-- PARENT --}}
-                <button 
+                <button
                     @click="open = !open"
                     class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition
                     {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*')
@@ -82,7 +82,7 @@
                 </div>
 
                 {{-- SUB MENU - Floating when sidebar minimized --}}
-                <div x-show="!sidebarOpen && open" 
+                <div x-show="!sidebarOpen && open"
                      x-transition
                      @click.away="open = false"
                      class="absolute left-full top-0 ml-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
@@ -109,14 +109,14 @@
 
 
             <!-- Fasilitas dan Facility Rooms -->
-            <div 
+            <div
                 x-data="{
                     open: {{ request()->routeIs('admin.facilities.*') || request()->routeIs('admin.facility_rooms.*') ? 'true' : 'false' }}
                 }"
                 class="relative"
             >
                 {{-- PARENT --}}
-                <button 
+                <button
                     @click="open = !open"
                     class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition
                     {{ request()->routeIs('admin.facilities.*') || request()->routeIs('admin.facility_rooms.*')
@@ -162,7 +162,7 @@
                 </div>
 
                 {{-- SUB MENU - Floating when sidebar minimized --}}
-                <div x-show="!sidebarOpen && open" 
+                <div x-show="!sidebarOpen && open"
                      x-transition
                      @click.away="open = false"
                      class="absolute left-full top-0 ml-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
@@ -194,10 +194,10 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M16 3h-1a2 2 0 00-2 2v1H9V5a2 2 0 00-2-2H6a2 2 0 00-2 2v1h16V5a2 2 0 00-2-2z" />
                  </svg>
                  <span x-show="sidebarOpen" class="font-medium">Kelola Properti</span>
-            </a>    
-            
+            </a>
+
             <!-- Kamar -->
-            <a href="{{ route('admin.rooms.index') }}" 
+            <a href="{{ route('admin.rooms.index') }}"
                class="flex items-center gap-3 px-4 py-3 rounded-lg transition {{ request()->routeIs('admin.rooms.*') ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700 hover:bg-gray-100' }}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />

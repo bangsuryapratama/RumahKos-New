@@ -1,10 +1,10 @@
 <x-app-layout>
     <div class="py-6 px-4 sm:px-6 lg:px-8">
         <div class="max-w-5xl mx-auto">
-            
+
             {{-- Header --}}
             <div class="mb-6">
-                <a href="{{ route('admin.facilities.index') }}" 
+                <a href="{{ route('admin.facilities.index') }}"
                    class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -12,11 +12,22 @@
                     Kembali ke Master Fasilitas
                 </a>
                 <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
-                    Tambah Fasilitas Baru
+                    Edit Fasilitas
+                </h1>
                 <p class="mt-1 text-sm text-gray-500">
-                    Buat fasilitas baru dengan mudah - cukup ketik nama fasilitas dan kami akan carikan iconnya!
+                    Perbarui informasi fasilitas - ubah nama atau pilih icon baru
                 </p>
             </div>
+
+            {{-- Success Alert --}}
+            @if(session('success'))
+            <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                {{ session('success') }}
+            </div>
+            @endif
 
             {{-- Error Alert --}}
             @if(session('error'))
@@ -29,27 +40,28 @@
             @endif
 
             {{-- Form Card --}}
-            <form method="POST" action="{{ route('admin.facilities.store') }}" class="space-y-6">
-                
+            <form method="POST" action="{{ route('admin.facilities.update', $facility->id) }}" class="space-y-6">
+
                 @csrf
+                @method('PUT')
 
                 {{-- Facility Name with Auto-Suggest --}}
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                         Nama Fasilitas <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" 
-                           name="name" 
+                    <input type="text"
+                           name="name"
                            id="facilityName"
                            required
                            placeholder="Ketik nama fasilitas (contoh: WiFi, AC, TV, Lemari)..."
                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg"
-                           value="{{ old('name') }}"
+                           value="{{ old('name', $facility->name) }}"
                            oninput="suggestIcons()">
                     @error('name')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
-                    
+
                     {{-- Auto-Suggest Results --}}
                     <div id="autoSuggest" class="hidden mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                         <p class="text-sm font-medium text-blue-900 mb-3">💡 Rekomendasi Icon untuk "<span id="suggestedFor"></span>":</p>
@@ -59,7 +71,7 @@
 
                 {{-- Icon Selection --}}
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    
+
                     {{-- Selected Icon Display --}}
                     <div class="p-6 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
                         <div class="flex items-center justify-between">
@@ -67,24 +79,24 @@
                                 <label class="block text-sm font-semibold text-gray-700 mb-1">
                                     Icon Terpilih <span class="text-red-500">*</span>
                                 </label>
-                                <input type="hidden" name="icon" id="iconInput" value="{{ old('icon') }}" required>
+                                <input type="hidden" name="icon" id="iconInput" value="{{ old('icon', $facility->icon) }}" required>
                                 <div id="selectedIconDisplay" class="flex items-center gap-3 mt-2">
                                     <div class="w-16 h-16 bg-white rounded-xl shadow-md flex items-center justify-center border-2 border-blue-300">
-                                        <i id="selectedIcon" class="fas fa-question text-3xl text-gray-400"></i>
+                                        <i id="selectedIcon" class="{{ old('icon', $facility->icon) }} text-3xl text-blue-600"></i>
                                     </div>
                                     <div>
                                         <p class="text-sm text-gray-600">Class:</p>
-                                        <code id="selectedIconClass" class="text-sm font-mono bg-white px-3 py-1 rounded border border-blue-200">Belum dipilih</code>
+                                        <code id="selectedIconClass" class="text-sm font-mono bg-white px-3 py-1 rounded border border-blue-200">{{ old('icon', $facility->icon) }}</code>
                                     </div>
                                 </div>
                             </div>
-                            <button type="button" 
-                                    onclick="openIconPicker()" 
+                            <button type="button"
+                                    onclick="toggleIconPicker()"
                                     class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
                                 <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                 </svg>
-                                Pilih Icon Lain
+                                Ganti Icon
                             </button>
                         </div>
                         @error('icon')
@@ -94,11 +106,11 @@
 
                     {{-- Icon Picker Modal Content --}}
                     <div id="iconPickerContent" class="hidden p-6">
-                        
+
                         {{-- Search Bar --}}
                         <div class="mb-6">
                             <div class="relative">
-                                <input type="text" 
+                                <input type="text"
                                        id="iconSearch"
                                        placeholder="Cari icon... (contoh: wifi, bed, tv, ac, bathroom)"
                                        class="w-full px-4 py-3 pl-11 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -151,6 +163,20 @@
 
                 </div>
 
+                {{-- Additional Info --}}
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-600">Dibuat pada:</span>
+                            <span class="font-medium text-gray-900 ml-2">{{ $facility->created_at->format('d M Y, H:i') }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Terakhir diubah:</span>
+                            <span class="font-medium text-gray-900 ml-2">{{ $facility->updated_at->format('d M Y, H:i') }}</span>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Form Actions --}}
                 <div class="flex flex-col-reverse sm:flex-row sm:justify-between gap-3">
                     <a href="{{ route('admin.facilities.index') }}"
@@ -165,7 +191,7 @@
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        Simpan Fasilitas
+                        Update Fasilitas
                     </button>
                 </div>
 
@@ -293,15 +319,14 @@
         iconDatabase.all = Object.values(iconDatabase).flat();
 
         let currentCategory = 'popular';
-        let selectedIconValue = '{{ old("icon") }}';
+        let selectedIconValue = '{{ old("icon", $facility->icon) }}';
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             if (selectedIconValue) {
-                selectIcon(selectedIconValue);
+                selectIcon(selectedIconValue, false);
             }
             showCategory('popular');
-            openIconPicker();
         });
 
         // Auto-suggest icons based on facility name
@@ -317,8 +342,8 @@
             }
 
             // Search for matching icons
-            const matches = iconDatabase.all.filter(item => 
-                item.keywords.toLowerCase().includes(name) || 
+            const matches = iconDatabase.all.filter(item =>
+                item.keywords.toLowerCase().includes(name) ||
                 item.name.toLowerCase().includes(name)
             ).slice(0, 4);
 
@@ -326,8 +351,8 @@
                 suggestDiv.classList.remove('hidden');
                 suggestedFor.textContent = name;
                 suggestedIcons.innerHTML = matches.map(item => `
-                    <button type="button" 
-                            onclick="selectIcon('${item.icon}')" 
+                    <button type="button"
+                            onclick="selectIcon('${item.icon}')"
                             class="flex flex-col items-center p-3 bg-white border-2 border-blue-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
                         <i class="${item.icon} text-2xl text-blue-600 mb-2"></i>
                         <span class="text-xs text-gray-700">${item.name}</span>
@@ -338,8 +363,8 @@
             }
         }
 
-        // Open icon picker
-        function openIconPicker() {
+        // Toggle icon picker
+        function toggleIconPicker() {
             const content = document.getElementById('iconPickerContent');
             content.classList.toggle('hidden');
         }
@@ -347,7 +372,7 @@
         // Show category
         function showCategory(category) {
             currentCategory = category;
-            
+
             // Update active tab
             document.querySelectorAll('.category-tab').forEach(tab => {
                 tab.classList.remove('active');
@@ -372,7 +397,7 @@
             noResults.classList.add('hidden');
 
             grid.innerHTML = icons.map(item => `
-                <button type="button" 
+                <button type="button"
                         onclick="selectIcon('${item.icon}')"
                         class="icon-item ${selectedIconValue === item.icon ? 'selected' : ''} flex flex-col items-center p-3 bg-gray-50 border-2 border-gray-200 rounded-lg hover:border-blue-500"
                         title="${item.name}">
@@ -385,7 +410,7 @@
         // Filter icons
         function filterIcons() {
             const search = document.getElementById('iconSearch').value.toLowerCase();
-            
+
             if (search === '') {
                 renderIcons(iconDatabase[currentCategory]);
                 return;
@@ -400,7 +425,7 @@
         }
 
         // Select icon
-        function selectIcon(iconClass) {
+        function selectIcon(iconClass, hideAutoSuggest = true) {
             selectedIconValue = iconClass;
             document.getElementById('iconInput').value = iconClass;
             document.getElementById('selectedIcon').className = iconClass + ' text-3xl text-blue-600';
@@ -410,14 +435,18 @@
             document.querySelectorAll('.icon-item').forEach(item => {
                 item.classList.remove('selected');
                 const icon = item.querySelector('i');
-                if (icon.className.includes(iconClass)) {
+                if (icon && icon.className.includes(iconClass.replace('fas fa-', '').replace('far fa-', '').replace('fab fa-', ''))) {
                     item.classList.add('selected');
                     icon.className = iconClass + ' text-2xl text-white mb-1';
+                } else if (icon) {
+                    icon.className = icon.className.replace('text-white', 'text-gray-700');
                 }
             });
 
-            // Close auto-suggest if open
-            document.getElementById('autoSuggest').classList.add('hidden');
+            // Close auto-suggest if requested
+            if (hideAutoSuggest) {
+                document.getElementById('autoSuggest').classList.add('hidden');
+            }
         }
     </script>
 </x-app-layout>

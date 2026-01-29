@@ -613,7 +613,7 @@
 
             cards.sort((a, b) => {
                 if (sortBy === 'name-asc') {
-                    return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
+                    return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));\
                 } else if (sortBy === 'price-asc') {
                     return parseInt(a.getAttribute('data-price')) - parseInt(b.getAttribute('data-price'));
                 }

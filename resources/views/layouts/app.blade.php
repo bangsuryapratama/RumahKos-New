@@ -15,19 +15,19 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-        
+
         <!-- Alpine.js -->
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     </head>
     <body class="font-sans antialiased bg-gray-100">
         <div class="min-h-screen flex" x-data="{ sidebarOpen: true }">
-            
+
             <!-- Sidebar Component -->
             @include('layouts.sidebar')
 
             <!-- Main Content -->
             <div :class="sidebarOpen ? 'ml-64' : 'ml-20'" class="flex-1 transition-all duration-300">
-                
+
                 <!-- Top Navigation Bar -->
                 <header class="bg-white shadow-sm sticky top-0 z-20">
                     <div class="flex items-center justify-between px-6 py-4">
@@ -38,7 +38,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                                 </svg>
                             </button>
-                            
+
                             <!-- Page Title -->
                             @isset($header)
                                 {{ $header }}
@@ -67,7 +67,7 @@
                                 </button>
 
                                 <!-- Dropdown Menu -->
-                                <div x-show="open" 
+                                <div x-show="open"
                                      @click.away="open = false"
                                      x-transition
                                      class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border border-gray-200">

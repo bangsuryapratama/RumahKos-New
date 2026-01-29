@@ -76,6 +76,49 @@
             </div>
         @endif
 
+        <!-- Profile Completion Alert -->
+        @php
+            $profileComplete = $user->profile &&
+                              $user->profile->phone &&
+                              $user->profile->identity_number &&
+                              $user->profile->ktp_photo;
+            $completionPercent = 0;
+            if ($user->profile) {
+                $fields = ['phone', 'identity_number', 'address', 'date_of_birth', 'gender', 'occupation', 'emergency_contact', 'ktp_photo'];
+                $filled = 0;
+                foreach ($fields as $field) {
+                    if ($user->profile->$field) $filled++;
+                }
+                $completionPercent = round(($filled / count($fields)) * 100);
+            }
+        @endphp
+
+        @if(!$profileComplete)
+            <div class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-yellow-400 text-xl"></i>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <h3 class="text-sm font-medium text-yellow-800">
+                            Lengkapi Profile Anda ({{ $completionPercent }}%)
+                        </h3>
+                        <div class="mt-2 text-sm text-yellow-700">
+                            <p>Mohon lengkapi data pribadi dan dokumen identitas Anda untuk pengalaman yang lebih baik.</p>
+                            <div class="w-full bg-yellow-200 rounded-full h-2 mt-2">
+                                <div class="bg-yellow-600 h-2 rounded-full" style="width: {{ $completionPercent }}%"></div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button onclick="showTab('data-pribadi')" class="text-sm font-medium text-yellow-800 hover:text-yellow-900 underline">
+                                Lengkapi Sekarang →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Quick Stats -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg">
@@ -150,6 +193,16 @@
                             class="tab-button active px-6 py-4 text-sm font-semibold border-b-2 border-blue-600 text-blue-600 whitespace-nowrap">
                         <i class="fas fa-user mr-2"></i>Data Pribadi
                     </button>
+                    <button onclick="showTab('dokumen')" id="tab-dokumen"
+                            class="tab-button px-6 py-4 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap relative">
+                        <i class="fas fa-id-card mr-2"></i>Dokumen
+                        @if(!$user->profile || !$user->profile->ktp_photo)
+                            <span class="absolute top-3 right-3 flex h-3 w-3">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                            </span>
+                        @endif
+                    </button>
                     <button onclick="showTab('data-kos')" id="tab-data-kos"
                             class="tab-button px-6 py-4 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">
                         <i class="fas fa-building mr-2"></i>Data Kos
@@ -191,10 +244,11 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Telepon</label>
                                 <input type="tel" name="phone" value="{{ old('phone', $user->profile->phone ?? '') }}"
+                                       placeholder="08xxxxxxxxxx"
                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
 
-                            <div>\
+                            <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Lahir</label>
                                 <input type="date" name="date_of_birth" value="{{ old('date_of_birth', $user->profile->date_of_birth?->format('Y-m-d') ?? '') }}"
                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -212,6 +266,7 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">No. Identitas (KTP)</label>
                                 <input type="text" name="identity_number" value="{{ old('identity_number', $user->profile->identity_number ?? '') }}"
+                                       placeholder="16 digit"
                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
 
@@ -248,6 +303,183 @@
                             <button type="submit"
                                     class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition">
                                 <i class="fas fa-save mr-2"></i>Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Dokumen Tab -->
+                <div id="content-dokumen" class="tab-content hidden">
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Dokumen Identitas</h3>
+                        <p class="text-gray-600 text-sm">Upload KTP (wajib) dan salah satu antara SIM atau Passport. Format: JPG, PNG, PDF (Max: 2MB)</p>
+                    </div>
+
+                    <form method="POST" action="{{ route('tenant.profile.update') }}" enctype="multipart/form-data" class="space-y-6">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- KTP -->
+                            <div class="border-2 border-blue-200 bg-blue-50/30 rounded-xl p-6 hover:border-blue-400 transition">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-id-card text-white text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-gray-900 flex items-center gap-2">
+                                                Foto KTP
+                                                <span class="px-2 py-0.5 bg-red-500 text-white text-xs rounded">Wajib</span>
+                                            </h4>
+                                            <p class="text-sm text-gray-600">Kartu Tanda Penduduk</p>
+                                        </div>
+                                    </div>
+                                    @if($user->profile && $user->profile->ktp_photo)
+                                        <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                                            <i class="fas fa-check-circle mr-1"></i>Uploaded
+                                        </span>
+                                    @else
+                                        <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>Belum
+                                        </span>
+                                    @endif
+                                </div>
+
+                                @if($user->profile && $user->profile->ktp_photo)
+                                    <div class="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                                        <div class="flex items-center gap-3">
+                                            <i class="fas fa-file-image text-green-600 text-xl"></i>
+                                            <div class="flex-1">
+                                                <div class="text-sm font-medium text-green-900">Dokumen tersimpan</div>
+                                                <div class="text-xs text-green-700">{{ basename($user->profile->ktp_photo) }}</div>
+                                            </div>
+                                            <a href="{{ asset('storage/' . $user->profile->ktp_photo) }}" target="_blank"
+                                               class="px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition">
+                                                <i class="fas fa-eye mr-1"></i>Lihat
+                                            </a>
+                                        </div>
+                                        <label class="flex items-center gap-2 mt-3 pt-3 border-t border-green-200 cursor-pointer">
+                                            <input type="checkbox" name="delete_ktp" value="1" class="rounded text-red-600">
+                                            <span class="text-sm text-red-600 font-medium">Hapus & ganti dokumen</span>
+                                        </label>
+                                    </div>
+                                @endif
+
+                                <label class="block">
+                                    <span class="text-sm font-medium text-gray-700 mb-2 block">
+                                        {{ $user->profile && $user->profile->ktp_photo ? 'Upload ulang KTP' : 'Upload KTP' }}
+                                    </span>
+                                    <input type="file" name="ktp_photo" accept="image/*,application/pdf"
+                                           class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition">
+                                    @error('ktp_photo')
+                                        <p class="mt-2 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                                    @enderror
+                                </label>
+                            </div>
+
+                            <!-- SIM atau Passport (Pilih salah satu) -->
+                            <div class="border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 transition">
+                                <div class="mb-4">
+                                    <h4 class="font-semibold text-gray-900 flex items-center gap-2 mb-1">
+                                        SIM atau Passport
+                                        <span class="px-2 py-0.5 bg-blue-500 text-white text-xs rounded">Pilih 1</span>
+                                    </h4>
+                                    <p class="text-sm text-gray-600">Upload salah satu sebagai identitas tambahan</p>
+                                </div>
+
+                                @php
+                                    $hasSimOrPassport = ($user->profile && ($user->profile->sim_photo || $user->profile->passport_photo));
+                                    $simUploaded = $user->profile && $user->profile->sim_photo;
+                                    $passportUploaded = $user->profile && $user->profile->passport_photo;
+                                @endphp
+
+                                @if($hasSimOrPassport)
+                                    <div class="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                                        <div class="flex items-center gap-3">
+                                            <i class="fas {{ $simUploaded ? 'fa-car' : 'fa-passport' }} text-green-600 text-xl"></i>
+                                            <div class="flex-1">
+                                                <div class="text-sm font-medium text-green-900">
+                                                    {{ $simUploaded ? 'SIM' : 'Passport' }} tersimpan
+                                                </div>
+                                                <div class="text-xs text-green-700">
+                                                    {{ basename($simUploaded ? $user->profile->sim_photo : $user->profile->passport_photo) }}
+                                                </div>
+                                            </div>
+                                            <a href="{{ asset('storage/' . ($simUploaded ? $user->profile->sim_photo : $user->profile->passport_photo)) }}" target="_blank"
+                                               class="px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition">
+                                                <i class="fas fa-eye mr-1"></i>Lihat
+                                            </a>
+                                        </div>
+                                        <label class="flex items-center gap-2 mt-3 pt-3 border-t border-green-200 cursor-pointer">
+                                            <input type="checkbox" name="{{ $simUploaded ? 'delete_sim' : 'delete_passport' }}" value="1" class="rounded text-red-600">
+                                            <span class="text-sm text-red-600 font-medium">Hapus & ganti dokumen</span>
+                                        </label>
+                                    </div>
+                                @endif
+
+                                <!-- Pilihan SIM atau Passport -->
+                                <div class="space-y-4">
+                                    <label class="block p-4 border-2 border-gray-300 rounded-xl hover:border-orange-400 hover:bg-orange-50/30 transition cursor-pointer">
+                                        <div class="flex items-center gap-3 mb-3">
+                                            <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-car text-orange-600"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="font-semibold text-gray-900">SIM (Surat Izin Mengemudi)</div>
+                                                <div class="text-xs text-gray-600">Upload foto SIM Anda</div>
+                                            </div>
+                                        </div>
+                                        <input type="file" name="sim_photo" accept="image/*,application/pdf"
+                                               class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100">
+                                    </label>
+
+                                    <div class="text-center text-sm text-gray-500 font-medium">ATAU</div>
+
+                                    <label class="block p-4 border-2 border-gray-300 rounded-xl hover:border-purple-400 hover:bg-purple-50/30 transition cursor-pointer">
+                                        <div class="flex items-center gap-3 mb-3">
+                                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-passport text-purple-600"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="font-semibold text-gray-900">Passport</div>
+                                                <div class="text-xs text-gray-600">Upload foto Passport Anda</div>
+                                            </div>
+                                        </div>
+                                        <input type="file" name="passport_photo" accept="image/*,application/pdf"
+                                               class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Info Box -->
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+                            <div class="flex gap-3">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+                                </div>
+                                <div class="text-sm text-blue-800">
+                                    <p class="font-semibold mb-1">Catatan Penting:</p>
+                                    <ul class="list-disc list-inside space-y-1">
+                                        <li><strong>KTP wajib</strong> diupload untuk verifikasi identitas</li>
+                                        <li>Upload <strong>salah satu</strong> antara SIM atau Passport sebagai identitas tambahan</li>
+                                        <li>Format file: JPG, PNG, atau PDF</li>
+                                        <li>Ukuran maksimal: 2MB per file</li>
+                                        <li>Pastikan foto jelas dan tidak blur</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 pt-4 border-t border-gray-200">
+                            <button type="submit"
+                                    class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-xl">
+                                <i class="fas fa-save mr-2"></i>Simpan Dokumen
+                            </button>
+                            <button type="button" onclick="showTab('data-pribadi')"
+                                    class="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition">
+                                <i class="fas fa-arrow-left mr-2"></i>Kembali
                             </button>
                         </div>
                     </form>

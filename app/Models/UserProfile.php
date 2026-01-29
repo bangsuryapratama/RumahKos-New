@@ -3,6 +3,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @property int $id
@@ -15,25 +16,13 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $emergency_contact
  * @property string|null $emergency_contact_name
  * @property string|null $gender
+ * @property string|null $ktp_photo
+ * @property string|null $passport_photo
+ * @property string|null $sim_photo
+ * @property string|null $other_document
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\User $user
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereAddress($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereDateOfBirth($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereEmergencyContact($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereEmergencyContactName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereGender($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereIdentityNumber($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereOccupation($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile wherePhone($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserProfile whereUserId($value)
- * @mixin \Eloquent
  */
 class UserProfile extends Model
 {
@@ -49,6 +38,10 @@ class UserProfile extends Model
         'emergency_contact',
         'emergency_contact_name',
         'gender',
+        'ktp_photo',
+        'passport_photo',
+        'sim_photo',
+        'other_document',
     ];
 
     protected $casts = [
@@ -58,5 +51,34 @@ class UserProfile extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    // Helper untuk mendapatkan URL dokumen
+    public function getKtpPhotoUrlAttribute()
+    {
+        return $this->ktp_photo ? Storage::url($this->ktp_photo) : null;
+    }
+
+    public function getPassportPhotoUrlAttribute()
+    {
+        return $this->passport_photo ? Storage::url($this->passport_photo) : null;
+    }
+
+    public function getSimPhotoUrlAttribute()
+    {
+        return $this->sim_photo ? Storage::url($this->sim_photo) : null;
+    }
+
+    public function getOtherDocumentUrlAttribute()
+    {
+        return $this->other_document ? Storage::url($this->other_document) : null;
+    }
+
+    // Helper untuk menghapus file lama
+    public function deleteOldDocument($field)
+    {
+        if ($this->$field && Storage::exists($this->$field)) {
+            Storage::delete($this->$field);
+        }
     }
 }
