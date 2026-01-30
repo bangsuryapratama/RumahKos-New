@@ -17,20 +17,20 @@ class BookingController extends Controller
     {
         /** @var User $user */
         $user = Auth::guard('tenant')->user();
-        
+
         $contact = Property::select('phone', 'whatsapp')->first();
         view()->share('contact', $contact);
-        
+
         $address = Property::select('address')->first();
         view()->share('address', $address);
-        
+
         $residents = $user->residents()
             ->with(['room.property', 'payments' => function($q) {
                 $q->orderBy('billing_month', 'desc');
             }])
             ->latest()
             ->get();
-        
+
         return view('tenant.bookings.index', compact('user', 'residents', 'address', 'contact'));
     }
 
@@ -38,7 +38,7 @@ class BookingController extends Controller
     {
         $contact = Property::select('phone', 'whatsapp')->first();
         view()->share('contact', $contact);
-        
+
         $address = Property::select('address')->first();
         view()->share('address', $address);
 
@@ -50,10 +50,22 @@ class BookingController extends Controller
         /** @var User $user */
         $user = Auth::guard('tenant')->user();
         $activeResident = $user->resident;
-        
+
         if ($activeResident) {
             return redirect()->route('tenant.dashboard')
                 ->with('error', 'Anda sudah memiliki kamar aktif. Silakan selesaikan kontrak terlebih dahulu.');
+        }
+
+        // Check if profile is complete
+        $profile = $user->profile;
+        $isProfileComplete = $profile
+            && $profile->phone
+            && $profile->identity_number
+            && $profile->ktp_photo;
+
+        if (!$isProfileComplete) {
+            return redirect()->route('tenant.dashboard')
+                ->with('error', 'Mohon lengkapi data profil Anda terlebih dahulu (No. Telepon, No. KTP, dan Upload KTP).');
         }
 
         return view('tenant.bookings.create', compact('room', 'address', 'contact'));
@@ -71,7 +83,7 @@ class BookingController extends Controller
         $user = Auth::guard('tenant')->user();
 
         $durationMonths = (int) $validated['duration_months'];
-        
+
         $startDate = \Carbon\Carbon::parse($validated['start_date']);
         $endDate = $startDate->copy()->addMonths($durationMonths);
 
@@ -90,7 +102,7 @@ class BookingController extends Controller
             for ($i = 0; $i < $durationMonths; $i++) {
                 $billingMonth = $startDate->copy()->addMonths($i);
                 $dueDate = $billingMonth->copy()->addDays(3); // Jatuh tempo 3 hari setelah tanggal
-                
+
                 $payment = $resident->payments()->create([
                     'amount' => $room->price,
                     'billing_month' => $billingMonth->startOfMonth(),
@@ -116,6 +128,69 @@ class BookingController extends Controller
             return redirect()->back()
                 ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
                 ->withInput();
+        }
+    }
+
+    public function destroy(Resident $resident)
+    {
+        // Pastikan resident milik user yang sedang login
+        /** @var User $user */
+        $user = Auth::guard('tenant')->user();
+
+        if ($resident->user_id !== $user->id) {
+            return redirect()->route('tenant.bookings.index')
+                ->with('error', 'Anda tidak memiliki akses untuk membatalkan booking ini.');
+        }
+
+        // Hanya bisa cancel jika status masih inactive (belum ada pembayaran)
+        if ($resident->status !== 'inactive') {
+            return redirect()->route('tenant.bookings.index')
+                ->with('error', 'Booking tidak dapat dibatalkan. Silakan hubungi admin.');
+        }
+
+        // Cek apakah ada pembayaran yang sudah lunas
+        $hasPaidPayment = $resident->payments()->where('status', 'paid')->exists();
+
+        if ($hasPaidPayment) {
+            return redirect()->route('tenant.bookings.index')
+                ->with('error', 'Booking tidak dapat dibatalkan karena sudah ada pembayaran yang lunas.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Update status resident menjadi cancelled
+            $resident->update([
+                'status' => 'cancelled'
+            ]);
+
+            // Cancel semua pending payments
+            $resident->payments()
+                ->where('status', 'pending')
+                ->update([
+                    'status' => 'cancelled'
+                ]);
+
+            // Update room status kembali ke available jika tidak ada resident aktif lainnya
+            $room = $resident->room;
+            $hasActiveResident = $room->residents()
+                ->where('status', 'active')
+                ->exists();
+
+            if (!$hasActiveResident) {
+                $room->update([
+                    'status' => 'available'
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('tenant.bookings.index')
+                ->with('success', 'Booking berhasil dibatalkan.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('tenant.bookings.index')
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 }

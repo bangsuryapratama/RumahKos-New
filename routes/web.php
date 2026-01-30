@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DashboardAdminController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewController;
@@ -82,6 +83,11 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::resource('facility_rooms', \App\Http\Controllers\Admin\FacilityRoomController::class)
         ->names('admin.facility_rooms');
 
+    //management tenants
+    Route::resource('tenants', \App\Http\Controllers\Admin\TenantController::class)
+        ->names('admin.tenants');
+
+
 
 
     Route::post('/review/{review}/reply', [ReviewController::class, 'reply'])
@@ -91,6 +97,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::delete('/review-reply/{reply}', [ReviewController::class, 'deleteReply'])
         ->name('admin.review.reply.delete');
 });
+
+
 
 
 

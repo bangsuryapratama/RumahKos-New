@@ -204,20 +204,66 @@
                         <div class="space-y-2">
                             @if($room->status == 'available')
                                 @auth('tenant')
-                                    <a href="{{ route('tenant.booking.create', $room->id) }}"
-                                    class="block w-full text-center bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 transition text-sm">
-                                        <i class="fas fa-credit-card mr-1"></i>Pesan Sekarang
-                                    </a>
+                                    @php
+                                        $profile = auth('tenant')->user()->profile;
+                                        $isProfileComplete = $profile
+                                            && $profile->phone
+                                            && $profile->identity_number
+                                            && $profile->ktp_photo;
+                                    @endphp
+
+                                    @if($isProfileComplete)
+                                        <a href="{{ route('tenant.booking.create', $room->id) }}"
+                                           class="block w-full text-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all text-sm shadow-md hover:shadow-lg active:scale-[0.98]">
+                                            <i class="fas fa-credit-card mr-1"></i>Pesan Sekarang
+                                        </a>
+                                    @else
+                                        {{-- Profile Not Complete Warning --}}
+                                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded-lg mb-3">
+                                            <div class="flex items-start gap-2">
+                                                <i class="fas fa-exclamation-triangle text-yellow-600 mt-0.5 flex-shrink-0"></i>
+                                                <div class="flex-1 min-w-0">
+                                                    <h4 class="text-sm font-semibold text-gray-900 mb-1">Lengkapi Profil Anda</h4>
+                                                    <p class="text-xs text-gray-700 mb-2">Mohon lengkapi data berikut sebelum melakukan pemesanan:</p>
+                                                    <ul class="text-xs text-gray-700 space-y-1 mb-2">
+                                                        @if(!$profile || !$profile->phone)
+                                                            <li class="flex items-center gap-1">
+                                                                <i class="fas fa-times-circle text-red-500"></i>
+                                                                <span>No. Telepon</span>
+                                                            </li>
+                                                        @endif
+                                                        @if(!$profile || !$profile->identity_number)
+                                                            <li class="flex items-center gap-1">
+                                                                <i class="fas fa-times-circle text-red-500"></i>
+                                                                <span>No. KTP/NIK</span>
+                                                            </li>
+                                                        @endif
+                                                        @if(!$profile || !$profile->ktp_photo)
+                                                            <li class="flex items-center gap-1">
+                                                                <i class="fas fa-times-circle text-red-500"></i>
+                                                                <span>Upload Foto KTP</span>
+                                                            </li>
+                                                        @endif
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <a href="{{ route('tenant.dashboard') }}"
+                                           class="block w-full text-center bg-yellow-500 text-white px-4 py-3 rounded-lg font-semibold hover:bg-yellow-600 transition-all text-sm shadow-md hover:shadow-lg active:scale-[0.98]">
+                                            <i class="fas fa-user-edit mr-1"></i>Lengkapi Profil
+                                        </a>
+                                    @endif
                                 @else
                                     <a href="{{ route('tenant.login') }}"
-                                    class="block w-full text-center bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 transition text-sm">
+                                       class="block w-full text-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all text-sm shadow-md hover:shadow-lg active:scale-[0.98]">
                                         <i class="fas fa-sign-in-alt mr-1"></i>Login untuk Pesan
                                     </a>
                                 @endauth
 
-                                <a href="https://wa.me/6283841806357?text=Halo,%20saya%20tertarik%20dengan%20{{ urlencode($room->name) }}"
-                                target="_blank"
-                                class="block w-full text-center bg-green-500 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-600 transition text-sm">
+                                <a href="https://wa.me/{{ $contact && $contact->whatsapp ? preg_replace('/[^0-9]/', '', $contact->whatsapp) : '6283841806357' }}?text=Halo,%20saya%20tertarik%20dengan%20{{ urlencode($room->name) }}"
+                                   target="_blank"
+                                   class="block w-full text-center bg-green-500 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-600 transition-all text-sm shadow-md hover:shadow-lg active:scale-[0.98]">
                                     <i class="fab fa-whatsapp mr-1"></i>Tanya via WhatsApp
                                 </a>
                             @else

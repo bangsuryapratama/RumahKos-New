@@ -13,10 +13,15 @@ class LandingController extends Controller
 {
     public function index()
     {
-        // Kode existing tetap sama...
+
         $rooms = Room::with(['property', 'facilities', 'reviews'])
             ->orderBy('floor')
-            ->orderBy('name')
+            ->orderByRaw("
+                CAST(
+                    REGEXP_REPLACE(name, '[^0-9]', '')
+                AS UNSIGNED
+            )
+            ")
             ->get();
 
         $availableRooms = $rooms->where('status', 'available')->count();

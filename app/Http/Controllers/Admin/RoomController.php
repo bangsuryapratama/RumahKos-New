@@ -9,61 +9,73 @@ use Illuminate\Support\Facades\Storage;
 
 class RoomController extends Controller
 {
-    public function index(Request $request)
-    {
+   public function index(Request $request)
+{
     $query = Room::with('property');
 
-        // Search filter
-        if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
-        }
-
-        // Status filter
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        //default sortin by a-z
-        $query->orderBy ('name','asc');
-
-       if ($request->filled('sort')){
-            $query->getQuery()->orders = null;
-
-            switch ($request) {
-                case 'name_desc':
-                $query->orderBy('name', 'desc');
-                break;
-                case 'price_asc':
-                    $query->orderBy('price', 'asc');
-                    break;
-                case 'price_desc':
-                    $query->orderBy('price', 'desc');
-                    break;
-                default:
-                    $query->orderBy('created_at', 'desc');
-                }
-        }
-
-
-
-        // Get paginated results
-        $rooms = $query->paginate(10);
-
-        // Calculate statistics (from all rooms, not filtered)
-        $allRooms = Room::all();
-        $totalRooms = $allRooms->count();
-        $availableCount = $allRooms->where('status', 'available')->count();
-        $occupiedCount = $allRooms->where('status', 'occupied')->count();
-        $totalRevenue = $allRooms->sum('price');
-
-        return view('admin.rooms.index', compact(
-            'rooms',
-            'totalRooms',
-            'availableCount',
-            'occupiedCount',
-            'totalRevenue'
-        ));
+    // Search
+    if ($request->filled('search')) {
+        $query->where('name', 'like', '%' . $request->search . '%');
     }
+
+    // Status
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // =============================
+    // DEFAULT SORT: A-Z NUMERIC
+    // =============================
+    $query->orderByRaw("
+        CAST(SUBSTRING_INDEX(name, ' ', -1) AS UNSIGNED) ASC
+    ");
+
+    // =============================
+    // CUSTOM SORT
+    // =============================
+    if ($request->filled('sort')) {
+
+        // reset default order
+        $query->getQuery()->orders = null;
+
+        switch ($request->sort) {
+            case 'name_desc':
+                $query->orderByRaw("
+                    CAST(SUBSTRING_INDEX(name, ' ', -1) AS UNSIGNED) DESC
+                ");
+                break;
+
+            case 'price_asc':
+                $query->orderBy('price', 'asc');
+                break;
+
+            case 'price_desc':
+                $query->orderBy('price', 'desc');
+                break;
+
+            default:
+                $query->latest();
+        }
+    }
+
+    $rooms = $query->paginate(10);
+
+    // Statistik
+    $allRooms = Room::all();
+    $totalRooms = $allRooms->count();
+    $availableCount = $allRooms->where('status', 'available')->count();
+    $occupiedCount = $allRooms->where('status', 'occupied')->count();
+    $totalRevenue = $allRooms->where('status', 'occupied')->sum('price');
+
+    return view('admin.rooms.index', compact(
+        'rooms',
+        'totalRooms',
+        'availableCount',
+        'occupiedCount',
+        'totalRevenue'
+    ));
+}
+
 
     public function create()
     {

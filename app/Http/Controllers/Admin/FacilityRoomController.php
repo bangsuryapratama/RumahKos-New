@@ -17,10 +17,13 @@ class FacilityRoomController extends Controller
     public function index()
     {
         $rooms = Room::with(['property:id,name', 'facilities:id,name,icon'])
-            ->withCount('facilities')
-            ->orderBy('name', 'asc')
-            ->paginate(15);
-        
+                ->withCount('facilities')
+                ->orderByRaw("
+                    CAST(SUBSTRING_INDEX(name, ' ', -1) AS UNSIGNED) ASC
+                ")
+                ->paginate(15);
+
+
         return view('admin.facility_rooms.index', compact('rooms'));
     }
 
@@ -32,9 +35,9 @@ class FacilityRoomController extends Controller
         $rooms = Room::with('property:id,name')
             ->orderBy('name', 'asc')
             ->get();
-        
+
         $facilities = Facility::orderBy('name', 'asc')->get();
-        
+
         return view('admin.facility_rooms.create', compact('rooms', 'facilities'));
     }
 
@@ -59,7 +62,7 @@ class FacilityRoomController extends Controller
             DB::beginTransaction();
 
             $room = Room::findOrFail($validated['room_id']);
-            
+
             // Sync facilities (will remove old and add new)
             $room->facilities()->sync($validated['facilities']);
 
@@ -70,7 +73,7 @@ class FacilityRoomController extends Controller
                 ->with('success', 'Fasilitas berhasil di-assign ke kamar ' . $room->name . '.');
         } catch (Exception $e) {
             DB::rollBack();
-            
+
             return redirect()
                 ->back()
                 ->withInput()
@@ -81,20 +84,20 @@ class FacilityRoomController extends Controller
     /**
      * Show the form for editing room facilities
      */
-    public function edit($facility_room)  
+    public function edit($facility_room)
     {
         // Find room by ID
         $room = Room::with(['facilities', 'property'])->findOrFail($facility_room);
-        
+
         $facilities = Facility::orderBy('name', 'asc')->get();
-        
+
         return view('admin.facility_rooms.edit', compact('room', 'facilities'));
     }
 
     /**
      * Update facility assignments for a room
      */
-    public function update(Request $request, $facility_room)  
+    public function update(Request $request, $facility_room)
     {
         $validated = $request->validate([
             'facilities' => 'nullable|array',
@@ -120,7 +123,7 @@ class FacilityRoomController extends Controller
             DB::commit();
 
             $message = 'Fasilitas kamar ' . $room->name . ' berhasil diperbarui.';
-            
+
             if ($newCount > $oldCount) {
                 $message .= ' Ditambahkan ' . ($newCount - $oldCount) . ' fasilitas baru.';
             } elseif ($newCount < $oldCount) {
@@ -132,7 +135,7 @@ class FacilityRoomController extends Controller
                 ->with('success', $message);
         } catch (Exception $e) {
             DB::rollBack();
-            
+
             return redirect()
                 ->back()
                 ->withInput()
@@ -152,7 +155,7 @@ class FacilityRoomController extends Controller
             $room = Room::with('facilities')->findOrFail($facility_room);
 
             $facilityCount = $room->facilities()->count();
-            
+
             if ($facilityCount === 0) {
                 return redirect()
                     ->route('admin.facility_rooms.index')
@@ -168,7 +171,7 @@ class FacilityRoomController extends Controller
                 ->with('success', 'Berhasil menghapus ' . $facilityCount . ' fasilitas dari kamar ' . $room->name . '.');
         } catch (Exception $e) {
             DB::rollBack();
-            
+
             return redirect()
                 ->route('admin.facility_rooms.index')
                 ->with('error', 'Gagal menghapus fasilitas: ' . $e->getMessage());
@@ -178,10 +181,10 @@ class FacilityRoomController extends Controller
     /**
      * Show details of a specific room's facilities
      */
-    public function show($facility_room) 
+    public function show($facility_room)
     {
         $room = Room::with(['property', 'facilities'])->findOrFail($facility_room);
-        
+
         return view('admin.facility_rooms.show', compact('room'));
     }
 }
