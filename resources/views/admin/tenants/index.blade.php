@@ -138,13 +138,29 @@
                             </div>
 
                             @if($tenant->resident)
-                                <div class="bg-gray-50 rounded-lg p-3 mb-3 text-xs">
-                                    <div class="flex items-center gap-2 text-gray-700">
-                                        <i class="fas fa-home"></i>
-                                        <span class="font-medium">{{ $tenant->resident->room->name }}</span>
-                                        <span class="text-gray-500">•</span>
-                                        <span>{{ $tenant->resident->room->property->name }}</span>
+                                <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-3 mb-3 text-xs">
+                                    <div class="flex items-start gap-2 mb-2">
+                                        <i class="fas fa-home text-blue-600 mt-0.5"></i>
+                                        <div class="flex-1">
+                                            <span class="font-medium text-gray-900">{{ $tenant->resident->room->name }}</span>
+                                            <span class="text-gray-600"> • {{ $tenant->resident->room->property->name }}</span>
+                                        </div>
                                     </div>
+                                    <div class="flex items-center justify-between mt-2 pt-2 border-t border-blue-100">
+                                        <span class="text-gray-600">
+                                            <i class="fas fa-money-bill-wave text-blue-600"></i> 
+                                            Rp {{ number_format($tenant->resident->room->price, 0, ',', '.') }}/bln
+                                        </span>
+                                        <span class="text-gray-600">
+                                            <i class="fas fa-calendar-alt text-purple-600"></i> 
+                                            {{ $tenant->resident->getDurationInMonths() }} bulan
+                                        </span>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="bg-gray-50 rounded-lg p-3 mb-3 text-xs text-center">
+                                    <i class="fas fa-door-open text-gray-400 mr-1"></i>
+                                    <span class="text-gray-600">Belum assign kamar</span>
                                 </div>
                             @endif
 
@@ -173,7 +189,8 @@
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Penghuni</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Kontak</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Kamar</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Kamar & Properti</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Periode</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Aksi</th>
                             </tr>
@@ -204,6 +221,22 @@
                                         @if($tenant->resident)
                                             <div class="font-medium text-gray-900">{{ $tenant->resident->room->name }}</div>
                                             <div class="text-xs text-gray-600">{{ $tenant->resident->room->property->name }}</div>
+                                            <div class="text-xs text-blue-600 mt-1">
+                                                <i class="fas fa-money-bill-wave"></i> 
+                                                Rp {{ number_format($tenant->resident->room->price, 0, ',', '.') }}/bln
+                                            </div>
+                                        @else
+                                            <span class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">Belum assign</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        @if($tenant->resident)
+                                            <div class="text-gray-900">{{ $tenant->resident->start_date->format('d M Y') }}</div>
+                                            <div class="text-xs text-gray-600">s/d {{ $tenant->resident->end_date->format('d M Y') }}</div>
+                                            <div class="text-xs text-purple-600 mt-1">
+                                                <i class="fas fa-calendar-alt"></i> 
+                                                {{ $tenant->resident->getDurationInMonths() }} bulan
+                                            </div>
                                         @else
                                             <span class="text-gray-400">-</span>
                                         @endif

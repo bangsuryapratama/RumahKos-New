@@ -9,6 +9,7 @@ use App\Models\Resident;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class TenantController extends Controller
@@ -18,7 +19,7 @@ class TenantController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::with(['resident.room.property', 'residents'])
+        $query = User::with(['resident.room.property', 'residents', 'profile'])
             ->where('role_id', 2); // 2 = tenant
 
         // Search
@@ -82,6 +83,11 @@ class TenantController extends Controller
             'emergency_contact' => 'nullable|string|max:20',
             'emergency_contact_name' => 'nullable|string|max:100',
 
+            // Document uploads
+            'ktp_photo' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048',
+            'sim_photo' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048',
+            'passport_photo' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048',
+
             // Booking info (optional)
             'room_id' => 'nullable|exists:rooms,id',
             'start_date' => 'nullable|required_with:room_id|date',
@@ -98,8 +104,8 @@ class TenantController extends Controller
                 'role_id' => 2, // 2 = tenant
             ]);
 
-            // Create profile
-            $user->profile()->create([
+            // Prepare profile data
+            $profileData = [
                 'phone' => $validated['phone'] ?? null,
                 'identity_number' => $validated['identity_number'] ?? null,
                 'address' => $validated['address'] ?? null,
@@ -108,7 +114,22 @@ class TenantController extends Controller
                 'occupation' => $validated['occupation'] ?? null,
                 'emergency_contact' => $validated['emergency_contact'] ?? null,
                 'emergency_contact_name' => $validated['emergency_contact_name'] ?? null,
-            ]);
+            ];
+
+            // Handle document uploads
+            $documents = ['ktp_photo', 'sim_photo', 'passport_photo'];
+            foreach ($documents as $doc) {
+                if ($request->hasFile($doc)) {
+                    $file = $request->file($doc);
+                    if ($file->isValid()) {
+                        $path = $file->store('documents/profiles', 'public');
+                        $profileData[$doc] = $path;
+                    }
+                }
+            }
+
+            // Create profile
+            $user->profile()->create($profileData);
 
             // Create booking if room is selected
             if ($request->filled('room_id')) {
@@ -145,7 +166,7 @@ class TenantController extends Controller
 
             DB::commit();
 
-            return redirect()->route('admin.tenants.index')
+            return redirect()->route('admin.tenants.show', $user)
                 ->with('success', 'Penghuni berhasil ditambahkan!');
 
         } catch (\Exception $e) {
@@ -211,6 +232,16 @@ class TenantController extends Controller
             'occupation' => 'nullable|string|max:100',
             'emergency_contact' => 'nullable|string|max:20',
             'emergency_contact_name' => 'nullable|string|max:100',
+            
+            // Document uploads
+            'ktp_photo' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048',
+            'sim_photo' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048',
+            'passport_photo' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048',
+            
+            // Delete flags
+            'delete_ktp' => 'nullable|boolean',
+            'delete_sim' => 'nullable|boolean',
+            'delete_passport' => 'nullable|boolean',
         ]);
 
         DB::beginTransaction();
@@ -228,24 +259,68 @@ class TenantController extends Controller
                 ]);
             }
 
-            // Update or create profile
-            $tenant->profile()->updateOrCreate(
-                ['user_id' => $tenant->id],
-                [
-                    'phone' => $validated['phone'] ?? null,
-                    'identity_number' => $validated['identity_number'] ?? null,
-                    'address' => $validated['address'] ?? null,
-                    'date_of_birth' => $validated['date_of_birth'] ?? null,
-                    'gender' => $validated['gender'] ?? null,
-                    'occupation' => $validated['occupation'] ?? null,
-                    'emergency_contact' => $validated['emergency_contact'] ?? null,
-                    'emergency_contact_name' => $validated['emergency_contact_name'] ?? null,
-                ]
-            );
+            // Prepare profile data
+            $profileData = [
+                'phone' => $validated['phone'] ?? null,
+                'identity_number' => $validated['identity_number'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'date_of_birth' => $validated['date_of_birth'] ?? null,
+                'gender' => $validated['gender'] ?? null,
+                'occupation' => $validated['occupation'] ?? null,
+                'emergency_contact' => $validated['emergency_contact'] ?? null,
+                'emergency_contact_name' => $validated['emergency_contact_name'] ?? null,
+            ];
+
+            // Get or create profile
+            $profile = $tenant->profile;
+            if (!$profile) {
+                $profileData['user_id'] = $tenant->id;
+                $profile = $tenant->profile()->create($profileData);
+            }
+
+            // Handle file deletions
+            $deleteFlags = [
+                'delete_ktp' => 'ktp_photo',
+                'delete_sim' => 'sim_photo',
+                'delete_passport' => 'passport_photo',
+            ];
+
+            foreach ($deleteFlags as $flag => $field) {
+                if ($request->has($flag) && $request->$flag == '1') {
+                    if ($profile->$field) {
+                        Storage::disk('public')->delete($profile->$field);
+                        $profileData[$field] = null;
+                    }
+                }
+            }
+
+            // Handle file uploads
+            $documents = ['ktp_photo', 'sim_photo', 'passport_photo'];
+
+            foreach ($documents as $doc) {
+                if ($request->hasFile($doc)) {
+                    $file = $request->file($doc);
+
+                    if ($file->isValid()) {
+                        // Delete old file if exists
+                        $deleteFlag = 'delete_' . str_replace('_photo', '', $doc);
+                        if ($profile->$doc && !($request->has($deleteFlag) && $request->$deleteFlag == '1')) {
+                            Storage::disk('public')->delete($profile->$doc);
+                        }
+
+                        // Store new file
+                        $path = $file->store('documents/profiles', 'public');
+                        $profileData[$doc] = $path;
+                    }
+                }
+            }
+
+            // Update profile
+            $profile->update($profileData);
 
             DB::commit();
 
-            return redirect()->route('admin.tenants.index')
+            return redirect()->route('admin.tenants.show', $tenant)
                 ->with('success', 'Data penghuni berhasil diperbarui!');
 
         } catch (\Exception $e) {
@@ -277,8 +352,18 @@ class TenantController extends Controller
 
         DB::beginTransaction();
         try {
-            // Delete profile
-            $tenant->profile()->delete();
+            // Delete documents
+            if ($tenant->profile) {
+                $documents = ['ktp_photo', 'sim_photo', 'passport_photo'];
+                foreach ($documents as $doc) {
+                    if ($tenant->profile->$doc) {
+                        Storage::disk('public')->delete($tenant->profile->$doc);
+                    }
+                }
+                
+                // Delete profile
+                $tenant->profile()->delete();
+            }
 
             // Delete residents and related payments
             $tenant->residents()->each(function($resident) {

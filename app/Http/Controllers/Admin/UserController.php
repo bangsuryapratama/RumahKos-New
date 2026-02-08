@@ -66,7 +66,7 @@ class UserController extends Controller
 
         return redirect()
             ->route('admin.users.index')
-            ->with('success', 'User berhasil diupdate ✅');
+            ->with('success', 'User berhasil diupdate ');
     }
 
     public function destroy(User $user)
