@@ -24,23 +24,28 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', [LandingController::class, 'index'])->name('landing');
-
 Route::get('/rooms/{room}', [LandingController::class, 'roomDetail'])->name('rooms.detail');
 
 /*
 |--------------------------------------------------------------------------
 | Dashboard Redirect (fix Breeze error)
 |--------------------------------------------------------------------------
-|
-| Breeze tetap manggil route('dashboard'), jadi kita redirect otomatis
-| ke admin dashboard biar gak error.
-|
 */
 
 Route::middleware(['auth'])->get('/dashboard', function () {
-    return redirect()->route('admin.dashboard');
-})->name('dashboard');
+    $user = Auth::user();
 
+    if ($user->isAdmin()) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    if ($user->isPenghuni()) {
+        return redirect()->route('tenant.dashboard');
+    }
+
+    Auth::logout();
+    return redirect('/')->with('error', 'Akun tidak memiliki akses.');
+})->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
@@ -59,51 +64,55 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    //Room CRUD
+    // Room CRUD
     Route::resource('rooms', RoomController::class)
         ->names('admin.rooms');
 
-    //Management User
+    // Management User
     Route::resource('users', UserController::class)
         ->names('admin.users');
 
-    //Management Role
+    // Management Role
     Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class)
         ->names('admin.roles');
 
-    //Management Property
+    // Management Property
     Route::resource('properties', \App\Http\Controllers\Admin\PropertyController::class)
         ->names('admin.properties');
 
-    //managemnt facility
+    // Management Facility
     Route::resource('facilities', \App\Http\Controllers\Admin\FacilityController::class)
         ->names('admin.facilities');
 
-    //management facility room
+    // Management Facility Room
     Route::resource('facility_rooms', \App\Http\Controllers\Admin\FacilityRoomController::class)
         ->names('admin.facility_rooms');
 
-    //management tenants
+    // Management Tenants
     Route::resource('tenants', \App\Http\Controllers\Admin\TenantController::class)
         ->names('admin.tenants');
 
+    // Tenant Activation/Deactivation (HARUS SETELAH resource route)
+    Route::post('tenants/{tenant}/activate', [TenantController::class, 'activate'])
+        ->name('admin.tenants.activate');
+    Route::post('tenants/{tenant}/deactivate', [TenantController::class, 'deactivate'])
+        ->name('admin.tenants.deactivate');
 
-
-
+    // Review Management
     Route::post('/review/{review}/reply', [ReviewController::class, 'reply'])
         ->name('admin.review.reply');
-
-    // Delete reply
     Route::delete('/review-reply/{reply}', [ReviewController::class, 'deleteReply'])
         ->name('admin.review.reply.delete');
 });
 
-
-
-
+/*
+|--------------------------------------------------------------------------
+| Review Routes (Tenant)
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware(['auth:tenant'])->group(function () {
-     // Create review
+    // Create review
     Route::post('/room/{room}/review', [ReviewController::class, 'store'])
         ->name('room.review.store');
 
@@ -114,6 +123,64 @@ Route::middleware(['auth:tenant'])->group(function () {
     // Delete review
     Route::delete('/review/{review}', [ReviewController::class, 'destroy'])
         ->name('review.destroy');
+
+
+    Route::get('document/view/{type}', function ($type, SecureDocumentService $secureDoc) {
+        $user = Auth::guard('tenant')->user();
+        $profile = $user->profile;
+
+        if (!$profile) {
+            abort(404, 'Profile not found');
+        }
+
+        // Get document path
+        $path = match($type) {
+            'ktp' => $profile->ktp_photo,
+            'sim' => $profile->sim_photo,
+            'passport' => $profile->passport_photo,
+            default => null
+        };
+
+        if (!$path) {
+            abort(404, 'Document not found');
+        }
+
+        try {
+            // Read & decrypt
+            $content = $secureDoc->secureRead($path);
+
+            // MIME type
+            $extension = pathinfo($path, PATHINFO_EXTENSION);
+            $mimeType = match($extension) {
+                'jpg', 'jpeg' => 'image/jpeg',
+                'png' => 'image/png',
+                default => 'application/octet-stream',
+            };
+
+            // Log access
+            Log::info('📄 Document viewed', [
+                'user_id' => $user->id,
+                'type' => $type,
+                'ip' => request()->ip(),
+            ]);
+
+            return response($content)
+                ->header('Content-Type', $mimeType)
+                ->header('Content-Disposition', 'inline')
+                ->header('X-Content-Type-Options', 'nosniff')
+                ->header('Cache-Control', 'no-cache, no-store, must-revalidate');
+
+        } catch (\Exception $e) {
+            Log::error('Document access error', [
+                'user_id' => $user->id,
+                'type' => $type,
+                'error' => $e->getMessage()
+            ]);
+
+            abort(500, 'Failed to load document');
+        }
+
+    })->name('document.view');
 });
 
 
@@ -125,12 +192,15 @@ Route::middleware(['auth:tenant'])->group(function () {
 
 require __DIR__.'/auth.php';
 
+/*
+|--------------------------------------------------------------------------
+| Error Pages
+|--------------------------------------------------------------------------
+*/
 
-//Error page for unauthorized access
 Route::get('/no-access', function () {
     return view('errors.no-access');
 })->name('no-access');
-
 
 /*
 |--------------------------------------------------------------------------
@@ -155,13 +225,13 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
         Route::get('auth/{provider}', [SocialAuthController::class, 'redirect'])->name('social.redirect');
         Route::get('auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
 
-        //  Forgot Password
+        // Forgot Password
         Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])
             ->name('password.request');
         Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])
             ->name('password.email');
 
-        //  Reset Password
+        // Reset Password
         Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])
             ->name('password.reset');
         Route::post('password/reset', [ResetPasswordController::class, 'reset'])
@@ -187,10 +257,6 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
             ->name('payment.midtrans');
         Route::get('/payment/finish/{payment}', [PaymentController::class, 'finish'])
             ->name('payment.finish');
-        // Route::get('/payment/manual/{payment}', [PaymentController::class, 'manual'])
-        //     ->name('payment.manual');
-        // Route::post('/payment/upload/{payment}', [PaymentController::class, 'uploadProof'])
-        //     ->name('payment.upload-proof');
         Route::get('/payment/{payment}/check-status', [PaymentController::class, 'checkStatus'])
             ->name('payment.check-status');
 
@@ -198,7 +264,7 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
         Route::post('logout', [LoginController::class, 'logout'])->name('logout');
     });
 
-
+    // Payment Callback (outside middleware - for Midtrans webhook)
     Route::post('/payment/callback', [PaymentController::class, 'callback'])
         ->name('payment.callback');
 });

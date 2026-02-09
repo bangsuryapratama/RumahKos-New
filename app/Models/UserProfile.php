@@ -1,30 +1,28 @@
 <?php
+// app/Models/UserProfile.php
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 
 class UserProfile extends Model
 {
-    use HasFactory;
+    protected $table = 'user_profiles'; // Sesuai table yang udah ada
 
     protected $fillable = [
         'user_id',
         'phone',
-        'address',
         'identity_number',
+        'address',
         'date_of_birth',
+        'gender',
         'occupation',
         'emergency_contact',
         'emergency_contact_name',
-        'gender',
-
-        // PENTING: Kolom dokumen harus ada di sini!
         'ktp_photo',
         'sim_photo',
         'passport_photo',
+        'other_document',
     ];
 
     protected $casts = [
@@ -32,7 +30,7 @@ class UserProfile extends Model
     ];
 
     /**
-     * Relationship dengan User
+     * Relationship
      */
     public function user()
     {
@@ -40,36 +38,38 @@ class UserProfile extends Model
     }
 
     /**
-     * Delete old document helper
+     * Check if profile is complete
      */
-    public function deleteOldDocument($field)
+    public function isComplete()
     {
-        if ($this->$field && Storage::disk('public')->exists($this->$field)) {
-            Storage::disk('public')->delete($this->$field);
+        return $this->phone
+            && $this->identity_number
+            && $this->ktp_photo;
+    }
+
+    /**
+     * Get completion percentage
+     */
+    public function getCompletionPercentage()
+    {
+        $fields = [
+            'phone',
+            'identity_number',
+            'address',
+            'date_of_birth',
+            'gender',
+            'occupation',
+            'emergency_contact',
+            'ktp_photo'
+        ];
+
+        $filled = 0;
+        foreach ($fields as $field) {
+            if ($this->$field) {
+                $filled++;
+            }
         }
-    }
 
-    /**
-     * Get full URL untuk KTP
-     */
-    public function getKtpPhotoUrlAttribute()
-    {
-        return $this->ktp_photo ? asset('storage/' . $this->ktp_photo) : null;
-    }
-
-    /**
-     * Get full URL untuk SIM
-     */
-    public function getSimPhotoUrlAttribute()
-    {
-        return $this->sim_photo ? asset('storage/' . $this->sim_photo) : null;
-    }
-
-    /**
-     * Get full URL untuk Passport
-     */
-    public function getPassportPhotoUrlAttribute()
-    {
-        return $this->passport_photo ? asset('storage/' . $this->passport_photo) : null;
+        return round(($filled / count($fields)) * 100);
     }
 }

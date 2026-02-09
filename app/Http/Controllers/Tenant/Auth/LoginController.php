@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Tenant\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -16,39 +15,34 @@ class LoginController extends Controller
     }
 
     public function login(Request $request)
-{
-    $request->validate([
-        'email' => ['required', 'email'],
-        'password' => ['required'],
-    ]);
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
 
-    if (Auth::attempt($request->only('email', 'password'), $request->filled('remember'))) {
+        // PENTING: Gunakan guard 'tenant'
+        if (Auth::guard('tenant')->attempt($request->only('email', 'password'), $request->filled('remember'))) {
 
-        $request->session()->regenerate();
-        $user = Auth::user();
+            $request->session()->regenerate();
+            $user = Auth::guard('tenant')->user();
 
-        if ($user->isAdmin()) {
-            return redirect()->intended(route('admin.dashboard'));
+            // Cek role penghuni
+            if ($user->isPenghuni()) {
+                return redirect()->intended(route('tenant.dashboard'));
+            }
+
+            // Jika bukan penghuni, logout
+            Auth::guard('tenant')->logout();
+            throw ValidationException::withMessages([
+                'email' => 'Akun ini bukan untuk penghuni.',
+            ]);
         }
 
-
-        if ($user->isPenghuni()) {
-            Auth::shouldUse('tenant');
-            return redirect()->intended(route('tenant.dashboard'));
-        }
-
-        
-        Auth::logout();
         throw ValidationException::withMessages([
-            'email' => 'Akun tidak memiliki akses.',
+            'email' => 'Email atau password salah.',
         ]);
     }
-
-    throw ValidationException::withMessages([
-        'email' => 'Email atau password salah.',
-    ]);
-}
-
 
     public function logout(Request $request)
     {
