@@ -15,7 +15,7 @@ class AuthController extends Controller
 {
     /**
      * Register tenant baru
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -25,7 +25,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'phone' => 'required|string|max:20',
+            // 'phone' => 'nullable|string|max:20',
         ], [
             'name.required' => 'Nama harus diisi',
             'email.required' => 'Email harus diisi',
@@ -34,7 +34,7 @@ class AuthController extends Controller
             'password.required' => 'Password harus diisi',
             'password.min' => 'Password minimal 8 karakter',
             'password.confirmed' => 'Konfirmasi password tidak cocok',
-            'phone.required' => 'Nomor telepon harus diisi',
+            // 'phone' => 'Nomor telepon harus diisi',
         ]);
 
         if ($validator->fails()) {
@@ -98,7 +98,7 @@ class AuthController extends Controller
 
     /**
      * Login tenant
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -173,7 +173,7 @@ class AuthController extends Controller
 
     /**
      * Social Login (Google / Facebook)
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -288,7 +288,7 @@ class AuthController extends Controller
 
     /**
      * Logout tenant (revoke token)
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -314,7 +314,7 @@ class AuthController extends Controller
 
     /**
      * Get profile user yang sedang login
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -352,7 +352,7 @@ class AuthController extends Controller
 
     /**
      * Update profile user
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -430,7 +430,7 @@ class AuthController extends Controller
 
     /**
      * Refresh token
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -438,10 +438,10 @@ class AuthController extends Controller
     {
         try {
             $user = $request->user('sanctum');
-            
+
             // Revoke current token
             $request->user('sanctum')->currentAccessToken()->delete();
-            
+
             // Generate new token
             $token = $user->createToken('auth_token')->plainTextToken;
 
