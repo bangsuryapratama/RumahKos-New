@@ -6,8 +6,11 @@ use Illuminate\Support\Facades\Route;
 // API CONTROLLERS
 // ==========================
 use App\Http\Controllers\Api\Tenant\AuthController;
+use App\Http\Controllers\Api\Tenant\ResidentApiController;
+use App\Http\Controllers\Api\Tenant\ProfileApiController;
 use App\Http\Controllers\Api\RoomApiController;
 use App\Http\Controllers\Tenant\PaymentController;
+use App\Http\Controllers\Api\Tenant\PaymentApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,11 +38,25 @@ Route::prefix('tenant')->group(function () {
     // ==========================
     Route::middleware('auth:sanctum')->group(function () {
 
-        // Auth
+        // ==========================
+        // AUTH
+        // ==========================
         Route::post('/logout', [AuthController::class, 'logout']);
-        Route::get('/profile', [AuthController::class, 'profile']);
-        Route::put('/profile', [AuthController::class, 'updateProfile']);
         Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
+
+        // ==========================
+        // PROFILE MANAGEMENT
+        // ==========================
+        Route::get('/profile', [ProfileApiController::class, 'getProfile']);
+        Route::put('/profile', [ProfileApiController::class, 'updateProfile']);
+        Route::post('/profile/upload-document', [ProfileApiController::class, 'uploadDocument']);
+        Route::delete('/profile/delete-document', [ProfileApiController::class, 'deleteDocument']);
+
+        // ==========================
+        // RESIDENCE INFORMATION
+        // ==========================
+        Route::get('/residence/current', [ResidentApiController::class, 'getCurrentResidence']);
+        Route::get('/residence/history', [ResidentApiController::class, 'getResidenceHistory']);
 
         // ==========================
         // BOOKING (NEXT PHASE)
@@ -50,12 +67,12 @@ Route::prefix('tenant')->group(function () {
         // Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
 
         // ==========================
-        // PAYMENT (NEXT PHASE)
+        // PAYMENT
         // ==========================
-        // Route::get('/payments', [PaymentController::class, 'index']);
-        // Route::get('/payments/{id}', [PaymentController::class, 'show']);
-        // Route::get('/payments/{id}/midtrans', [PaymentController::class, 'getMidtransToken']);
-        // Route::get('/payments/{id}/check-status', [PaymentController::class, 'checkStatus']);
+        Route::get('/payments', [PaymentApiController::class, 'index']);
+        Route::get('/payments/{id}', [PaymentApiController::class, 'show']);
+        Route::post('/payments/{id}/midtrans', [PaymentApiController::class, 'midtrans']);
+        Route::get('/payments/{id}/check-status', [PaymentApiController::class, 'checkStatus']);
     });
 
     // ==========================
@@ -87,6 +104,8 @@ Route::prefix('rooms')->group(function () {
     // Available rooms only
     Route::get('/available/list', [RoomApiController::class, 'available']);
 });
+
+Route::post('/payment/midtrans/callback', [PaymentApiController::class, 'callback']);
 
 
 /*
