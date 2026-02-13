@@ -18,8 +18,80 @@
                     </a>
                 </div>
             </div>
+            {{-- search filter --}}
+        <div class="bg-white rounded-lg sm:rounded-xl shadow-md p-4 sm:p-6 mb-6">
+            <form method="GET" class="space-y-4 sm:space-y-0 sm:flex sm:gap-4">
 
-            {{-- Alert Messages --}}
+                {{-- Search --}}
+                <div class="flex-1">
+                    <input type="text"
+                        name="search"
+                        value="{{ request('search') }}"
+                        placeholder="Cari nama atau email.."
+                        class="w-full px-3 sm:px-4 py-2 sm:py-2.5
+                                border border-gray-300
+                                rounded-lg
+                                focus:ring-2 focus:ring-blue-500
+                                focus:border-blue-500
+                                text-sm sm:text-base">
+                </div>
+
+               <div class="w-full sm:w-48">
+                    <select name="role"
+                            class="w-full px-4 py-2
+                                border border-gray-300
+                                rounded-lg
+                                focus:ring-2 focus:ring-blue-500
+                                focus:border-blue-500">
+                        <option value="">Semua Role</option>
+                        @foreach($roles as $role)
+                            <option value="{{ $role->id }}"
+                                {{ request('role') == $role->id ? 'selected' : '' }}>
+                                {{ $role->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Buttons --}}
+                <div class="flex gap-2">
+                    <button type="submit"
+                            class="flex-1 sm:flex-none
+                                px-4 sm:px-6
+                                py-2 sm:py-2.5
+                                bg-blue-600 text-white
+                                rounded-lg
+                                hover:bg-blue-700
+                                transition-all
+                                font-semibold
+                                text-sm sm:text-base
+                                active:scale-[0.98]">
+                        <i class="fas fa-search mr-2"></i>Cari
+                    </button>
+
+                    @if(request()->hasAny(['search','filter']))
+                        <a href="{{ url()->current() }}"
+                        class="flex-1 sm:flex-none
+                                px-4 sm:px-6
+                                py-2 sm:py-2.5
+                                bg-gray-200 text-gray-700
+                                rounded-lg
+                                hover:bg-gray-300
+                                transition-all
+                                font-semibold
+                                text-sm sm:text-base
+                                text-center
+                                active:scale-[0.98]">
+                            <i class="fas fa-times mr-2"></i>Reset
+                        </a>
+                    @endif
+                </div>
+
+            </form>
+        </div>
+
+
+                    {{-- Alert Messages --}}
             @if(session('success'))
                 <div x-data="{ show: true }" x-show="show" x-transition.duration.300ms
                      class="mb-6 p-4 bg-blue-50 text-blue-700 rounded-lg sm:rounded-xl border border-blue-200 text-sm sm:text-base">
@@ -96,7 +168,21 @@
                             <div class="p-4 hover:bg-gray-50 transition-colors">
                                 <div class="flex items-start justify-between mb-3">
                                     <div class="flex items-center gap-3 flex-1 min-w-0">
-                                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+                                        @php
+                                            $colors = [
+                                                'from-blue-500 to-blue-600',
+                                                'from-green-500 to-green-600',
+                                                'from-purple-500 to-purple-600',
+                                                'from-pink-500 to-pink-600',
+                                                'from-yellow-500 to-yellow-600',
+                                                'from-indigo-500 to-indigo-600',
+                                                'from-red-500 to-red-600',
+                                            ];
+                                            $color = $colors[crc32($user->email) % count($colors)];
+                                        @endphp
+
+                                        <div class="h-10 w-10 rounded-full bg-gradient-to-br {{ $color }}
+                                                    flex items-center justify-center text-white font-bold shadow-sm">
                                             {{ strtoupper(substr($user->name, 0, 1)) }}
                                         </div>
                                         <div class="min-w-0 flex-1">
@@ -116,8 +202,8 @@
                                     </a>
                                     <form action="{{ route('admin.users.destroy', $user) }}" method="POST" onsubmit="return confirm('Hapus user ini?')" class="flex-1">
                                         @csrf @method('DELETE')
-                                        <button class="w-full px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all text-xs font-semibold">
-                                            <i class="fas fa-trash mr-1"></i>Hapus
+                                        <button class="w-full px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100">
+                                            Hapus
                                         </button>
                                     </form>
                                 </div>
@@ -163,10 +249,8 @@
                                                 </a>
                                                 <form action="{{ route('admin.users.destroy', $user) }}" method="POST" onsubmit="return confirm('Hapus user ini?')">
                                                     @csrf @method('DELETE')
-                                                    <button class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Hapus User">
-                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                        </svg>
+                                                    <button class="p-2 text-red-500 hover:bg-red-50 rounded-lg">
+                                                        <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
                                             </div>

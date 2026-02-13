@@ -9,11 +9,33 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('role')->latest()->paginate(10);
-        return view('admin.users.index', compact('users'));
+        $query = User::with('role');
+
+        // SEARCH
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                ->orWhere('email', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        // FILTER ROLE
+        if ($request->filled('role')) {
+            $query->where('role_id', $request->role);
+        }
+
+        // ADMIN PALING ATAS (role_id = 1)
+        $query->orderByRaw('role_id = 1 DESC')
+            ->latest();
+
+        $users = $query->paginate(10)->withQueryString();
+        $roles = Role::all();
+
+        return view('admin.users.index', compact('users', 'roles'));
     }
+
 
     public function create()
     {
@@ -73,6 +95,6 @@ class UserController extends Controller
     {
         $user->delete();
 
-        return back()->with('success', 'User berhasil dihapus 🗑️');
+        return back()->with('success', 'User berhasil dihapus');
     }
 }

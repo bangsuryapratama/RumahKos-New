@@ -12,7 +12,7 @@ class PropertySeeder extends Seeder
         Property::create([
             'owner_id'   => 1,
             'name'       => 'Cemara Housing',
-            'address'    => 'Jl. Cemara No. 1 Kota Bandung`',
+            'address'    => 'Jl. Cemara No. 1 Kota Bandung',
             'maps_embed' => null,
             'phone'      => '083841806357',
             'whatsapp'   => '083841806357',

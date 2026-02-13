@@ -6,12 +6,11 @@
             Rumah<span class="text-blue-600">Kos</span>
         </a>
 
-        <!-- Navigation (Desktop) -->
-        <nav class="hidden md:flex items-center gap-8 text-gray-700 font-medium">
-            <a href="#kamar" class="hover:text-blue-600 transition">Kamar</a>
-            <a href="#fasilitas" class="hover:text-blue-600 transition">Fasilitas</a>
-            <a href="#lokasi" class="hover:text-blue-600 transition">Lokasi</a>
-            <a href="#kontak" class="hover:text-blue-600 transition">Kontak</a>
+          <nav class="hidden md:flex items-center gap-8 text-gray-700 font-medium">
+            <a href="/#kamar" class="hover:text-blue-600 transition">Kamar</a>
+            <a href="/#fasilitas" class="hover:text-blue-600 transition">Fasilitas</a>
+            <a href="/#lokasi" class="hover:text-blue-600 transition">Lokasi</a>
+            <a href="/#kontak" class="hover:text-blue-600 transition">Kontak</a>
         </nav>
 
         <!-- Auth Section (Desktop) -->
@@ -22,7 +21,7 @@
                     class="flex items-center gap-3 px-4 py-2 rounded-xl bg-blue-50 text-blue-600 font-semibold hover:bg-blue-100 transition">
 
                     <!-- Avatar -->
-                    @php
+                   @php
                         $user = Auth::guard('tenant')->user();
                     @endphp
 
@@ -44,6 +43,7 @@
 
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>
+
 
                 <!-- Dropdown -->
                 <div id="profileMenu"
@@ -84,6 +84,8 @@
             @endauth
         </div>
 
+
+
         <!-- Mobile Menu Button -->
         <button id="menuBtn" class="md:hidden text-2xl text-gray-700">
             <i class="fas fa-bars"></i>
@@ -94,10 +96,10 @@
     <div id="mobileMenu" class="md:hidden hidden px-6 pb-6">
         <nav class="flex flex-col gap-4 text-gray-700 font-medium">
 
-            <a href="#kamar">Kamar</a>
-            <a href="#fasilitas">Fasilitas</a>
-            <a href="#lokasi">Lokasi</a>
-            <a href="#kontak">Kontak</a>
+            <a href="/#kamar">Kamar</a>
+            <a href="/#fasilitas">Fasilitas</a>
+            <a href="/#lokasi">Lokasi</a>
+            <a href="/#kontak">Kontak</a>
 
             @auth('tenant')
                 <div class="mt-4 border-t pt-4 flex flex-col gap-3">

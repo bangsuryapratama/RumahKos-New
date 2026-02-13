@@ -58,7 +58,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     // Dashboard Admin
     Route::get('/dashboard', [DashboardAdminController::class, 'index'])
         ->name('admin.dashboard');
-
+    Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])->name('document.ktp');
+    Route::get('/document/sim', [DashboardController::class, 'serveSim'])->name('document.sim');
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -158,7 +159,7 @@ Route::middleware(['auth:tenant'])->group(function () {
             };
 
             // Log access
-            Log::info('📄 Document viewed', [
+            Log::info('Document viewed', [
                 'user_id' => $user->id,
                 'type' => $type,
                 'ip' => request()->ip(),
@@ -181,6 +182,8 @@ Route::middleware(['auth:tenant'])->group(function () {
         }
 
     })->name('document.view');
+        Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])->name('document.ktp');
+        Route::get('/document/sim', [DashboardController::class, 'serveSim'])->name('document.sim');
 });
 
 
@@ -260,6 +263,8 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
         Route::get('/payment/{payment}/check-status', [PaymentController::class, 'checkStatus'])
             ->name('payment.check-status');
 
+        Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])->name('document.ktp');
+        Route::get('/document/sim', [DashboardController::class, 'serveSim'])->name('document.sim');
         // Logout
         Route::post('logout', [LoginController::class, 'logout'])->name('logout');
     });
