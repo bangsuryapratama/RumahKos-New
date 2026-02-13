@@ -7,184 +7,158 @@ use App\Models\Room;
 use App\Models\Facility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Exception;
+use Throwable;
 
 class FacilityRoomController extends Controller
 {
-    /**
-     * Display a listing of room facilities assignments
-     */
     public function index()
     {
         $rooms = Room::with(['property:id,name', 'facilities:id,name,icon'])
-                ->withCount('facilities')
-                ->orderByRaw("
-                    CAST(SUBSTRING_INDEX(name, ' ', -1) AS UNSIGNED) ASC
-                ")
-                ->paginate(15);
-
+            ->withCount('facilities')
+            ->orderByRaw("CAST(SUBSTRING_INDEX(name, ' ', -1) AS UNSIGNED) ASC")
+            ->paginate(15);
 
         return view('admin.facility_rooms.index', compact('rooms'));
     }
 
-    /**
-     * Show the form for assigning facilities to a room
-     */
     public function create()
     {
-        $rooms = Room::with('property:id,name')
-            ->orderBy('name', 'asc')
-            ->get();
-
-        $facilities = Facility::orderBy('name', 'asc')->get();
+        $rooms      = Room::with('property:id,name')->orderBy('name')->get();
+        $facilities = Facility::orderBy('name')->get();
 
         return view('admin.facility_rooms.create', compact('rooms', 'facilities'));
     }
 
     /**
-     * Store facility assignments for a room
+     * Store — supports single room OR bulk (multiple rooms, same facilities)
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'room_id' => 'required|exists:rooms,id',
-            'facilities' => 'required|array|min:1',
+        // Bulk mode: room_ids[] — assign same facilities to many rooms
+        // Single mode: room_id  — assign facilities to one room
+        $isBulk = $request->has('room_ids') && is_array($request->room_ids);
+
+        $rules = [
+            'facilities'   => 'required|array|min:1',
             'facilities.*' => 'exists:facilities,id',
-        ], [
-            'room_id.required' => 'Kamar wajib dipilih.',
-            'room_id.exists' => 'Kamar tidak ditemukan.',
-            'facilities.required' => 'Minimal pilih 1 fasilitas.',
-            'facilities.min' => 'Minimal pilih 1 fasilitas.',
-            'facilities.*.exists' => 'Fasilitas tidak valid.',
-        ]);
+        ];
+
+        if ($isBulk) {
+            $rules['room_ids']   = 'required|array|min:1';
+            $rules['room_ids.*'] = 'exists:rooms,id';
+        } else {
+            $rules['room_id'] = 'required|exists:rooms,id';
+        }
+
+        $messages = [
+            'room_id.required'   => 'Kamar wajib dipilih.',
+            'room_ids.required'  => 'Pilih minimal 1 kamar.',
+            'facilities.required'=> 'Minimal pilih 1 fasilitas.',
+            'facilities.min'     => 'Minimal pilih 1 fasilitas.',
+        ];
+
+        $validated = $request->validate($rules, $messages);
 
         try {
-            DB::beginTransaction();
+            [$rooms, $roomIds, $facilityIds] = DB::transaction(function () use ($validated, $isBulk, $request) {
+                $roomIds     = $isBulk ? $validated['room_ids'] : [$validated['room_id']];
+                $facilityIds = $validated['facilities'];
+                $rooms       = Room::findMany($roomIds);
 
-            $room = Room::findOrFail($validated['room_id']);
+                foreach ($rooms as $room) {
+                    // merge_mode: 'attach' -> add without removing existing, otherwise replace
+                    if ($request->merge_mode === 'attach') {
+                        $room->facilities()->syncWithoutDetaching($facilityIds);
+                    } else {
+                        $room->facilities()->sync($facilityIds);
+                    }
+                }
 
-            // Sync facilities (will remove old and add new)
-            $room->facilities()->sync($validated['facilities']);
+                return [$rooms, $roomIds, $facilityIds];
+            });
 
-            DB::commit();
+            $roomNames = $rooms->pluck('name')->join(', ');
+            $msg = count($roomIds) > 1
+                ? count($facilityIds) . ' fasilitas berhasil di-assign ke ' . count($roomIds) . ' kamar (' . $roomNames . ').'
+                : 'Fasilitas berhasil di-assign ke kamar ' . $rooms->first()->name . '.';
 
-            return redirect()
-                ->route('admin.facility_rooms.index')
-                ->with('success', 'Fasilitas berhasil di-assign ke kamar ' . $room->name . '.');
-        } catch (Exception $e) {
-            DB::rollBack();
+            return redirect()->route('admin.facility_rooms.index')->with('success', $msg);
 
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'Gagal menambahkan fasilitas: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            return redirect()->back()->withInput()->with('error', 'Gagal: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Show the form for editing room facilities
-     */
     public function edit($facility_room)
     {
-        // Find room by ID
-        $room = Room::with(['facilities', 'property'])->findOrFail($facility_room);
-
-        $facilities = Facility::orderBy('name', 'asc')->get();
+        $room       = Room::with(['facilities', 'property'])->findOrFail($facility_room);
+        $facilities = Facility::orderBy('name')->get();
 
         return view('admin.facility_rooms.edit', compact('room', 'facilities'));
     }
 
-    /**
-     * Update facility assignments for a room
-     */
     public function update(Request $request, $facility_room)
     {
         $validated = $request->validate([
-            'facilities' => 'nullable|array',
+            'facilities'   => 'nullable|array',
             'facilities.*' => 'exists:facilities,id',
-        ], [
-            'facilities.*.exists' => 'Fasilitas tidak valid.',
         ]);
-
         try {
-            DB::beginTransaction();
+            [$room, $oldCount, $newCount] = DB::transaction(function () use ($facility_room, $validated) {
+                $room     = Room::findOrFail($facility_room);
+                $oldCount = $room->facilities()->count();
+                $room->facilities()->sync($validated['facilities'] ?? []);
+                $newCount = count($validated['facilities'] ?? []);
 
-            // Find room by ID
-            $room = Room::findOrFail($facility_room);
+                return [$room, $oldCount, $newCount];
+            });
 
-            // Count before update for message
-            $oldCount = $room->facilities()->count();
+            $diff = $newCount - $oldCount;
+            $msg  = 'Fasilitas kamar ' . $room->name . ' berhasil diperbarui.';
+            if ($diff > 0)      $msg .= ' +' . $diff . ' fasilitas baru.';
+            elseif ($diff < 0)  $msg .= ' ' . abs($diff) . ' fasilitas dihapus.';
 
-            // Sync facilities (empty array will remove all)
-            $room->facilities()->sync($validated['facilities'] ?? []);
+            return redirect()->route('admin.facility_rooms.index')->with('success', $msg);
 
-            $newCount = count($validated['facilities'] ?? []);
-
-            DB::commit();
-
-            $message = 'Fasilitas kamar ' . $room->name . ' berhasil diperbarui.';
-
-            if ($newCount > $oldCount) {
-                $message .= ' Ditambahkan ' . ($newCount - $oldCount) . ' fasilitas baru.';
-            } elseif ($newCount < $oldCount) {
-                $message .= ' Dihapus ' . ($oldCount - $newCount) . ' fasilitas.';
-            }
-
-            return redirect()
-                ->route('admin.facility_rooms.index')
-                ->with('success', $message);
-        } catch (Exception $e) {
-            DB::rollBack();
-
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'Gagal memperbarui fasilitas: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            return redirect()->back()->withInput()->with('error', 'Gagal: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Remove all facilities from a room
-     */
     public function destroy($facility_room)
     {
         try {
-            DB::beginTransaction();
+            [$room, $count] = DB::transaction(function () use ($facility_room) {
+                $room  = Room::with('facilities')->findOrFail($facility_room);
+                $count = $room->facilities()->count();
 
-            // Find room by ID
-            $room = Room::with('facilities')->findOrFail($facility_room);
+                if ($count === 0) {
+                    // don't perform detach; bubble up a custom exception-like structure by returning values
+                    return [$room, 0];
+                }
 
-            $facilityCount = $room->facilities()->count();
+                $room->facilities()->detach();
 
-            if ($facilityCount === 0) {
-                return redirect()
-                    ->route('admin.facility_rooms.index')
+                return [$room, $count];
+            });
+
+            if ($count === 0) {
+                return redirect()->route('admin.facility_rooms.index')
                     ->with('error', 'Kamar ' . $room->name . ' tidak memiliki fasilitas.');
             }
 
-            $room->facilities()->detach();
+            return redirect()->route('admin.facility_rooms.index')
+                ->with('success', 'Berhasil menghapus ' . $count . ' fasilitas dari kamar ' . $room->name . '.');
 
-            DB::commit();
-
-            return redirect()
-                ->route('admin.facility_rooms.index')
-                ->with('success', 'Berhasil menghapus ' . $facilityCount . ' fasilitas dari kamar ' . $room->name . '.');
-        } catch (Exception $e) {
-            DB::rollBack();
-
-            return redirect()
-                ->route('admin.facility_rooms.index')
-                ->with('error', 'Gagal menghapus fasilitas: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            return redirect()->route('admin.facility_rooms.index')
+                ->with('error', 'Gagal: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Show details of a specific room's facilities
-     */
     public function show($facility_room)
     {
         $room = Room::with(['property', 'facilities'])->findOrFail($facility_room);
-
         return view('admin.facility_rooms.show', compact('room'));
     }
 }

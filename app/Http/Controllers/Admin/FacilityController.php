@@ -10,29 +10,44 @@ use Exception;
 
 class FacilityController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $facilities = Facility::withCount('rooms')
-            ->latest()
-            ->paginate(15);
+        $query = Facility::withCount('rooms');
+     
         
+            //cari berdasarkan icon
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+         //digunakan atau tidak
+        if ($request->filled('usage')) {
+            if ($request ->usage == 'used') {
+                $query->having('rooms_count', '>', 0);
+            } elseif ($request->usage == 'unused'){
+                $query->having('rooms_count', '=', 0);
+            }
+        }
+
+        //sort
+        match ($request->sort){
+            'name_asc' => $query->orderBy('name','asc'),
+            'name_dessc' => $query->orderBy('name','desc'),
+            'most_used' => $query->orderByDesc('rooms_count'),
+            'least_used' => $query->orderBy('rooms_count', 'asc'),
+            default => $query->latest(),
+        };
+
+
+        $facilities = $query->paginate(15)->withQueryString();
+
         return view('admin.facilities.index', compact('facilities'));
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('admin.facilities.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -58,26 +73,18 @@ class FacilityController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Facility $facility)
     {
         $facility->load(['rooms.property']);
         return view('admin.facilities.show', compact('facility'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Facility $facility)
     {
         return view('admin.facilities.edit', compact('facility'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+
     public function update(Request $request, Facility $facility)
     {
         $validated = $request->validate([
@@ -103,9 +110,6 @@ class FacilityController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Facility $facility)
     {
         try {
