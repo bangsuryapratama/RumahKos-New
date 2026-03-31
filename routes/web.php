@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardAdminController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\TenantController;
@@ -104,6 +105,15 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         ->name('admin.review.reply');
     Route::delete('/review-reply/{reply}', [ReviewController::class, 'deleteReply'])
         ->name('admin.review.reply.delete');
+
+    Route::get('reports/tenants',       [ReportController::class, 'tenants'])->name('admin.reports.tenants');
+    Route::get('reports/tenants/pdf',   [ReportController::class, 'tenantsPdf'])->name('admin.reports.tenants.pdf');
+    Route::get('reports/tenants/excel', [ReportController::class, 'tenantsExcel'])->name('admin.reports.tenants.excel');
+    
+    Route::get('reports/finance',       [ReportController::class, 'finance'])->name('admin.reports.finance');
+    Route::get('reports/finance/pdf',   [ReportController::class, 'financePdf'])->name('admin.reports.finance.pdf');
+    Route::get('reports/finance/excel', [ReportController::class, 'financeExcel'])->name('admin.reports.finance.excel');
+
 });
 
 /*
@@ -254,6 +264,7 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
         Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
         Route::get('/booking/{room}', [BookingController::class, 'create'])->name('booking.create');
         Route::post('/booking/{room}', [BookingController::class, 'store'])->name('booking.store');
+        Route::delete('/bookings/{resident}', [BookingController::class, 'destroy'])->name('bookings.destroy');
 
         // Payment Routes
         Route::get('/payment/midtrans/{payment}', [PaymentController::class, 'midtrans'])

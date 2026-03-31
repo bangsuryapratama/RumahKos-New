@@ -23,21 +23,17 @@ class PaymentController extends Controller
 
     public function midtrans(Payment $payment)
     {
-
-       
         $contact = Property::select('phone', 'whatsapp')->first();
         view()->share('contact', $contact);
         $address = Property::select('address')->first();
         view()->share('address', $address);
 
         $user = Auth::guard('tenant')->user();
-        
-        // Cek authorization
+
         if ($payment->resident->user_id !== $user->id) {
             abort(403, 'Unauthorized');
         }
 
-        // Kalau udah bayar
         if ($payment->status === 'paid') {
             return redirect()->route('tenant.bookings.index')
                 ->with('success', 'Pembayaran sudah lunas.');
@@ -45,17 +41,17 @@ class PaymentController extends Controller
 
         try {
             $snapToken = $this->createSnapToken($payment, $user);
-            
+
             return view('tenant.payment.midtrans', [
                 'payment' => $payment,
                 'snapToken' => $snapToken,
                 'resident' => $payment->resident,
                 'room' => $payment->resident->room,
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Midtrans Error: ' . $e->getMessage());
-            
+
             return redirect()->route('tenant.bookings.index')
                 ->with('error', 'Gagal memproses pembayaran. Silakan coba lagi.');
         }
@@ -69,24 +65,22 @@ class PaymentController extends Controller
         view()->share('address', $address);
 
         $user = Auth::guard('tenant')->user();
-        
+
         if ($payment->resident->user_id !== $user->id) {
             abort(403);
         }
 
-        return view('tenant.payment.finish', compact('payment','address','contact'));
+        return view('tenant.payment.finish', compact('payment', 'address', 'contact'));
     }
 
     public function callback(Request $request)
     {
         Log::info('MIDTRANS CALLBACK', $request->all());
 
-        // Skip test notification
         if (empty($request->order_id) || str_contains($request->order_id, 'payment_notif_test')) {
             return response()->json(['message' => 'Test OK']);
         }
 
-        // Parse order_id
         $parts = explode('-', $request->order_id);
         if (count($parts) < 3) {
             Log::warning('Invalid order_id format');
@@ -101,7 +95,6 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Payment not found']);
         }
 
-        // Update payment status
         $status = $request->transaction_status;
         $transactionId = $request->transaction_id;
 
@@ -110,7 +103,7 @@ class PaymentController extends Controller
         } elseif ($status === 'pending') {
             $payment->update([
                 'status' => 'pending',
-                'transaction_id' => $transactionId
+                'transaction_id' => $transactionId,
             ]);
         } elseif (in_array($status, ['expire', 'cancel', 'deny'])) {
             $this->handleFailed($payment, $transactionId);
@@ -126,7 +119,7 @@ class PaymentController extends Controller
         $resident = $payment->resident;
         $room = $resident->room;
         $orderId = 'PAYMENT-' . $payment->id . '-' . time();
-        
+
         $params = [
             'transaction_details' => [
                 'order_id' => $orderId,
@@ -151,7 +144,7 @@ class PaymentController extends Controller
         ];
 
         $snapToken = Snap::getSnapToken($params);
-        
+
         $payment->update([
             'order_id' => $orderId,
             'snap_token' => $snapToken,
@@ -170,10 +163,9 @@ class PaymentController extends Controller
             'transaction_id' => $transactionId,
         ]);
 
-        // Aktivasi resident kalau payment pertama
         $resident = $payment->resident;
         $firstPayment = $resident->payments()->orderBy('billing_month')->first();
-        
+
         if ($payment->id === $firstPayment->id && $resident->status === 'inactive') {
             $resident->update(['status' => 'active']);
             $resident->room->update(['status' => 'occupied']);
@@ -190,10 +182,10 @@ class PaymentController extends Controller
             'transaction_id' => $transactionId,
         ]);
 
-        // Cancel booking kalau payment pertama gagal
+        // Hanya cancel booking kalau payment pertama gagal dan resident masih inactive
         $resident = $payment->resident;
         $firstPayment = $resident->payments()->orderBy('billing_month')->first();
-        
+
         if ($payment->id === $firstPayment->id && $resident->status === 'inactive') {
             $resident->update(['status' => 'cancelled']);
             $resident->room?->update(['status' => 'available']);

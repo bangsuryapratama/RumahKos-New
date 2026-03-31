@@ -56,7 +56,6 @@ class BookingController extends Controller
                 ->with('error', 'Anda sudah memiliki kamar aktif. Silakan selesaikan kontrak terlebih dahulu.');
         }
 
-        // Check if profile is complete
         $profile = $user->profile;
         $isProfileComplete = $profile
             && $profile->phone
@@ -89,19 +88,17 @@ class BookingController extends Controller
 
         DB::beginTransaction();
         try {
-            // Create resident
             $resident = Resident::create([
                 'user_id' => $user->id,
                 'room_id' => $room->id,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
-                'status' => 'inactive', // Will be 'active' after first payment
+                'status' => 'inactive',
             ]);
 
-            // Create payments untuk setiap bulan
             for ($i = 0; $i < $durationMonths; $i++) {
                 $billingMonth = $startDate->copy()->addMonths($i);
-                $dueDate = $billingMonth->copy()->addDays(3); // Jatuh tempo 3 hari setelah tanggal
+                $dueDate = $billingMonth->copy()->addDays(3);
 
                 $payment = $resident->payments()->create([
                     'amount' => $room->price,
@@ -112,7 +109,6 @@ class BookingController extends Controller
                     'description' => "Sewa {$room->name} - Bulan ke-" . ($i + 1) . " ({$billingMonth->format('F Y')})",
                 ]);
 
-                // Hanya pembayaran bulan pertama yang akan langsung di-redirect ke Midtrans
                 if ($i === 0) {
                     $firstPayment = $payment;
                 }
@@ -120,7 +116,6 @@ class BookingController extends Controller
 
             DB::commit();
 
-            // Redirect ke pembayaran bulan pertama
             return redirect()->route('tenant.payment.midtrans', $firstPayment->id);
 
         } catch (\Exception $e) {
@@ -133,7 +128,6 @@ class BookingController extends Controller
 
     public function destroy(Resident $resident)
     {
-        // Pastikan resident milik user yang sedang login
         /** @var User $user */
         $user = Auth::guard('tenant')->user();
 
@@ -142,13 +136,11 @@ class BookingController extends Controller
                 ->with('error', 'Anda tidak memiliki akses untuk membatalkan booking ini.');
         }
 
-        // Hanya bisa cancel jika status masih inactive (belum ada pembayaran)
         if ($resident->status !== 'inactive') {
             return redirect()->route('tenant.bookings.index')
                 ->with('error', 'Booking tidak dapat dibatalkan. Silakan hubungi admin.');
         }
 
-        // Cek apakah ada pembayaran yang sudah lunas
         $hasPaidPayment = $resident->payments()->where('status', 'paid')->exists();
 
         if ($hasPaidPayment) {
@@ -158,28 +150,18 @@ class BookingController extends Controller
 
         DB::beginTransaction();
         try {
-            // Update status resident menjadi cancelled
-            $resident->update([
-                'status' => 'cancelled'
-            ]);
-
-            // Cancel semua pending payments
-            $resident->payments()
-                ->where('status', 'pending')
-                ->update([
-                    'status' => 'cancelled'
-                ]);
-
-            // Update room status kembali ke available jika tidak ada resident aktif lainnya
             $room = $resident->room;
+
+            // Histori tetap tersimpan, hanya update status
+            $resident->update(['status' => 'cancelled']);
+            $resident->payments()->where('status', 'pending')->update(['status' => 'cancelled']);
+
             $hasActiveResident = $room->residents()
                 ->where('status', 'active')
                 ->exists();
 
             if (!$hasActiveResident) {
-                $room->update([
-                    'status' => 'available'
-                ]);
+                $room->update(['status' => 'available']);
             }
 
             DB::commit();
