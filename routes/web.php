@@ -16,6 +16,9 @@ use App\Http\Controllers\Tenant\Auth\ResetPasswordController;
 use App\Http\Controllers\Tenant\DashboardController;
 use App\Http\Controllers\Tenant\BookingController;
 use App\Http\Controllers\Tenant\PaymentController;
+use App\Services\SecureDocumentService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -273,6 +276,9 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
             ->name('payment.finish');
         Route::get('/payment/{payment}/check-status', [PaymentController::class, 'checkStatus'])
             ->name('payment.check-status');
+        Route::get('/payment/{payment}/invoice', [PaymentController::class, 'invoice'])
+            ->name('tenant.payment.invoice');
+            
 
         Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])->name('document.ktp');
         Route::get('/document/sim', [DashboardController::class, 'serveSim'])->name('document.sim');

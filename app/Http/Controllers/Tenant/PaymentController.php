@@ -192,4 +192,29 @@ class PaymentController extends Controller
             Log::info('Booking CANCELLED', ['resident_id' => $resident->id]);
         }
     }
+
+    public function invoice(Payment $payment)
+{
+    $user = Auth::guard('tenant')->user();
+
+    if ($payment->resident->user_id !== $user->id) {
+        abort(403, 'Unauthorized');
+    }
+
+    if ($payment->status !== 'paid') {
+        return redirect()->route('tenant.bookings.index')
+            ->with('error', 'Faktur hanya tersedia untuk pembayaran yang sudah lunas.');
+    }
+
+    $contact = Property::select('phone', 'whatsapp', 'name', 'address')->first();
+
+    return view('tenant.payment.invoice', [
+        'payment' => $payment,
+        'resident' => $payment->resident,
+        'room'     => $payment->resident->room,
+        'property' => $payment->resident->room->property,
+        'user'     => $user,
+        'contact'  => $contact,
+    ]);
+}
 }

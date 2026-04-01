@@ -1,3 +1,13 @@
+@php
+    $user     = Auth::guard('tenant')->user();
+    $name     = $user->name ?? 'User';
+    $words    = explode(' ', trim($name));
+    $initials = strtoupper(substr($words[0], 0, 1));
+    if (count($words) > 1) {
+        $initials .= strtoupper(substr(end($words), 0, 1));
+    }
+@endphp
+
 <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
     <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
 
@@ -6,7 +16,8 @@
             Rumah<span class="text-blue-600">Kos</span>
         </a>
 
-          <nav class="hidden md:flex items-center gap-8 text-gray-700 font-medium">
+        <!-- Navigation (Desktop) -->
+        <nav class="hidden md:flex items-center gap-8 text-gray-700 font-medium">
             <a href="/#kamar" class="hover:text-blue-600 transition">Kamar</a>
             <a href="/#fasilitas" class="hover:text-blue-600 transition">Fasilitas</a>
             <a href="/#lokasi" class="hover:text-blue-600 transition">Lokasi</a>
@@ -21,29 +32,22 @@
                     class="flex items-center gap-3 px-4 py-2 rounded-xl bg-blue-50 text-blue-600 font-semibold hover:bg-blue-100 transition">
 
                     <!-- Avatar -->
-                   @php
-                        $user = Auth::guard('tenant')->user();
-                    @endphp
-
-                    @if($user->avatar)
-                        <img src="{{ $user->avatar }}"
-                            alt="Avatar"
-                            class="w-8 h-8 rounded-full object-cover border border-gray-200">
-                    @else
-                        <div class="w-8 h-8 rounded-full bg-blue-600 text-white
-                                    flex items-center justify-center font-bold">
-                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                    <div class="relative w-8 h-8 flex-shrink-0">
+                        <img src="{{ $user->avatar ?? '' }}"
+                             alt="{{ $name }}"
+                             class="w-8 h-8 rounded-full object-cover border border-gray-200"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div style="display:none;"
+                             class="w-8 h-8 rounded-full bg-blue-600 text-white absolute inset-0
+                                    flex items-center justify-center text-sm font-bold">
+                            {{ $initials }}
                         </div>
-                    @endif
+                    </div>
 
-
-                    <span class="max-w-[120px] truncate">
-                        {{ Auth::guard('tenant')->user()->name }}
-                    </span>
+                    <span class="max-w-[120px] truncate">{{ $name }}</span>
 
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>
-
 
                 <!-- Dropdown -->
                 <div id="profileMenu"
@@ -84,8 +88,6 @@
             @endauth
         </div>
 
-
-
         <!-- Mobile Menu Button -->
         <button id="menuBtn" class="md:hidden text-2xl text-gray-700">
             <i class="fas fa-bars"></i>
@@ -103,6 +105,25 @@
 
             @auth('tenant')
                 <div class="mt-4 border-t pt-4 flex flex-col gap-3">
+
+                    <!-- Profile Info -->
+                    <div class="flex items-center gap-3 px-1 py-2">
+                        <div class="relative w-10 h-10 flex-shrink-0">
+                            <img src="{{ $user->avatar ?? '' }}"
+                                 alt="{{ $name }}"
+                                 class="w-10 h-10 rounded-full object-cover border border-gray-200"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div style="display:none;"
+                                 class="w-10 h-10 rounded-full bg-blue-600 text-white absolute inset-0
+                                        flex items-center justify-center text-sm font-bold">
+                                {{ $initials }}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-gray-800 text-sm">{{ $name }}</div>
+                            <div class="text-xs text-gray-500">{{ $user->email }}</div>
+                        </div>
+                    </div>
 
                     <a href="{{ route('tenant.dashboard') }}"
                        class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 text-blue-600 font-semibold">
@@ -141,19 +162,15 @@
     </div>
 </header>
 
-<!-- JS -->
 <script>
-    // Mobile Menu
-    const menuBtn = document.getElementById('menuBtn');
+    const menuBtn    = document.getElementById('menuBtn');
     const mobileMenu = document.getElementById('mobileMenu');
+    const profileBtn = document.getElementById('profileBtn');
+    const profileMenu = document.getElementById('profileMenu');
 
     menuBtn?.addEventListener('click', () => {
         mobileMenu.classList.toggle('hidden');
     });
-
-    // Profile Dropdown
-    const profileBtn = document.getElementById('profileBtn');
-    const profileMenu = document.getElementById('profileMenu');
 
     profileBtn?.addEventListener('click', (e) => {
         e.stopPropagation();

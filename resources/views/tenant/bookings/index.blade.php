@@ -172,9 +172,17 @@
                                                             <i class="fas fa-credit-card mr-1"></i>Bayar
                                                         </a>
                                                     @elseif($payment->status === 'paid')
-                                                        <span class="text-gray-400 text-xs">
-                                                            <i class="fas fa-receipt mr-1"></i>{{ $payment->paid_at->format('d/m/Y') }}
-                                                        </span>
+                                                        {{-- Mobile: Paid info + Invoice button --}}
+                                                        <div class="flex flex-col items-end gap-1">
+                                                            <span class="text-gray-400 text-xs">
+                                                                <i class="fas fa-receipt mr-1"></i>{{ $payment->paid_at->format('d/m/Y') }}
+                                                            </span>
+                                                            <a href="{{ route('tenant.payment.invoice', $payment->id) }}"
+                                                               target="_blank"
+                                                               class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-600 border border-green-200 rounded-lg hover:bg-green-100 transition-all font-semibold text-xs active:scale-[0.98]">
+                                                                <i class="fas fa-file-invoice"></i> Faktur
+                                                            </a>
+                                                        </div>
                                                     @endif
                                                 </div>
                                             </div>
@@ -236,9 +244,18 @@
                                                                     <span>Bayar Sekarang</span>
                                                                 </a>
                                                             @elseif($payment->status === 'paid')
-                                                                <span class="text-gray-400 text-xs sm:text-sm">
-                                                                    <i class="fas fa-receipt mr-1"></i>{{ $payment->paid_at->format('d M Y') }}
-                                                                </span>
+                                                                {{-- Desktop: Paid info + Invoice button --}}
+                                                                <div class="flex flex-col gap-1">
+                                                                    <span class="text-gray-400 text-xs sm:text-sm">
+                                                                        <i class="fas fa-receipt mr-1"></i>{{ $payment->paid_at->format('d M Y') }}
+                                                                    </span>
+                                                                    <a href="{{ route('tenant.payment.invoice', $payment->id) }}"
+                                                                       target="_blank"
+                                                                       class="inline-flex items-center gap-1 text-green-600 hover:text-green-700 font-semibold text-xs sm:text-sm transition-colors">
+                                                                        <i class="fas fa-file-invoice"></i>
+                                                                        <span>Lihat Faktur</span>
+                                                                    </a>
+                                                                </div>
                                                             @endif
                                                         </td>
                                                     </tr>
