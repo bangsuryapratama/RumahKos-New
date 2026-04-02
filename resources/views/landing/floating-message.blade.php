@@ -1,10 +1,10 @@
 {{-- ============================================================
      FLOATING MESSAGE BUTTON
-     Include di layout utama: @include('components.floating-message')
+     Include SEKALI di landing/layout LUAR loop, sebelum </body>
+     JANGAN include di dalam <a> atau <form> apapun!
      ============================================================ --}}
 
 <style>
-    /* Floating Button */
     #floatMsgBtn {
         position: fixed;
         bottom: 24px;
@@ -29,7 +29,6 @@
     }
     #floatMsgBtn:active { transform: scale(0.95); }
 
-    /* Pulse ring */
     #floatMsgBtn::before {
         content: '';
         position: absolute;
@@ -43,7 +42,6 @@
         100% { transform: scale(1.55); opacity: 0; }
     }
 
-    /* Icon flip on open */
     #floatMsgBtn .icon-msg  { transition: opacity 0.15s, transform 0.15s; }
     #floatMsgBtn .icon-close {
         position: absolute;
@@ -53,7 +51,6 @@
     #floatMsgBtn.open .icon-msg   { opacity: 0; transform: rotate(90deg) scale(0.6); }
     #floatMsgBtn.open .icon-close { opacity: 1; transform: rotate(0deg) scale(1); }
 
-    /* Tooltip label */
     #floatMsgTooltip {
         position: fixed;
         bottom: 32px;
@@ -79,12 +76,8 @@
         border-left-color: #1e293b;
         border-right: 0;
     }
-    #floatMsgBtn:not(.open):hover ~ #floatMsgTooltip,
-    body:not(.float-opened) #floatMsgTooltip.peek {
-        opacity: 1; transform: translateX(0);
-    }
+    #floatMsgTooltip.peek { opacity: 1; transform: translateX(0); }
 
-    /* Popup card */
     #floatMsgPopup {
         position: fixed;
         bottom: 86px;
@@ -107,7 +100,6 @@
         pointer-events: auto;
     }
 
-    /* Popup header */
     .fmp-header {
         background: linear-gradient(135deg, #2563eb, #4f46e5);
         padding: 16px;
@@ -123,8 +115,8 @@
         display: flex; align-items: center; justify-content: center;
         font-size: 18px; flex-shrink: 0;
     }
-    .fmp-header-text .fmp-name  { font-weight: 700; font-size: 14px; line-height: 1.2; }
-    .fmp-header-text .fmp-role  { font-size: 11px; opacity: 0.8; margin-top: 1px; }
+    .fmp-header-text .fmp-name { font-weight: 700; font-size: 14px; line-height: 1.2; }
+    .fmp-header-text .fmp-role { font-size: 11px; opacity: 0.8; margin-top: 1px; }
     .fmp-status-dot {
         display: inline-block; width: 7px; height: 7px;
         background: #4ade80; border-radius: 50%;
@@ -133,10 +125,8 @@
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-    /* Popup body */
     .fmp-body { padding: 16px; }
 
-    /* Chat bubble */
     .fmp-bubble {
         background: #f1f5f9;
         border-radius: 4px 14px 14px 14px;
@@ -145,7 +135,6 @@
         color: #1e293b;
         line-height: 1.55;
         margin-bottom: 12px;
-        position: relative;
     }
     .fmp-bubble strong { color: #1d4ed8; }
     .fmp-bubble .fmp-sig {
@@ -156,7 +145,6 @@
         font-style: italic;
     }
 
-    /* Typing dots (decorative) */
     .fmp-typing {
         display: flex; gap: 4px; align-items: center;
         padding: 2px 0 10px;
@@ -173,7 +161,6 @@
         30% { transform: translateY(-5px); opacity: 1; }
     }
 
-    /* Dismiss button */
     .fmp-dismiss {
         width: 100%;
         padding: 9px;
@@ -189,11 +176,15 @@
     }
     .fmp-dismiss:hover { background: #eff6ff; }
 
-    /* Mobile: adjust bottom when sticky bar is present */
+    /*
+     * MOBILE FIX: geser ke kiri agar tidak tumpuk dengan #backToTop
+     * #backToTop ada di bottom:24px right:20px
+     * jadi floatMsgBtn pindah ke right:80px (beri gap 8px dari back-to-top)
+     */
     @media (max-width: 1023px) {
-        #floatMsgBtn   { bottom: 88px; }
-        #floatMsgPopup { bottom: 150px; }
-        #floatMsgTooltip { bottom: 96px; }
+        #floatMsgBtn     { bottom: 24px; right: 80px; }
+        #floatMsgTooltip { bottom: 32px; right: 140px; }
+        #floatMsgPopup   { bottom: 86px; right: 16px; }
     }
 </style>
 
@@ -220,74 +211,81 @@
             Jika kamu menemukan bug atau kendala, mohon <strong>bersabar</strong> ya — kami terus bekerja untuk pengalaman yang lebih baik! 🚀
             <span class="fmp-sig">— _suryapratama</span>
         </div>
-        <button class="fmp-dismiss" onclick="closeFloatMsg()">
+        <button type="button" class="fmp-dismiss" onclick="closeFloatMsg()">
             <i class="fas fa-check text-xs"></i> Oke, mengerti!
         </button>
     </div>
 </div>
 
 {{-- FLOATING BUTTON --}}
-<button id="floatMsgBtn" onclick="toggleFloatMsg()" aria-label="Pesan dari developer" title="Pesan dari developer">
+{{-- type="button" WAJIB — tanpa ini browser anggap ini submit button --}}
+<button type="button" id="floatMsgBtn" aria-label="Pesan dari developer" title="Pesan dari developer">
     <span class="icon-msg"><i class="fas fa-comment-dots text-lg"></i></span>
     <span class="icon-close"><i class="fas fa-times text-lg"></i></span>
 </button>
 
 <script>
 (function () {
-    const btn     = document.getElementById('floatMsgBtn');
-    const popup   = document.getElementById('floatMsgPopup');
-    const typing  = document.getElementById('fmpTyping');
-    const bubble  = document.getElementById('fmpBubble');
-    const tooltip = document.getElementById('floatMsgTooltip');
+    var btn    = document.getElementById('floatMsgBtn');
+    var popup  = document.getElementById('floatMsgPopup');
+    var typing = document.getElementById('fmpTyping');
+    var bubble = document.getElementById('fmpBubble');
+    var tip    = document.getElementById('floatMsgTooltip');
+    var isOpen = false;
+    var shown  = false;
 
-    let isOpen   = false;
-    let shown    = false; // typing already resolved once
-
-    // Peek tooltip after 3s on first load
-    setTimeout(() => {
+    // Peek tooltip 3 detik setelah load
+    setTimeout(function () {
         if (!isOpen) {
-            tooltip.classList.add('peek');
-            setTimeout(() => tooltip.classList.remove('peek'), 3000);
+            tip.classList.add('peek');
+            setTimeout(function () { tip.classList.remove('peek'); }, 3000);
         }
     }, 3000);
 
-    window.toggleFloatMsg = function () {
-        isOpen ? closeFloatMsg() : openFloatMsg();
-    };
+    // Gunakan addEventListener — BUKAN onclick attr — agar bisa stopPropagation
+    btn.addEventListener('click', function (e) {
+        e.preventDefault();      // cegah default browser
+        e.stopPropagation();     // cegah bubble ke <a> parent manapun
+        isOpen ? doClose() : doOpen();
+    });
 
-    window.openFloatMsg = function () {
+    function doOpen() {
         isOpen = true;
         btn.classList.add('open');
         popup.classList.add('open');
-        tooltip.style.opacity = '0';
+        tip.classList.remove('peek');
+        tip.style.opacity = '0';
 
         if (!shown) {
             typing.style.display = 'flex';
             bubble.style.display = 'none';
-            setTimeout(() => {
+            setTimeout(function () {
                 typing.style.display = 'none';
                 bubble.style.display = 'block';
                 shown = true;
             }, 1400);
         }
-    };
+    }
 
-    window.closeFloatMsg = function () {
+    function doClose() {
         isOpen = false;
         btn.classList.remove('open');
         popup.classList.remove('open');
-    };
+    }
 
-    // Close on outside click
+    // Expose untuk tombol "Oke, mengerti!"
+    window.closeFloatMsg = doClose;
+
+    // Klik di luar popup → tutup
     document.addEventListener('click', function (e) {
-        if (isOpen && !popup.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
-            closeFloatMsg();
+        if (isOpen && !popup.contains(e.target) && !btn.contains(e.target)) {
+            doClose();
         }
     });
 
-    // ESC
+    // ESC → tutup
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && isOpen) closeFloatMsg();
+        if (e.key === 'Escape' && isOpen) doClose();
     });
 })();
 </script>

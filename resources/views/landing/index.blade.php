@@ -275,9 +275,6 @@
                             </span>
                         </div>
                     </div>
-
-                    @include('landing.floating-message')
-
                     {{-- Body --}}
                     <div class="p-4 space-y-2.5">
 
@@ -434,7 +431,7 @@
     </div>
 </section>
 
-
+@include('landing.floating-message')
 {{-- Footer --}}
 @include('landing.footer')
 
