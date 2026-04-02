@@ -276,7 +276,7 @@
                         </div>
                     </div>
 
-                    @include('components.floating-message')
+                    @include('landing.floating-message')
 
                     {{-- Body --}}
                     <div class="p-4 space-y-2.5">
