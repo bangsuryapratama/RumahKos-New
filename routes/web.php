@@ -277,7 +277,7 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
         Route::get('/payment/{payment}/check-status', [PaymentController::class, 'checkStatus'])
             ->name('payment.check-status');
         Route::get('/payment/{payment}/invoice', [PaymentController::class, 'invoice'])
-            ->name('tenant.payment.invoice');
+            ->name('payment.invoice');
             
 
         Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])->name('document.ktp');

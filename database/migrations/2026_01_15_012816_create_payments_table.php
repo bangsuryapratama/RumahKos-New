@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            
+                
             // Midtrans specific columns
             $table->string('order_id')->nullable()->unique(); // ORDER-{id}-{timestamp}
             $table->string('snap_token')->nullable(); // Token dari Midtrans Snap

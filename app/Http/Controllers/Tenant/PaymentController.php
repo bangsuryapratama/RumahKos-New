@@ -175,23 +175,28 @@ class PaymentController extends Controller
 
     private function handleFailed(Payment $payment, $transactionId)
     {
-        Log::info('Payment FAILED', ['payment_id' => $payment->id]);
+    Log::info('Payment FAILED', ['payment_id' => $payment->id]);
 
-        $payment->update([
-            'status' => 'failed',
-            'transaction_id' => $transactionId,
-        ]);
+    $payment->update([
+        'status' => 'failed',
+        'transaction_id' => $transactionId,
+    ]);
 
-        // Hanya cancel booking kalau payment pertama gagal dan resident masih inactive
-        $resident = $payment->resident;
-        $firstPayment = $resident->payments()->orderBy('billing_month')->first();
+    $resident = $payment->resident;
+    $firstPayment = $resident->payments()->orderBy('billing_month')->first();
 
-        if ($payment->id === $firstPayment->id && $resident->status === 'inactive') {
-            $resident->update(['status' => 'cancelled']);
-            $resident->room?->update(['status' => 'available']);
-            Log::info('Booking CANCELLED', ['resident_id' => $resident->id]);
-        }
+    if ($payment->id === $firstPayment->id && $resident->status === 'inactive') {
+        // Cancel semua payment pending bulan berikutnya
+        $resident->payments()
+            ->where('status', 'pending')
+            ->where('id', '!=', $payment->id)
+            ->update(['status' => 'cancelled']);
+
+        $resident->update(['status' => 'cancelled']);
+        $resident->room?->update(['status' => 'available']);
+        Log::info('Booking CANCELLED', ['resident_id' => $resident->id]);
     }
+}
 
     public function invoice(Payment $payment)
 {
