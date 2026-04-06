@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Resident;
 use App\Models\Payment;
+use App\Models\Property;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -82,32 +83,37 @@ class ReportController extends Controller
         return $query->latest('billing_month');
     }
 
-    // ─── Laporan Penghuni ────────────────────────────────────────────────────
+    // ─── Helper: tenant stats ────────────────────────────────────────────────
 
-    public function tenants(Request $request)
+    private function tenantStats(): array
     {
-        $residents = $this->tenantQuery($request)->paginate(15)->withQueryString();
-
-        $stats = [
+        return [
             'total'     => Resident::count(),
             'active'    => Resident::where('status', 'active')->count(),
             'inactive'  => Resident::where('status', 'inactive')->count(),
             'expired'   => Resident::where('status', 'expired')->count(),
             'cancelled' => Resident::where('status', 'cancelled')->count(),
         ];
+    }
 
-        $properties = \App\Models\Property::orderBy('name')->get();
+    // ─── Laporan Penghuni ────────────────────────────────────────────────────
+
+    public function tenants(Request $request)
+    {
+        $residents  = $this->tenantQuery($request)->paginate(15)->withQueryString();
+        $stats      = $this->tenantStats();
+        $properties = Property::orderBy('name')->get();
 
         return view('admin.reports.tenants', compact('residents', 'stats', 'properties'));
     }
 
     public function tenantsPdf(Request $request)
     {
-        $residents  = $this->tenantQuery($request)->get();
-        $properties = \App\Models\Property::orderBy('name')->get();
+        $residents   = $this->tenantQuery($request)->get();
         $generatedAt = now()->format('d M Y H:i');
+        $stats       = $this->tenantStats();
 
-        $pdf = Pdf::loadView('admin.reports.pdf.tenants', compact('residents', 'generatedAt'))
+        $pdf = Pdf::loadView('admin.reports.pdf.tenants', compact('residents', 'generatedAt', 'stats'))
             ->setPaper('a4', 'landscape');
 
         return $pdf->download('laporan-penghuni-' . now()->format('Ymd') . '.pdf');
@@ -160,11 +166,8 @@ class ReportController extends Controller
     public function finance(Request $request)
     {
         $payments   = $this->financeQuery($request)->paginate(15)->withQueryString();
-        $properties = \App\Models\Property::orderBy('name')->get();
-
-        // Stats dengan filter yang sama
-        $baseQuery = clone $this->financeQuery($request);
-        $allData   = $this->financeQuery($request)->get();
+        $properties = Property::orderBy('name')->get();
+        $allData    = $this->financeQuery($request)->get();
 
         $stats = [
             'total_tagihan' => $allData->sum('amount'),
@@ -173,7 +176,6 @@ class ReportController extends Controller
             'total_failed'  => $allData->whereIn('status', ['failed', 'cancelled'])->count(),
         ];
 
-        // Chart revenue 12 bulan terakhir
         $revenueChart = Payment::where('status', 'paid')
             ->where('paid_at', '>=', now()->subMonths(11)->startOfMonth())
             ->selectRaw('DATE_FORMAT(paid_at, "%Y-%m") as month, SUM(amount) as total')
