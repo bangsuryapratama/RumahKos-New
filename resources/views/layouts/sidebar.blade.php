@@ -7,12 +7,14 @@
     {{-- Logo & Brand --}}
     <div class="flex items-center justify-between border-b border-gray-200 p-5">
         <div class="flex items-center gap-3">
-            <div class="flex-shrink-0 rounded-lg p-1">
-                <img src="{{ asset('favicon.ico') }}" alt="RumahKos logo" class="h-7 w-7 object-contain">
-            </div>
-            <span class="whitespace-nowrap text-xl font-extrabold tracking-tight text-gray-900">
-                Rumah<span class="text-blue-600">Kos</span>
-            </span>
+            <a href="{{ url('/') }}" class="flex items-center gap-2">
+                <div class="flex-shrink-0 rounded-lg p-1">
+                    <img src="{{ asset('favicon.ico') }}" alt="RumahKos logo" class="h-7 w-7 object-contain">
+                </div>
+                <span class="whitespace-nowrap text-xl font-extrabold tracking-tight text-gray-900">
+                    Rumah<span class="text-blue-600">Kos</span>
+                </span>
+            </a>
         </div>
 
         {{-- Close button (mobile only) --}}
@@ -42,9 +44,7 @@
             </a>
 
             {{-- User Management --}}
-            @php
-                $userManagementOpen = request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*');
-            @endphp
+            @php $userManagementOpen = request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*'); @endphp
             <div x-data="{ open: {{ $userManagementOpen ? 'true' : 'false' }} }">
                 <button
                     @click="open = !open"
@@ -61,17 +61,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                 </button>
-
                 <div x-show="open" x-cloak class="ml-9 mt-1 space-y-1">
-                    <a
-                        href="{{ route('admin.users.index') }}"
-                        @click="sidebarOpen = false"
+                    <a href="{{ route('admin.users.index') }}" @click="sidebarOpen = false"
                         class="block rounded-lg px-4 py-2 text-sm transition
                             {{ request()->routeIs('admin.users.*') ? 'bg-blue-100 font-medium text-blue-700' : 'text-gray-600 hover:bg-gray-100' }}"
                     >Users</a>
-                    <a
-                        href="{{ route('admin.roles.index') }}"
-                        @click="sidebarOpen = false"
+                    <a href="{{ route('admin.roles.index') }}" @click="sidebarOpen = false"
                         class="block rounded-lg px-4 py-2 text-sm transition
                             {{ request()->routeIs('admin.roles.*') ? 'bg-blue-100 font-medium text-blue-700' : 'text-gray-600 hover:bg-gray-100' }}"
                     >Roles</a>
@@ -93,9 +88,7 @@
             </a>
 
             {{-- Fasilitas --}}
-            @php
-                $fasilitasOpen = request()->routeIs('admin.facilities.*') || request()->routeIs('admin.facility_rooms.*');
-            @endphp
+            @php $fasilitasOpen = request()->routeIs('admin.facilities.*') || request()->routeIs('admin.facility_rooms.*'); @endphp
             <div x-data="{ open: {{ $fasilitasOpen ? 'true' : 'false' }} }">
                 <button
                     @click="open = !open"
@@ -112,17 +105,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                 </button>
-
                 <div x-show="open" x-cloak class="ml-9 mt-1 space-y-1">
-                    <a
-                        href="{{ route('admin.facilities.index') }}"
-                        @click="sidebarOpen = false"
+                    <a href="{{ route('admin.facilities.index') }}" @click="sidebarOpen = false"
                         class="block rounded-lg px-4 py-2 text-sm transition
                             {{ request()->routeIs('admin.facilities.*') ? 'bg-blue-100 font-medium text-blue-700' : 'text-gray-600 hover:bg-gray-100' }}"
                     >Fasilitas</a>
-                    <a
-                        href="{{ route('admin.facility_rooms.index') }}"
-                        @click="sidebarOpen = false"
+                    <a href="{{ route('admin.facility_rooms.index') }}" @click="sidebarOpen = false"
                         class="block rounded-lg px-4 py-2 text-sm transition
                             {{ request()->routeIs('admin.facility_rooms.*') ? 'bg-blue-100 font-medium text-blue-700' : 'text-gray-600 hover:bg-gray-100' }}"
                     >Fasilitas Kamar</a>
@@ -158,10 +146,7 @@
             </a>
 
             {{-- Laporan --}}
-            {{-- TODO: ganti $laporanOpen dengan route laporan yang sesuai --}}
-            @php
-                $laporanOpen = request()->routeIs('admin.reports.*');
-            @endphp
+            @php $laporanOpen = request()->routeIs('admin.reports.*'); @endphp
             <div x-data="{ open: {{ $laporanOpen ? 'true' : 'false' }} }">
                 <button
                     @click="open = !open"
@@ -178,21 +163,73 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                 </button>
-
                 <div x-show="open" x-cloak class="ml-9 mt-1 space-y-1">
-                    {{-- TODO: ganti route di bawah dengan route laporan penghuni & keuangan --}}
-                    <a
-                        href="{{ route('admin.reports.tenants') }}"
-                        @click="sidebarOpen = false"
+                    <a href="{{ route('admin.reports.tenants') }}" @click="sidebarOpen = false"
                         class="block rounded-lg px-4 py-2 text-sm transition
                             {{ request()->routeIs('admin.reports.tenants') ? 'bg-blue-100 font-medium text-blue-700' : 'text-gray-600 hover:bg-gray-100' }}"
                     >Penghuni</a>
-                    <a
-                        href="{{ route('admin.reports.finance') }}"
-                        @click="sidebarOpen = false"
+                    <a href="{{ route('admin.reports.finance') }}" @click="sidebarOpen = false"
                         class="block rounded-lg px-4 py-2 text-sm transition
                             {{ request()->routeIs('admin.reports.finance') ? 'bg-blue-100 font-medium text-blue-700' : 'text-gray-600 hover:bg-gray-100' }}"
                     >Keuangan</a>
+                </div>
+            </div>
+
+            {{-- Divider --}}
+            <div class="my-2 border-t border-gray-100"></div>
+            <p class="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">Halaman</p>
+
+            {{-- Pages --}}
+            @php $pagesOpen = request()->routeIs('admin.pages.*'); @endphp
+            <div x-data="{ open: {{ $pagesOpen ? 'true' : 'false' }} }">
+                <button
+                    @click="open = !open"
+                    class="flex w-full items-center gap-3 rounded-lg px-4 py-3 transition
+                        {{ $pagesOpen ? 'bg-blue-50 font-medium text-blue-600' : 'text-gray-700 hover:bg-gray-100' }}"
+                >
+                    <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="flex-1 text-left">Pages</span>
+                    <svg class="h-4 w-4 flex-shrink-0 transition-transform" :class="open ? 'rotate-90' : ''"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+                <div x-show="open" x-cloak class="ml-9 mt-1 space-y-1">
+
+                    {{-- Admin --}}
+                    <a href="{{ route('dashboard') }}" @click="sidebarOpen = false"
+                        target="_blank"
+                        class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition text-gray-600 hover:bg-gray-100"
+                    >
+                        <svg class="h-3.5 w-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <span>Halaman Admin</span>
+                        <svg class="ml-auto h-3 w-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                    </a>
+
+                    {{-- Landing Page --}}
+                    <a href="{{ url('/') }}" @click="sidebarOpen = false"
+                        target="_blank"
+                        class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition text-gray-600 hover:bg-gray-100"
+                    >
+                        <svg class="h-3.5 w-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        </svg>
+                        <span>Landing Page</span>
+                        <svg class="ml-auto h-3 w-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                    </a>
+
                 </div>
             </div>
 
