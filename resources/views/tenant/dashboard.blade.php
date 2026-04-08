@@ -191,7 +191,7 @@
                 <nav class="flex min-w-max sm:min-w-0">
                     <button onclick="showTab('profile')" id="tab-profile"
                             class="tab-btn px-4 sm:px-5 py-3 text-sm font-medium border-b-2 border-blue-600 text-blue-600 whitespace-nowrap">
-                        <i class="fas fa-user mr-1 sm:mr-2"></i>Profil & Dokumen
+                        <i class="fas fa-user mr-1 sm:mr-2"></i>Profil &amp; Dokumen
                     </button>
                     <button onclick="showTab('kos')" id="tab-kos"
                             class="tab-btn px-4 sm:px-5 py-3 text-sm font-medium border-b-2 border-transparent text-gray-600 hover:text-gray-900 whitespace-nowrap">
@@ -233,7 +233,7 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1.5">No. Telepon</label>
                                     <input type="tel" name="phone"
-                                           value="{{ old('phone', $user->profile->phone ?? '') }}"
+                                           value="{{ old('phone', $user->profile?->phone ?? '') }}"
                                            placeholder="08xxxxxxxxxx"
                                            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                                     @error('phone')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
@@ -242,7 +242,7 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1.5">No. KTP</label>
                                     <input type="text" name="identity_number"
-                                           value="{{ old('identity_number', $user->profile->identity_number ?? '') }}"
+                                           value="{{ old('identity_number', $user->profile?->identity_number ?? '') }}"
                                            placeholder="16 digit" maxlength="16"
                                            oninput="this.value=this.value.replace(/\D/g,'')"
                                            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono tracking-widest text-sm">
@@ -255,7 +255,7 @@
                                         <span class="text-xs font-normal text-gray-400">(min. 17 tahun)</span>
                                     </label>
                                     <input type="date" name="date_of_birth"
-                                           value="{{ old('date_of_birth', $user->profile->date_of_birth?->format('Y-m-d') ?? '') }}"
+                                           value="{{ old('date_of_birth', $user->profile?->date_of_birth?->format('Y-m-d') ?? '') }}"
                                            max="{{ \Carbon\Carbon::now()->subYears(17)->format('Y-m-d') }}"
                                            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm @error('date_of_birth') border-red-400 @enderror">
                                     @error('date_of_birth')
@@ -268,8 +268,8 @@
                                     <select name="gender"
                                             class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                                         <option value="">Pilih</option>
-                                        <option value="male"   {{ old('gender', $user->profile->gender ?? '') == 'male'   ? 'selected' : '' }}>Laki-laki</option>
-                                        <option value="female" {{ old('gender', $user->profile->gender ?? '') == 'female' ? 'selected' : '' }}>Perempuan</option>
+                                        <option value="male"   {{ old('gender', $user->profile?->gender ?? '') == 'male'   ? 'selected' : '' }}>Laki-laki</option>
+                                        <option value="female" {{ old('gender', $user->profile?->gender ?? '') == 'female' ? 'selected' : '' }}>Perempuan</option>
                                     </select>
                                 </div>
 
@@ -277,13 +277,13 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-1.5">Alamat Asal</label>
                                     <textarea name="address" rows="2"
                                               class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                              placeholder="Masukkan alamat lengkap">{{ old('address', $user->profile->address ?? '') }}</textarea>
+                                              placeholder="Masukkan alamat lengkap">{{ old('address', $user->profile?->address ?? '') }}</textarea>
                                 </div>
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1.5">Pekerjaan</label>
                                     <input type="text" name="occupation"
-                                           value="{{ old('occupation', $user->profile->occupation ?? '') }}"
+                                           value="{{ old('occupation', $user->profile?->occupation ?? '') }}"
                                            placeholder="Mahasiswa / Karyawan"
                                            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                                 </div>
@@ -291,7 +291,7 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1.5">Nama Kontak Darurat</label>
                                     <input type="text" name="emergency_contact_name"
-                                           value="{{ old('emergency_contact_name', $user->profile->emergency_contact_name ?? '') }}"
+                                           value="{{ old('emergency_contact_name', $user->profile?->emergency_contact_name ?? '') }}"
                                            placeholder="Nama keluarga"
                                            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                                 </div>
@@ -299,7 +299,7 @@
                                 <div class="sm:col-span-2">
                                     <label class="block text-sm font-medium text-gray-700 mb-1.5">No. Kontak Darurat</label>
                                     <input type="tel" name="emergency_contact"
-                                           value="{{ old('emergency_contact', $user->profile->emergency_contact ?? '') }}"
+                                           value="{{ old('emergency_contact', $user->profile?->emergency_contact ?? '') }}"
                                            placeholder="08xxx"
                                            class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                                 </div>
@@ -324,14 +324,14 @@
                                             <h4 class="font-medium text-gray-900 text-sm">KTP <span class="text-xs text-red-600">(Wajib)</span></h4>
                                             <p class="text-xs text-gray-500">Kartu Tanda Penduduk</p>
                                         </div>
-                                        @if($user->profile && $user->profile->ktp_photo)
+                                        @if($user->profile?->ktp_photo)
                                             <span class="inline-flex items-center gap-1 text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
                                                 <i class="fas fa-check text-xs"></i> Terupload
                                             </span>
                                         @endif
                                     </div>
 
-                                    @if($user->profile && $user->profile->ktp_photo)
+                                    @if($user->profile?->ktp_photo)
                                         <div class="doc-canvas-wrap mb-3" id="ktp-existing-wrap">
                                             <canvas id="ktp-existing-canvas"></canvas>
                                             <div class="doc-secure-badge">
@@ -385,14 +385,14 @@
                                             <h4 class="font-medium text-gray-900 text-sm">SIM</h4>
                                             <p class="text-xs text-gray-500">Surat Izin Mengemudi <span class="text-gray-400">(Opsional)</span></p>
                                         </div>
-                                        @if($user->profile && $user->profile->sim_photo)
+                                        @if($user->profile?->sim_photo)
                                             <span class="inline-flex items-center gap-1 text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
                                                 <i class="fas fa-check text-xs"></i> Terupload
                                             </span>
                                         @endif
                                     </div>
 
-                                    @if($user->profile && $user->profile->sim_photo)
+                                    @if($user->profile?->sim_photo)
                                         <div class="doc-canvas-wrap mb-3" id="sim-existing-wrap">
                                             <canvas id="sim-existing-canvas"></canvas>
                                             <div class="doc-secure-badge">
