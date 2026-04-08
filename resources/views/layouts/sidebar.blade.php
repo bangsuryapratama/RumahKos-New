@@ -216,7 +216,7 @@
                     </a>
 
                     {{-- Landing Page --}}
-                    <a href="{{ route('/') }}" @click="sidebarOpen = false"
+                    <a href="{{ url('/') }}" @click="sidebarOpen = false"
                         target="_blank"
                         class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition text-gray-600 hover:bg-gray-100"
                     >
