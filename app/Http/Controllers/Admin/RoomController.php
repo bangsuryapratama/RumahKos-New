@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Room;
 use App\Models\Property;
+use App\Models\Review;
+use App\Services\ReviewAutoScoring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 

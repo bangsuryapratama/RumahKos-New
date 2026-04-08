@@ -104,7 +104,7 @@
                                     @endforeach
                                 </select>
                                 <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                               
                                 </div>
                             </div>
                             @error('role_id')

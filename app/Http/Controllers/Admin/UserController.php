@@ -13,7 +13,6 @@ class UserController extends Controller
     {
         $query = User::with('role');
 
-        // SEARCH
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
@@ -21,21 +20,17 @@ class UserController extends Controller
             });
         }
 
-        // FILTER ROLE
         if ($request->filled('role')) {
             $query->where('role_id', $request->role);
         }
 
-        // ADMIN PALING ATAS (role_id = 1)
-        $query->orderByRaw('role_id = 1 DESC')
-            ->latest();
+        $query->orderByRaw('role_id = 1 DESC')->latest();
 
         $users = $query->paginate(10)->withQueryString();
         $roles = Role::all();
 
         return view('admin.users.index', compact('users', 'roles'));
     }
-
 
     public function create()
     {
@@ -48,20 +43,21 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users',
-            'role_id' => 'required',
+            'role_id' => 'required|exists:roles,id',
             'password' => 'required|min:6',
         ]);
 
+      
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'role_id' => $request->role_id,
-            'password' => Hash::make($request->password),
+            'password' => $request->password, // cast 'hashed' di model sudah handle ini
         ]);
 
         return redirect()
             ->route('admin.users.index')
-            ->with('success', 'User berhasil dibuat ');
+            ->with('success', 'User berhasil dibuat');
     }
 
     public function edit(User $user)
@@ -75,20 +71,20 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role_id' => 'required',
+            'role_id' => 'required|exists:roles,id',
         ]);
 
         $data = $request->only('name', 'email', 'role_id');
 
         if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
+            $data['password'] = $request->password; // cast 'hashed' di model sudah handle ini
         }
 
         $user->update($data);
 
         return redirect()
             ->route('admin.users.index')
-            ->with('success', 'User berhasil diupdate ');
+            ->with('success', 'User berhasil diupdate');
     }
 
     public function destroy(User $user)
