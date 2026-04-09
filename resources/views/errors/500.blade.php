@@ -17,15 +17,7 @@
     <div class="fixed -top-20 -right-20 w-80 h-80 bg-blue-100 rounded-full opacity-40 blur-3xl pointer-events-none"></div>
     <div class="fixed -bottom-10 -left-10 w-64 h-64 bg-cyan-100 rounded-full opacity-30 blur-3xl pointer-events-none"></div>
 
-    <nav class="relative z-10 flex items-center justify-between px-4 sm:px-8 py-4 border-b border-white/60 bg-white/60 backdrop-blur-md">
-        <a href="{{ url('/') }}" class="flex items-center gap-2 font-black text-blue-600 text-lg">
-            <div class="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center"><i class="fas fa-house text-white text-xs"></i></div>
-            RumahKos
-        </a>
-        <a href="{{ url('/') }}" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition flex items-center gap-1">
-            <i class="fas fa-arrow-left text-xs"></i> Beranda
-        </a>
-    </nav>
+   @include('landing.navbar')
 
     <main class="flex-1 flex items-center justify-center px-4 py-16">
         <div class="text-center max-w-md w-full">
