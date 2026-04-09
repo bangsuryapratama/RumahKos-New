@@ -63,7 +63,7 @@
     </div>
 
     <div class="mt-10 pt-8 border-t border-gray-800 text-center text-sm text-gray-500">
-      © 2025 RumahKos. All Rights Reserved.
+      © 2026 RumahKos. All Rights Reserved.
     </div>
   </div>
 </footer>
