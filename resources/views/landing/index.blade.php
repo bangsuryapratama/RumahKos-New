@@ -116,6 +116,13 @@
 
         /* ── Responsive image object ── */
         img { max-width: 100%; }
+
+        /* ── Lucide icon sizing in buttons ── */
+        [data-lucide] { display: inline-block; }
+        #floatingDev [data-lucide] { width: 14px; height: 14px; }
+        .dev-close-btn [data-lucide] { width: 14px; height: 14px; }
+        .dev-modal-icon-ring [data-lucide] { width: 28px; height: 28px; color: #2563eb; }
+        .dev-status-pill [data-lucide] { width: 11px; height: 11px; }
     </style>
 </head>
 <body class="bg-white">
@@ -496,61 +503,34 @@
 {{-- Footer --}}
 @include('landing.footer')
 
+@include('landing.floating-message')
+
 {{-- ════════════════════════════════════
-     FLOATING DEV BUTTON + MODAL
+     BACK TO TOP
 ════════════════════════════════════ --}}
-<div id="floatingDev">
-    <button onclick="document.getElementById('devModal').classList.add('open')"
-            class="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 active:scale-95 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-full shadow-xl transition-all">
-        <span class="text-base">🚧</span>
-        <span class="hidden xs:inline">Dalam Pengembangan</span>
-    </button>
-</div>
-
-{{-- Dev Modal --}}
-<div id="devModal" onclick="if(event.target===this)this.classList.remove('open')">
-    <div class="modal-box bg-white rounded-3xl p-8 sm:p-10 max-w-sm w-[90%] text-center shadow-2xl relative mx-4">
-        <button onclick="document.getElementById('devModal').classList.remove('open')"
-                class="absolute top-4 right-4 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors text-gray-500 text-sm">
-            <i class="fas fa-times"></i>
-        </button>
-        <div class="text-5xl mb-4">🚧</div>
-        <h2 class="text-lg sm:text-xl font-black text-gray-900 mb-2">Sedang Dikembangkan</h2>
-        <p class="text-sm text-gray-400 leading-relaxed mb-2">
-            Halaman ini masih dalam pengembangan oleh
-        </p>
-        <p class="text-base font-bold text-blue-600 mb-4">Surya Pratama</p>
-        <p class="text-xs text-gray-400 mb-6 leading-relaxed">
-            Kami bekerja keras menghadirkan fitur terbaik. Terima kasih atas kesabarannya! 🙏
-        </p>
-        <button onclick="document.getElementById('devModal').classList.remove('open')"
-                class="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold py-3 rounded-2xl transition-all text-sm">
-            Mengerti, Tutup
-        </button>
-    </div>
-</div>
-
-{{-- Back to Top --}}
 <button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})"
         class="w-11 h-11 rounded-full bg-white border border-gray-200 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-gray-600 shadow-lg flex items-center justify-center transition-all active:scale-95">
     <i class="fas fa-arrow-up text-sm"></i>
 </button>
 
+{{-- ════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════ --}}
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
+    lucide.createIcons();
+
     let isAvailableFilter = false;
 
-    /* ── Init ── */
     document.addEventListener('DOMContentLoaded', () => {
         updateCount();
         initReveal();
     });
 
-    /* ── Back to top ── */
     window.addEventListener('scroll', () => {
         document.getElementById('backToTop').classList.toggle('show', window.scrollY > 350);
     }, { passive: true });
 
-    /* ── Search ── */
     function searchRooms() {
         const term = document.getElementById('searchInput').value.toLowerCase().trim();
         let visible = 0;
@@ -587,10 +567,11 @@
             document.querySelectorAll('.room-card').length;
     }
 
-    /* ── Scroll reveal ── */
     function initReveal() {
         const obs = new IntersectionObserver((entries) => {
-            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+            entries.forEach(e => {
+                if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+            });
         }, { threshold: 0.12 });
         document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
     }
