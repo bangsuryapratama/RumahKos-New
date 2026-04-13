@@ -459,21 +459,28 @@
                                         </div>
                                         <div class="text-right">
                                             <p class="text-sm font-bold text-gray-900">Rp {{ number_format($payment->amount, 0, ',', '.') }}</p>
-                                            <div class="mt-1">
-                                                @if($payment->status === 'paid')
-                                                    <span class="text-xs font-semibold px-2.5 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-full">
-                                                        <i class="fas fa-check-circle mr-0.5"></i>Lunas
-                                                    </span>
-                                                @elseif($payment->status === 'pending')
-                                                    <span class="text-xs font-semibold px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
-                                                        <i class="fas fa-clock mr-0.5"></i>Pending
-                                                    </span>
-                                                @elseif($payment->status === 'failed')
-                                                    <span class="text-xs font-semibold px-2.5 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-full">
-                                                        <i class="fas fa-times-circle mr-0.5"></i>Gagal
-                                                    </span>
-                                                @endif
-                                            </div>
+                                    <div class="mt-1">
+                                        @if($payment->status === 'paid')
+                                            <span class="text-xs font-semibold px-2.5 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-full">
+                                                <i class="fas fa-check-circle mr-0.5"></i>Lunas
+                                            </span>
+
+                                        @elseif($isOverdue)
+                                            <span class="text-xs font-semibold px-2.5 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-full animate-pulse">
+                                                <i class="fas fa-exclamation-circle mr-0.5"></i>Terlambat
+                                            </span>
+
+                                        @elseif($payment->status === 'pending')
+                                            <span class="text-xs font-semibold px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
+                                                <i class="fas fa-clock mr-0.5"></i>Pending
+                                            </span>
+
+                                        @elseif($payment->status === 'failed')
+                                            <span class="text-xs font-semibold px-2.5 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-full">
+                                                <i class="fas fa-times-circle mr-0.5"></i>Gagal
+                                            </span>
+                                        @endif
+                                    </div>
                                         </div>
                                     </div>
                                 @endforeach
@@ -522,7 +529,6 @@
             @csrf
 
             <div class="space-y-3 mb-5">
-                {{-- Telat Bayar --}}
                 <label class="flex items-start gap-3 p-3 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-red-200 hover:bg-red-50 transition-all has-[:checked]:border-red-400 has-[:checked]:bg-red-50">
                     <input type="radio" name="reason" value="late_payment" class="mt-0.5 accent-red-500" required>
                     <div>
@@ -531,7 +537,6 @@
                     </div>
                 </label>
 
-                {{-- Pelanggaran --}}
                 <label class="flex items-start gap-3 p-3 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-amber-200 hover:bg-amber-50 transition-all has-[:checked]:border-amber-400 has-[:checked]:bg-amber-50">
                     <input type="radio" name="reason" value="violation" class="mt-0.5 accent-amber-500" required>
                     <div>
@@ -540,7 +545,6 @@
                     </div>
                 </label>
 
-                {{-- Keluar --}}
                 <label class="flex items-start gap-3 p-3 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all has-[:checked]:border-gray-400 has-[:checked]:bg-gray-50">
                     <input type="radio" name="reason" value="checkout" class="mt-0.5 accent-gray-500" required>
                     <div>
@@ -558,7 +562,7 @@
                 </button>
                 <button type="submit"
                         class="flex-1 py-2.5 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors">
-                    <i class="fas fa-ban mr-1"></i>Nonaktifkan
+                    <i class="fas fa-ban mr-1"></i> Nonaktifkan
                 </button>
             </div>
         </form>
@@ -578,10 +582,8 @@ function closeDeactivateModal() {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
     document.body.style.overflow = '';
-    // Reset radio
     document.querySelectorAll('#deactivateForm input[type=radio]').forEach(r => r.checked = false);
 }
-// Tutup modal kalau klik luar
 document.getElementById('deactivateModal').addEventListener('click', function(e) {
     if (e.target === this) closeDeactivateModal();
 });
