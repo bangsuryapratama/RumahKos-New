@@ -464,11 +464,11 @@
                                             <span class="text-xs font-semibold px-2.5 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-full">
                                                 <i class="fas fa-check-circle mr-0.5"></i>Lunas
                                             </span>
-
+{{-- 
                                         @elseif($isOverdue)
                                             <span class="text-xs font-semibold px-2.5 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-full animate-pulse">
                                                 <i class="fas fa-exclamation-circle mr-0.5"></i>Terlambat
-                                            </span>
+                                            </span> --}}
 
                                         @elseif($payment->status === 'pending')
                                             <span class="text-xs font-semibold px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
