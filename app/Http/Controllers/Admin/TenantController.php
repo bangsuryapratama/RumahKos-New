@@ -86,7 +86,6 @@ class TenantController extends Controller
             // Document uploads
             'ktp_photo' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048',
             'sim_photo' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048',
-            'passport_photo' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048',
 
             // Booking info (optional)
             'room_id' => 'nullable|exists:rooms,id',
@@ -117,7 +116,7 @@ class TenantController extends Controller
             ];
 
             // Handle document uploads
-            $documents = ['ktp_photo', 'sim_photo', 'passport_photo'];
+            $documents = ['ktp_photo', 'sim_photo'];
             foreach ($documents as $doc) {
                 if ($request->hasFile($doc)) {
                     $file = $request->file($doc);
@@ -135,7 +134,7 @@ class TenantController extends Controller
             if ($request->filled('room_id')) {
                 $room = Room::findOrFail($validated['room_id']);
                 $startDate = \Carbon\Carbon::parse($validated['start_date']);
-                $endDate = $startDate->copy()->addMonths($validated['duration_months']);
+                $endDate = $startDate->copy()->addMonths((int) $validated['duration_months']);
 
                 $resident = Resident::create([
                     'user_id' => $user->id,
@@ -236,12 +235,10 @@ class TenantController extends Controller
             // Document uploads
             'ktp_photo' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048',
             'sim_photo' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048',
-            'passport_photo' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048',
             
             // Delete flags
             'delete_ktp' => 'nullable|boolean',
             'delete_sim' => 'nullable|boolean',
-            'delete_passport' => 'nullable|boolean',
         ]);
 
         DB::beginTransaction();
@@ -282,7 +279,6 @@ class TenantController extends Controller
             $deleteFlags = [
                 'delete_ktp' => 'ktp_photo',
                 'delete_sim' => 'sim_photo',
-                'delete_passport' => 'passport_photo',
             ];
 
             foreach ($deleteFlags as $flag => $field) {
@@ -295,7 +291,7 @@ class TenantController extends Controller
             }
 
             // Handle file uploads
-            $documents = ['ktp_photo', 'sim_photo', 'passport_photo'];
+            $documents = ['ktp_photo', 'sim_photo'];
 
             foreach ($documents as $doc) {
                 if ($request->hasFile($doc)) {
@@ -354,7 +350,7 @@ class TenantController extends Controller
         try {
             // Delete documents
             if ($tenant->profile) {
-                $documents = ['ktp_photo', 'sim_photo', 'passport_photo'];
+                $documents = ['ktp_photo', 'sim_photo'];
                 foreach ($documents as $doc) {
                     if ($tenant->profile->$doc) {
                         Storage::disk('public')->delete($tenant->profile->$doc);
@@ -389,62 +385,66 @@ class TenantController extends Controller
     /**
      * Activate tenant's booking
      */
-    public function activate(Resident $resident)
-    {
-        if ($resident->status === 'active') {
-            return redirect()->back()
-                ->with('error', 'Status penghuni sudah aktif.');
-        }
-
-        DB::beginTransaction();
-        try {
-            $resident->update(['status' => 'active']);
-
-            DB::commit();
-
-            return redirect()->back()
-                ->with('success', 'Status penghuni berhasil diaktifkan!');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        }
+   public function activate(Resident $resident)
+{
+    // Bisa aktifkan dari inactive ATAU suspended
+    if ($resident->status === 'active') {
+        return redirect()->back()
+            ->with('error', 'Status penghuni sudah aktif.');
     }
+
+    DB::beginTransaction();
+    try {
+        $resident->update(['status' => 'active']);
+        
+        // Tandai room jadi occupied lagi
+        $resident->room->update(['status' => 'occupied']);
+
+        DB::commit();
+
+        return redirect()->back()
+            ->with('success', 'Status penghuni berhasil diaktifkan!');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()
+            ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+    }
+}
 
     /**
      * Deactivate tenant's booking
      */
     public function deactivate(Resident $resident)
-    {
-        if ($resident->status !== 'active') {
-            return redirect()->back()
-                ->with('error', 'Status penghuni tidak aktif.');
-        }
-
-        DB::beginTransaction();
-        try {
-            $resident->update(['status' => 'expired']);
-
-            // Update room to available if no other active residents
-            $room = $resident->room;
-            $hasActiveResident = $room->residents()
-                ->where('status', 'active')
-                ->exists();
-
-            if (!$hasActiveResident) {
-                $room->update(['status' => 'available']);
-            }
-
-            DB::commit();
-
-            return redirect()->back()
-                ->with('success', 'Status penghuni berhasil dinonaktifkan!');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        }
+{
+    if ($resident->status !== 'active') {
+        return redirect()->back()
+            ->with('error', 'Status penghuni tidak aktif.');
     }
+
+    DB::beginTransaction();
+    try {
+        // GANTI: expired → suspended
+        $resident->update(['status' => 'suspended']);
+
+        $room = $resident->room;
+        $hasActiveResident = $room->residents()
+            ->where('status', 'active')
+            ->exists();
+
+        if (!$hasActiveResident) {
+            $room->update(['status' => 'available']);
+        }
+
+        DB::commit();
+
+        return redirect()->back()
+            ->with('success', 'Status penghuni berhasil dinonaktifkan!');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()
+            ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+    }
+}
 }

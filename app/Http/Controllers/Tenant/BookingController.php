@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\Room;
 use App\Models\Resident;
+use App\Models\SocialMedia;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,13 +26,16 @@ class BookingController extends Controller
         view()->share('address', $address);
 
         $residents = $user->residents()
-            ->with(['room.property', 'payments' => function($q) {
-                $q->orderBy('billing_month', 'desc');
-            }])
-            ->latest()
-            ->get();
+        ->with(['room.property', 'payments' => function($q) {
+            $q->orderBy('billing_month', 'asc');
+        }])
+        ->latest()
+        ->get();
+        
+        $socialmedia = SocialMedia::select('instagram', 'facebook', 'tiktok')->first();
+        view()->share('socialmedia', $socialmedia);
 
-        return view('tenant.bookings.index', compact('user', 'residents', 'address', 'contact'));
+        return view('tenant.bookings.index', compact('user', 'residents', 'address', 'contact', 'socialmedia'));
     }
 
     public function create(Room $room)
@@ -67,7 +71,10 @@ class BookingController extends Controller
                 ->with('error', 'Mohon lengkapi data profil Anda terlebih dahulu (No. Telepon, No. KTP, dan Upload KTP).');
         }
 
-        return view('tenant.bookings.create', compact('room', 'address', 'contact'));
+        $socialmedia = SocialMedia::select('instagram', 'facebook', 'tiktok')->first();
+        view()->share('socialmedia', $socialmedia);
+
+        return view('tenant.bookings.create', compact('room', 'address', 'contact','socialmedia'));
     }
 
     public function store(Request $request, Room $room)

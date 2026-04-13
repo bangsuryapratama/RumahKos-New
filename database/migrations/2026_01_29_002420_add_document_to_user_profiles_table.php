@@ -10,16 +10,14 @@ return new class extends Migration
     {
         Schema::table('user_profiles', function (Blueprint $table) {
             $table->string('ktp_photo')->nullable()->after('identity_number');
-            $table->string('passport_photo')->nullable()->after('ktp_photo');
-            $table->string('sim_photo')->nullable()->after('passport_photo');
-            $table->string('other_document')->nullable()->after('sim_photo');
+            $table->string('sim_photo')->nullable()->after('ktp_photo');
         });
     }
 
     public function down()
     {
         Schema::table('user_profiles', function (Blueprint $table) {
-            $table->dropColumn(['ktp_photo', 'passport_photo', 'sim_photo', 'other_document']);
+            $table->dropColumn(['ktp_photo', 'sim_photo']);
         });
     }
 };

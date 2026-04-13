@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DashboardAdminController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoomController;
+use App\Http\Controllers\Admin\SocialMediaController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\LandingController;
@@ -64,6 +65,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         ->name('admin.dashboard');
     Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])->name('document.ktp');
     Route::get('/document/sim', [DashboardController::class, 'serveSim'])->name('document.sim');
+
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -89,6 +91,10 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::resource('facilities', \App\Http\Controllers\Admin\FacilityController::class)
         ->names('admin.facilities');
 
+    // Management SocialMedia
+    Route::resource('socialmedia', \App\Http\Controllers\Admin\SocialMediaController::class)
+        ->names('admin.socialmedia');
+
     // Management Facility Room
     Route::resource('facility_rooms', \App\Http\Controllers\Admin\FacilityRoomController::class)
         ->names('admin.facility_rooms');
@@ -97,10 +103,10 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::resource('tenants', \App\Http\Controllers\Admin\TenantController::class)
         ->names('admin.tenants');
 
-    // Tenant Activation/Deactivation (HARUS SETELAH resource route)
-    Route::post('tenants/{tenant}/activate', [TenantController::class, 'activate'])
+    // Tenant Activation/Deactivation — pakai {resident} bukan {tenant}
+    Route::post('tenants/residents/{resident}/activate', [TenantController::class, 'activate'])
         ->name('admin.tenants.activate');
-    Route::post('tenants/{tenant}/deactivate', [TenantController::class, 'deactivate'])
+    Route::post('tenants/residents/{resident}/deactivate', [TenantController::class, 'deactivate'])
         ->name('admin.tenants.deactivate');
 
     // Review Management
@@ -109,10 +115,11 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::delete('/review-reply/{reply}', [ReviewController::class, 'deleteReply'])
         ->name('admin.review.reply.delete');
 
+    // Reports
     Route::get('reports/tenants',       [ReportController::class, 'tenants'])->name('admin.reports.tenants');
     Route::get('reports/tenants/pdf',   [ReportController::class, 'tenantsPdf'])->name('admin.reports.tenants.pdf');
     Route::get('reports/tenants/excel', [ReportController::class, 'tenantsExcel'])->name('admin.reports.tenants.excel');
-    
+
     Route::get('reports/finance',       [ReportController::class, 'finance'])->name('admin.reports.finance');
     Route::get('reports/finance/pdf',   [ReportController::class, 'financePdf'])->name('admin.reports.finance.pdf');
     Route::get('reports/finance/excel', [ReportController::class, 'financeExcel'])->name('admin.reports.finance.excel');
@@ -138,7 +145,6 @@ Route::middleware(['auth:tenant'])->group(function () {
     Route::delete('/review/{review}', [ReviewController::class, 'destroy'])
         ->name('review.destroy');
 
-
     Route::get('document/view/{type}', function ($type, SecureDocumentService $secureDoc) {
         $user = Auth::guard('tenant')->user();
         $profile = $user->profile;
@@ -147,12 +153,11 @@ Route::middleware(['auth:tenant'])->group(function () {
             abort(404, 'Profile not found');
         }
 
-        // Get document path
         $path = match($type) {
-            'ktp' => $profile->ktp_photo,
-            'sim' => $profile->sim_photo,
+            'ktp'      => $profile->ktp_photo,
+            'sim'      => $profile->sim_photo,
             'passport' => $profile->passport_photo,
-            default => null
+            default    => null
         };
 
         if (!$path) {
@@ -160,22 +165,19 @@ Route::middleware(['auth:tenant'])->group(function () {
         }
 
         try {
-            // Read & decrypt
             $content = $secureDoc->secureRead($path);
 
-            // MIME type
             $extension = pathinfo($path, PATHINFO_EXTENSION);
             $mimeType = match($extension) {
                 'jpg', 'jpeg' => 'image/jpeg',
-                'png' => 'image/png',
-                default => 'application/octet-stream',
+                'png'         => 'image/png',
+                default       => 'application/octet-stream',
             };
 
-            // Log access
             Log::info('Document viewed', [
                 'user_id' => $user->id,
-                'type' => $type,
-                'ip' => request()->ip(),
+                'type'    => $type,
+                'ip'      => request()->ip(),
             ]);
 
             return response($content)
@@ -187,18 +189,18 @@ Route::middleware(['auth:tenant'])->group(function () {
         } catch (\Exception $e) {
             Log::error('Document access error', [
                 'user_id' => $user->id,
-                'type' => $type,
-                'error' => $e->getMessage()
+                'type'    => $type,
+                'error'   => $e->getMessage()
             ]);
 
             abort(500, 'Failed to load document');
         }
 
     })->name('document.view');
-        Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])->name('document.ktp');
-        Route::get('/document/sim', [DashboardController::class, 'serveSim'])->name('document.sim');
-});
 
+    Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])->name('document.ktp');
+    Route::get('/document/sim', [DashboardController::class, 'serveSim'])->name('document.sim');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -259,7 +261,7 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
 
         // Dashboard
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
+        Route::get('suspended', [LoginController::class, 'suspended'])->name('suspended');
         // Profile Update
         Route::put('profile', [DashboardController::class, 'updateProfile'])->name('profile.update');
 
@@ -278,10 +280,10 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
             ->name('payment.check-status');
         Route::get('/payment/{payment}/invoice', [PaymentController::class, 'invoice'])
             ->name('payment.invoice');
-            
 
         Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])->name('document.ktp');
         Route::get('/document/sim', [DashboardController::class, 'serveSim'])->name('document.sim');
+
         // Logout
         Route::post('logout', [LoginController::class, 'logout'])->name('logout');
     });

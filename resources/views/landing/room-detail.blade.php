@@ -138,9 +138,7 @@
                                 </div>
                                 <div class="text-xs text-gray-500">Periode</div>
                                 <div class="text-sm font-semibold text-gray-900">
-                                    @if($room->billing_cycle == 'daily') Harian
-                                    @elseif($room->billing_cycle == 'weekly') Mingguan
-                                    @elseif($room->billing_cycle == 'monthly') Bulanan
+                                    @if($room->billing_cycle == 'monthly') Bulanan
                                     @else Tahunan
                                     @endif
                                 </div>

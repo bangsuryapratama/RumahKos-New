@@ -6,7 +6,7 @@
       <div>
         <h3 class="text-xl font-bold mb-3">RumahKos</h3>
         <p class="text-sm text-gray-400">
-          Kos nyaman dan strategis di Bandung
+          {{ $description->description ?? 'Kos Nyaman bersih dan strategis di Bandung' }}
         </p>
       </div>
 
@@ -44,22 +44,52 @@
       <!-- Media Sosial -->
       <div>
         <h4 class="font-bold mb-3">Media Sosial</h4>
-        <div class="space-y-2 text-sm text-gray-400">
-          <p class="flex items-center gap-2">
-            <i class="fab fa-instagram text-lg"></i>
-            Instagram: rumahkos.official
-          </p>
-          <p class="flex items-center gap-2">
-            <i class="fab fa-facebook text-lg"></i>
-            Facebook: rumahkos.official
-          </p>
-          <p class="flex items-center gap-2">
-            <i class="fab fa-youtube text-lg"></i>
-            Youtube: rumahkos.official
-          </p>
-        </div>
-      </div>
 
+        @php
+            $ig = $socialmedia?->instagram;
+            $fb = $socialmedia?->facebook;
+            $tt = $socialmedia?->tiktok;
+        @endphp
+
+        <div class="space-y-2 text-sm text-gray-400">
+
+            <!-- Instagram -->
+            <p class="flex items-center gap-2">
+                <i class="fab fa-instagram text-lg"></i>
+                <a 
+                    href="{{ $ig ? 'https://instagram.com/'.$ig : '#' }}" 
+                    target="_blank"
+                    class="hover:underline {{ !$ig ? 'pointer-events-none opacity-50' : '' }}"
+                >
+                    Instagram: {{ $ig ?? '-' }}
+                </a>
+            </p>
+
+            <!-- Facebook -->
+            <p class="flex items-center gap-2">
+                <i class="fab fa-facebook text-lg"></i>
+                <a 
+                    href="{{ $fb ? 'https://facebook.com/'.$fb : '#' }}" 
+                    target="_blank"
+                    class="hover:underline {{ !$fb ? 'pointer-events-none opacity-50' : '' }}"
+                >
+                    Facebook: {{ $fb ?? '-' }}
+                </a>
+            </p>
+
+            <!-- TikTok -->
+            <p class="flex items-center gap-2">
+                <i class="fab fa-tiktok text-lg"></i>
+                <a 
+                    href="{{ $tt ? 'https://tiktok.com/@'.$tt : '#' }}" 
+                    target="_blank"
+                    class="hover:underline {{ !$tt ? 'pointer-events-none opacity-50' : '' }}"
+                >
+                    TikTok: {{ $tt ?? '-' }}
+                </a>
+            </p>
+
+        </div>
     </div>
 
     <div class="mt-10 pt-8 border-t border-gray-800 text-center text-sm text-gray-500">

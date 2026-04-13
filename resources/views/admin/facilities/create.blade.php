@@ -10,7 +10,7 @@
                 Kembali ke Master Fasilitas
             </a>
             <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Tambah Fasilitas Baru</h1>
-            <p class="text-sm sm:text-base text-gray-600">Ketik nama fasilitas lalu gunakan AI Search untuk icon terbaik!</p>
+            <p class="text-sm sm:text-base text-gray-600">Ketik nama fasilitas lalu gunakan Search untuk icon terbaik!</p>
         </div>
 
         {{-- Alert --}}

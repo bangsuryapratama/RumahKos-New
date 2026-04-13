@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('size')->nullable();
             $table->enum('status', ['available', 'occupied', 'maintenance'])->default('available');
             $table->bigInteger('price')->default(0);
-            $table->enum('billing_cycle', ['daily','weekly','monthly','yearly'])->default('monthly');
+            $table->enum('billing_cycle', ['monthly','yearly'])->default('monthly');
             $table->string('image')->nullable();
             $table->timestamps();
         });

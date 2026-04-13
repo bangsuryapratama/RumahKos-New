@@ -21,18 +21,25 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        // PENTING: Gunakan guard 'tenant'
         if (Auth::guard('tenant')->attempt($request->only('email', 'password'), $request->filled('remember'))) {
 
             $request->session()->regenerate();
             $user = Auth::guard('tenant')->user();
 
-            // Cek role penghuni
             if ($user->isPenghuni()) {
+                // Cek apakah ada resident yang suspended
+                $isSuspended = $user->residents()
+                    ->where('status', 'suspended')
+                    ->exists();
+
+                if ($isSuspended) {
+                    // Tetap login tapi redirect ke halaman suspended
+                    return redirect()->route('tenant.suspended');
+                }
+
                 return redirect()->intended(route('tenant.dashboard'));
             }
 
-            // Jika bukan penghuni, logout
             Auth::guard('tenant')->logout();
             throw ValidationException::withMessages([
                 'email' => 'Akun ini bukan untuk penghuni.',
@@ -42,6 +49,18 @@ class LoginController extends Controller
         throw ValidationException::withMessages([
             'email' => 'Email atau password salah.',
         ]);
+    }
+
+    public function suspended()
+    {
+        $user = Auth::guard('tenant')->user();
+
+        // Kalau tidak ada yang suspended, kembalikan ke dashboard
+        if (!$user || !$user->residents()->where('status', 'suspended')->exists()) {
+            return redirect()->route('tenant.dashboard');
+        }
+
+        return view('tenant.auth.suspended');
     }
 
     public function logout(Request $request)

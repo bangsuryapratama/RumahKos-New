@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\Property;
+use App\Models\SocialMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -27,6 +28,9 @@ class PaymentController extends Controller
         view()->share('contact', $contact);
         $address = Property::select('address')->first();
         view()->share('address', $address);
+
+         $socialmedia = SocialMedia::select('instagram', 'facebook', 'tiktok')->first();
+        view()->share('socialmedia', $socialmedia);
 
         $user = Auth::guard('tenant')->user();
 
@@ -63,14 +67,15 @@ class PaymentController extends Controller
         view()->share('contact', $contact);
         $address = Property::select('address')->first();
         view()->share('address', $address);
-
+        $socialmedia = SocialMedia::select('instagram', 'facebook', 'tiktok')->first();
+        view()->share('socialmedia', $socialmedia);
         $user = Auth::guard('tenant')->user();
 
         if ($payment->resident->user_id !== $user->id) {
             abort(403);
         }
 
-        return view('tenant.payment.finish', compact('payment', 'address', 'contact'));
+        return view('tenant.payment.finish', compact('payment', 'address', 'contact','socialmedia'));
     }
 
     public function callback(Request $request)
@@ -211,6 +216,9 @@ class PaymentController extends Controller
             ->with('error', 'Faktur hanya tersedia untuk pembayaran yang sudah lunas.');
     }
 
+     $socialmedia = SocialMedia::select('instagram', 'facebook', 'tiktok')->first();
+        view()->share('socialmedia', $socialmedia);
+
     $contact = Property::select('phone', 'whatsapp', 'name', 'address')->first();
 
     return view('tenant.payment.invoice', [
@@ -220,6 +228,7 @@ class PaymentController extends Controller
         'property' => $payment->resident->room->property,
         'user'     => $user,
         'contact'  => $contact,
+        'socialmedia' => $socialmedia,
     ]);
 }
 }

@@ -63,7 +63,7 @@
             </div>
             <button type="button" onclick="searchWithAI()" id="aiSearchBtn"
                     class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-semibold rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all active:scale-[0.98] whitespace-nowrap">
-                <i class="fas fa-wand-magic-sparkles"></i> AI Search
+                <i class="fas fa-wand-magic-sparkles"></i> Search
             </button>
         </div>
 

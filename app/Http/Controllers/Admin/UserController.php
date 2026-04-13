@@ -11,8 +11,8 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::with('role');
-
+        $query = User::with(['role', 'residents']);
+        
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
@@ -89,6 +89,15 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        // Cek apakah user punya resident yang aktif
+        $hasActiveResident = $user->residents()
+            ->where('status', 'active')
+            ->exists();
+
+        if ($hasActiveResident) {
+            return back()->with('error', 'User tidak dapat dihapus karena masih memiliki hunian aktif.');
+        }
+
         $user->delete();
 
         return back()->with('success', 'User berhasil dihapus');

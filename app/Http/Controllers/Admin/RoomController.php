@@ -140,41 +140,16 @@ class RoomController extends Controller
             ->with('success', 'Kamar berhasil diupdate');
     }
 
-    public function show($id)
-    {
-        // Get room with relationships
-        $room = Room::with(['property', 'facilities'])->findOrFail($id);
+        public function show($id)
+        {
+        $room = Room::with([
+            'property',
+            'facilities',
+            'residents.user'
+        ])->findOrFail($id);
 
-        // Get reviews with pagination - MUST use paginate() not get()
-        $reviews = Review::where('room_id', $room->id)
-            ->with('user')
-            ->latest()
-            ->paginate(10); // This creates paginator instance
-
-        // Calculate average rating
-        $averageRating = Review::where('room_id', $room->id)->avg('rating') ?? 0;
-        $totalReviews = Review::where('room_id', $room->id)->count();
-
-        // Get category averages
-        $categoryAverages = $this->getCategoryAverages($room->id);
-
-        // Get similar rooms
-        $similarRooms = Room::where('property_id', $room->property_id)
-            ->where('id', '!=', $room->id)
-            ->where('status', 'available')
-            ->limit(3)
-            ->get();
-
-        return view('landing.room-detail', compact(
-            'room',
-            'reviews',
-            'averageRating',
-            'totalReviews',
-            'categoryAverages',
-            'similarRooms'
-        ));
-    }
-
+            return view('admin.rooms.show', compact('room'));
+        }
     /**
      * Calculate average scores per category
      */
@@ -216,6 +191,15 @@ class RoomController extends Controller
 
     public function destroy(Room $room)
     {
+        //cek tenant active
+        $hasActiveTenant = $room->residents()
+        ->where('status', 'active')
+        ->exists();
+
+        if ($hasActiveTenant) {
+            return back()->with('error', 'Kamar tidak bisa dihapus karena ada penghuni active');
+        }
+
         if ($room->image) Storage::disk('public')->delete($room->image);
         $room->delete();
 

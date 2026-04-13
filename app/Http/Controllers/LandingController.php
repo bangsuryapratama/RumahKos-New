@@ -6,6 +6,7 @@ use App\Models\Property;
 use App\Models\Facility;
 use App\Models\Review;
 use App\Models\Resident;
+use App\Models\SocialMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -56,6 +57,12 @@ class LandingController extends Controller
         $mapsEmbed = Property::select('maps_embed')->first();
         view()->share('mapsEmbed', $mapsEmbed);
 
+        $description = Property::select('description')->first();
+        view()->share('description', $description);
+
+        $socialmedia = SocialMedia::select('instagram', 'facebook', 'tiktok')->first();
+        view()->share('socialmedia', $socialmedia);
+
         return view('landing.index', compact(
             'rooms',
             'availableRooms',
@@ -66,7 +73,9 @@ class LandingController extends Controller
             'allFacilities',
             'properties',
             'FacilityAll',
-            'propertyLocation'
+            'propertyLocation',
+            'socialmedia',
+            'description',
         ));
     }
 
@@ -226,6 +235,13 @@ class LandingController extends Controller
         $mapsEmbed = Property::select('maps_embed')->first();
         view()->share('mapsEmbed', $mapsEmbed);
 
+        $socialmedia = SocialMedia::select('instagram', 'facebook', 'tiktok')->first();
+        view()->share('socialmedia', $socialmedia);
+
+        $description = Property::select('description')->first();
+        view()->share('description', $description);;
+
+
         return view('landing.room-detail', compact(
             'room',
             'reviews',
@@ -239,7 +255,9 @@ class LandingController extends Controller
             'reviewMessage',
             'contact',
             'address',
-            'mapsEmbed'
+            'mapsEmbed',
+            'socialmedia',
+            'description',
         ));
     }
 

@@ -36,9 +36,9 @@ return new class extends Migration
             $table->timestamp('paid_at')->nullable(); // Waktu pembayaran
             $table->text('description')->nullable(); // Deskripsi pembayaran
             
-            // Manual transfer fields (for future compatibility)
-            $table->string('bank_account')->nullable(); // Rekening tujuan
-            $table->string('payment_proof')->nullable(); // Bukti transfer
+            // // Manual transfer fields (for future compatibility)
+            // $table->string('bank_account')->nullable(); // Rekening tujuan
+            // $table->string('payment_proof')->nullable(); // Bukti transfer
             
             $table->timestamps();
             

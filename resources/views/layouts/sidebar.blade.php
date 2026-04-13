@@ -180,6 +180,37 @@
             <p class="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">Halaman</p>
 
             {{-- Pages --}}
+            @php $settingOpen = request()->routeIs('admin.settings.*'); @endphp
+            <div x-data="{ open: {{ $settingOpen ? 'true' : 'false' }} }">
+                <button
+                    @click="open = !open"
+                    class="flex w-full items-center gap-3 rounded-lg px-4 py-3 transition
+                        {{ $settingOpen ? 'bg-blue-50 font-medium text-blue-600' : 'text-gray-700 hover:bg-gray-100' }}"
+                >
+                    <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="flex-1 text-left">Settings</span>
+                    <svg class="h-4 w-4 flex-shrink-0 transition-transform" :class="open ? 'rotate-90' : ''"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+                <div x-show="open" x-cloak class="ml-9 mt-1 space-y-1">
+
+                    {{-- Sosmed --}}
+                     <a href="{{ route('admin.socialmedia.index') }}" @click="sidebarOpen = false"
+                        class="block rounded-lg px-4 py-2 text-sm transition
+                            {{ request()->routeIs('admin.socialmedia.index') ? 'bg-blue-100 font-medium text-blue-700' : 'text-gray-600 hover:bg-gray-100' }}"
+                    >Sosial Media</a>
+
+                
+
+                </div>
+            </div>
+
+              {{-- Pages --}}
             @php $pagesOpen = request()->routeIs('admin.pages.*'); @endphp
             <div x-data="{ open: {{ $pagesOpen ? 'true' : 'false' }} }">
                 <button

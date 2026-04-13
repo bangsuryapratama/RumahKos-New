@@ -21,8 +21,6 @@ class UserProfile extends Model
         'emergency_contact_name',
         'ktp_photo',
         'sim_photo',
-        'passport_photo',
-        'other_document',
     ];
 
     protected $casts = [

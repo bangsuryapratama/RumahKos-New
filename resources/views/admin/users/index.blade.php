@@ -200,12 +200,22 @@
                                        class="flex-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all text-xs font-semibold text-center">
                                         <i class="fas fa-edit mr-1"></i>Edit
                                     </a>
-                                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST" onsubmit="return confirm('Hapus user ini?')" class="flex-1">
+                                @php $hasActive = $user->residents->where('status', 'active')->count() > 0; @endphp
+                                @if($hasActive)
+                                    <button disabled
+                                            class="flex-1 px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg cursor-not-allowed text-xs font-semibold text-center border border-gray-200"
+                                            title="User masih memiliki hunian aktif">
+                                        <i class="fas fa-lock mr-1"></i>Terkunci
+                                    </button>
+                                @else
+                                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
+                                        onsubmit="return confirm('Hapus user ini?')" class="flex-1">
                                         @csrf @method('DELETE')
                                         <button class="w-full px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100">
-                                            Hapus
+                                            <i class="fas fa-trash mr-1"></i>Hapus
                                         </button>
                                     </form>
+                                @endif
                                 </div>
                             </div>
                         @endforeach
@@ -247,12 +257,23 @@
                                                    title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" onsubmit="return confirm('Hapus user ini?')">
+                                              @php $hasActive = $user->residents->where('status', 'active')->count() > 0; @endphp
+
+                                            @if($hasActive)
+                                                <button disabled
+                                                        class="p-2 text-gray-400 cursor-not-allowed rounded-lg"
+                                                        title="User masih memiliki hunian aktif">
+                                                    <i class="fas fa-lock"></i>
+                                                </button>
+                                            @else
+                                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
+                                                    onsubmit="return confirm('Hapus user ini?')">
                                                     @csrf @method('DELETE')
                                                     <button class="p-2 text-red-500 hover:bg-red-50 rounded-lg">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
+                                                 @endif
                                             </div>
                                         </td>
                                     </tr>

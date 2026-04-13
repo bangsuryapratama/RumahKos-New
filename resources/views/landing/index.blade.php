@@ -488,7 +488,7 @@
             Hubungi kami sekarang atau jadwalkan kunjungan langsung ke lokasi.
         </p>
         <div class="flex flex-col xs:flex-row gap-3 justify-center">
-            <a href="https://wa.me/6287824660303?text=Halo,%20saya%20ingin%20info%20lengkap%20tentang%20kos"
+             <a href="https://wa.me/{{ $contact && $contact->whatsapp ? preg_replace('/[^0-9]/', '', $contact->whatsapp) : '6283841806357' }}?text=Halo,%20saya%20ingin%20info%20lengkap%20tentang%20kos"
                class="inline-flex items-center justify-center gap-2 bg-white text-blue-700 font-bold px-7 py-3.5 rounded-2xl hover:bg-blue-50 active:scale-95 transition-all shadow-md text-sm sm:text-base">
                 <i class="fab fa-whatsapp text-green-500 text-lg"></i> Chat WhatsApp
             </a>

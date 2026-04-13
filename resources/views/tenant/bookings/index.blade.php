@@ -58,6 +58,14 @@
                 {{-- Bookings List --}}
                 <div class="space-y-4 sm:space-y-6">
                     @foreach($residents as $resident)
+                        @php
+                            // Ambil payment pertama yang belum lunas berdasarkan urutan bulan (asc)
+                            $firstUnpaid = $resident->payments
+                                ->whereNotIn('status', ['paid', 'cancelled'])
+                                ->sortBy('billing_month')
+                                ->first();
+                        @endphp
+
                         <div class="bg-white rounded-xl sm:rounded-2xl shadow-md sm:shadow-lg overflow-hidden">
 
                             {{-- Booking Header --}}
@@ -151,9 +159,15 @@
                                                             <i class="fas fa-check-circle"></i> Lunas
                                                         </span>
                                                     @elseif($payment->status === 'pending')
-                                                        <span class="px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold whitespace-nowrap">
-                                                            <i class="fas fa-clock"></i> Pending
-                                                        </span>
+                                                        @if($firstUnpaid && $payment->id === $firstUnpaid->id)
+                                                            <span class="px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold whitespace-nowrap">
+                                                                <i class="fas fa-clock"></i> Pending
+                                                            </span>
+                                                        @else
+                                                            <span class="px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold whitespace-nowrap">
+                                                                <i class="fas fa-lock"></i> Terkunci
+                                                            </span>
+                                                        @endif
                                                     @elseif($payment->status === 'failed')
                                                         <span class="px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold whitespace-nowrap">
                                                             <i class="fas fa-times-circle"></i> Gagal
@@ -167,12 +181,18 @@
                                                 <div class="flex justify-between items-center pt-2 border-t border-gray-200">
                                                     <div class="font-bold text-sm text-gray-900">Rp {{ number_format($payment->amount, 0, ',', '.') }}</div>
                                                     @if($payment->status === 'pending')
-                                                        <a href="{{ route('tenant.payment.midtrans', $payment->id) }}"
-                                                           class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold text-xs active:scale-[0.98]">
-                                                            <i class="fas fa-credit-card mr-1"></i>Bayar
-                                                        </a>
+                                                        @if($firstUnpaid && $payment->id === $firstUnpaid->id)
+                                                            <a href="{{ route('tenant.payment.midtrans', $payment->id) }}"
+                                                               class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold text-xs active:scale-[0.98]">
+                                                                <i class="fas fa-credit-card mr-1"></i>Bayar
+                                                            </a>
+                                                        @else
+                                                            <span class="px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-xs font-semibold cursor-not-allowed"
+                                                                  title="Selesaikan pembayaran bulan sebelumnya dulu">
+                                                                <i class="fas fa-lock mr-1"></i>Terkunci
+                                                            </span>
+                                                        @endif
                                                     @elseif($payment->status === 'paid')
-                                                        {{-- Mobile: Paid info + Invoice button --}}
                                                         <div class="flex flex-col items-end gap-1">
                                                             <span class="text-gray-400 text-xs">
                                                                 <i class="fas fa-receipt mr-1"></i>{{ $payment->paid_at->format('d/m/Y') }}
@@ -207,7 +227,7 @@
                                             </thead>
                                             <tbody class="divide-y divide-gray-200">
                                                 @forelse($resident->payments as $payment)
-                                                    <tr class="hover:bg-gray-50 transition-colors">
+                                                    <tr class="hover:bg-gray-50 transition-colors {{ ($payment->status === 'pending' && (!$firstUnpaid || $payment->id !== $firstUnpaid->id)) ? 'opacity-60' : '' }}">
                                                         <td class="px-4 py-3 text-xs sm:text-sm text-gray-900">
                                                             {{ $payment->billing_month->format('F Y') }}
                                                         </td>
@@ -223,9 +243,15 @@
                                                                     <i class="fas fa-check-circle mr-1"></i>Lunas
                                                                 </span>
                                                             @elseif($payment->status === 'pending')
-                                                                <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold whitespace-nowrap">
-                                                                    <i class="fas fa-clock mr-1"></i>Pending
-                                                                </span>
+                                                                @if($firstUnpaid && $payment->id === $firstUnpaid->id)
+                                                                    <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold whitespace-nowrap">
+                                                                        <i class="fas fa-clock mr-1"></i>Pending
+                                                                    </span>
+                                                                @else
+                                                                    <span class="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold whitespace-nowrap">
+                                                                        <i class="fas fa-lock mr-1"></i>Terkunci
+                                                                    </span>
+                                                                @endif
                                                             @elseif($payment->status === 'failed')
                                                                 <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold whitespace-nowrap">
                                                                     <i class="fas fa-times-circle mr-1"></i>Gagal
@@ -238,13 +264,20 @@
                                                         </td>
                                                         <td class="px-4 py-3">
                                                             @if($payment->status === 'pending')
-                                                                <a href="{{ route('tenant.payment.midtrans', $payment->id) }}"
-                                                                   class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 font-semibold text-xs sm:text-sm transition-colors">
-                                                                    <i class="fas fa-credit-card"></i>
-                                                                    <span>Bayar Sekarang</span>
-                                                                </a>
+                                                                @if($firstUnpaid && $payment->id === $firstUnpaid->id)
+                                                                    <a href="{{ route('tenant.payment.midtrans', $payment->id) }}"
+                                                                       class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 font-semibold text-xs sm:text-sm transition-colors">
+                                                                        <i class="fas fa-credit-card"></i>
+                                                                        <span>Bayar Sekarang</span>
+                                                                    </a>
+                                                                @else
+                                                                    <span class="inline-flex items-center gap-1 text-gray-400 text-xs sm:text-sm cursor-not-allowed"
+                                                                          title="Selesaikan pembayaran bulan sebelumnya dulu">
+                                                                        <i class="fas fa-lock"></i>
+                                                                        <span>Terkunci</span>
+                                                                    </span>
+                                                                @endif
                                                             @elseif($payment->status === 'paid')
-                                                                {{-- Desktop: Paid info + Invoice button --}}
                                                                 <div class="flex flex-col gap-1">
                                                                     <span class="text-gray-400 text-xs sm:text-sm">
                                                                         <i class="fas fa-receipt mr-1"></i>{{ $payment->paid_at->format('d M Y') }}
@@ -284,7 +317,6 @@
         <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50" onclick="closeCancelModal()"></div>
 
         <div class="modal-container bg-white w-11/12 sm:w-96 mx-auto rounded-xl sm:rounded-2xl shadow-2xl z-50 overflow-y-auto animate-fade-in-up">
-
             <div class="modal-content p-6 sm:p-8 text-center">
                 <div class="w-16 h-16 sm:w-20 sm:h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
                     <i class="fas fa-exclamation-triangle text-3xl sm:text-4xl text-red-600"></i>
@@ -312,7 +344,6 @@
                     </div>
                 </form>
             </div>
-
         </div>
     </div>
 
@@ -322,9 +353,7 @@
         function openCancelModal(residentId) {
             const modal = document.getElementById('cancelModal');
             const form = document.getElementById('cancelForm');
-
             form.action = `/tenant/bookings/${residentId}`;
-
             modal.classList.remove('opacity-0', 'pointer-events-none');
             modal.classList.add('opacity-100', 'pointer-events-auto');
             document.body.classList.add('modal-active');
@@ -332,13 +361,11 @@
 
         function closeCancelModal() {
             const modal = document.getElementById('cancelModal');
-
             modal.classList.add('opacity-0', 'pointer-events-none');
             modal.classList.remove('opacity-100', 'pointer-events-auto');
             document.body.classList.remove('modal-active');
         }
 
-        // Close modal on ESC key
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
                 closeCancelModal();

@@ -24,11 +24,25 @@
             </div>
         @endif
 
-        @if(session('error'))
-            <div class="mb-6 p-4 bg-red-50 text-red-700 rounded-lg sm:rounded-xl border border-red-200 text-sm sm:text-base">
-                <i class="fas fa-exclamation-circle mr-2"></i>{{ session('error') }}
+       @if(session('error'))
+     <div 
+            x-data="{ show: true }" 
+            x-show="show"
+            class="mb-6 p-4 bg-red-50 text-red-700 rounded-lg sm:rounded-xl border border-red-200 text-sm sm:text-base flex justify-between items-start"
+        >
+            <div>
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                {{ session('error') }}
             </div>
-        @endif
+
+            <button 
+                @click="show = false"
+                class="ml-4 text-red-500 hover:text-red-700"
+            >
+                ✕
+            </button>
+        </div>
+    @endif
 
         {{-- Stats Cards --}}
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
