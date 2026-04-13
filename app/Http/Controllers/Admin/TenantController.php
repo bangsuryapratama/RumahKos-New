@@ -179,22 +179,23 @@ class TenantController extends Controller
     /**
      * Display the specified tenant
      */
-    public function show(User $tenant)
-    {
-        if ($tenant->role_id !== 2) { // 2 = tenant
-            abort(404);
-        }
-
-        $tenant->load([
-            'profile',
-            'residents.room.property',
-            'residents.payments' => function($q) {
-                $q->orderBy('billing_month', 'desc');
-            }
-        ]);
-
-        return view('admin.tenants.show', compact('tenant'));
+  public function show(User $tenant)
+{
+    if ($tenant->role_id !== 2) {
+        abort(404);
     }
+
+    $tenant->load([
+        'profile',
+        'currentResident.room.property',
+        'residents.room.property',
+        'residents.payments' => function($q) {
+            $q->orderBy('billing_month', 'desc');
+        }
+    ]);
+
+    return view('admin.tenants.show', compact('tenant'));
+}
 
     /**
      * Show the form for editing the specified tenant
@@ -415,16 +416,25 @@ class TenantController extends Controller
     /**
      * Deactivate tenant's booking
      */
-    public function deactivate(Resident $resident)
+   public function deactivate(Request $request, Resident $resident)
 {
     if ($resident->status !== 'active') {
         return redirect()->back()
             ->with('error', 'Status penghuni tidak aktif.');
     }
 
+    $request->validate([
+        'reason' => 'required|in:late_payment,violation,checkout',
+    ]);
+
+    $reasonLabel = match($request->reason) {
+        'late_payment' => 'Telat Bayar',
+        'violation'    => 'Pelanggaran Peraturan',
+        'checkout'     => 'Penghuni Keluar',
+    };
+
     DB::beginTransaction();
     try {
-        // GANTI: expired → suspended
         $resident->update(['status' => 'suspended']);
 
         $room = $resident->room;
@@ -439,7 +449,7 @@ class TenantController extends Controller
         DB::commit();
 
         return redirect()->back()
-            ->with('success', 'Status penghuni berhasil dinonaktifkan!');
+            ->with('success', "Penghuni berhasil dinonaktifkan. Alasan: {$reasonLabel}");
 
     } catch (\Exception $e) {
         DB::rollBack();

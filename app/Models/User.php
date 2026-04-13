@@ -94,13 +94,22 @@ class User extends Authenticatable
     {
         return $this->hasMany(Property::class, 'owner_id');
     }
-
     /**
-     * Relasi dengan Resident (untuk penghuni)
+     * Relasi dengan Resident (untuk penghuni) - hanya active
      */
     public function resident()
     {
         return $this->hasOne(Resident::class)->where('status', 'active');
+    }
+
+    /**
+     * Relasi untuk admin - prioritaskan active, lalu suspended, lalu inactive
+     */
+    public function currentResident()
+    {
+        return $this->hasOne(Resident::class)
+            ->orderByRaw("FIELD(status, 'active', 'suspended', 'inactive') ASC")
+            ->latest();
     }
 
     /**

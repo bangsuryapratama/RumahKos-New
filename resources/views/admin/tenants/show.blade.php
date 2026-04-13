@@ -167,21 +167,19 @@
                                 <span class="font-semibold text-gray-900">{{ $tenant->resident->getDurationInMonths() }} Bulan</span>
                             </div>
                         </div>
-
-                        {{-- Action buttons --}}
+                     {{-- Action buttons --}}
                         <div class="mt-4 pt-4 border-t border-blue-100 flex flex-col gap-2">
                             @if($tenant->resident->status === 'active')
-                                <form action="{{ route('admin.tenants.deactivate', $tenant->resident) }}" method="POST">
-                                    @csrf
-                                    <button type="submit"
-                                            onclick="return confirm('Nonaktifkan (suspend) penghuni ini?')"
-                                            class="w-full py-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-sm font-semibold rounded-xl transition-colors">
-                                        <i class="fas fa-ban mr-1"></i>Nonaktifkan
-                                    </button>
-                                </form>
+                                {{-- Trigger modal --}}
+                                <button type="button"
+                                        onclick="openDeactivateModal('{{ $tenant->resident->id }}')"
+                                        class="w-full py-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-sm font-semibold rounded-xl transition-colors">
+                                    <i class="fas fa-ban mr-1"></i>Nonaktifkan
+                                </button>
+
                             @elseif($tenant->resident->status === 'suspended')
                                 <div class="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
-                                    <i class="fas fa-info-circle mr-1"></i> Penghuni ini sedang disuspend oleh admin.
+                                    <i class="fas fa-ban mr-1"></i> <strong>Penghuni sedang disuspend.</strong>
                                 </div>
                                 <form action="{{ route('admin.tenants.activate', $tenant->resident) }}" method="POST">
                                     @csrf
@@ -191,6 +189,7 @@
                                         <i class="fas fa-check-circle mr-1"></i>Aktifkan Kembali
                                     </button>
                                 </form>
+
                             @elseif($tenant->resident->status === 'inactive')
                                 <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
                                     <i class="fas fa-clock mr-1"></i> Menunggu pembayaran pertama dari penghuni.
@@ -505,6 +504,91 @@
         <p id="modalCaption" class="text-white/70 text-center mt-3 text-sm"></p>
     </div>
 </div>
+
+{{-- Deactivate Modal --}}
+<div id="deactivateModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+        <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-ban text-red-600"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-gray-900">Nonaktifkan Penghuni</h3>
+                <p class="text-xs text-gray-400">Pilih alasan penonaktifan</p>
+            </div>
+        </div>
+
+        <form id="deactivateForm" method="POST">
+            @csrf
+
+            <div class="space-y-3 mb-5">
+                {{-- Telat Bayar --}}
+                <label class="flex items-start gap-3 p-3 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-red-200 hover:bg-red-50 transition-all has-[:checked]:border-red-400 has-[:checked]:bg-red-50">
+                    <input type="radio" name="reason" value="late_payment" class="mt-0.5 accent-red-500" required>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">Telat Bayar</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Penghuni belum membayar tagihan yang jatuh tempo</p>
+                    </div>
+                </label>
+
+                {{-- Pelanggaran --}}
+                <label class="flex items-start gap-3 p-3 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-amber-200 hover:bg-amber-50 transition-all has-[:checked]:border-amber-400 has-[:checked]:bg-amber-50">
+                    <input type="radio" name="reason" value="violation" class="mt-0.5 accent-amber-500" required>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">Pelanggaran Peraturan</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Penghuni melanggar peraturan kos</p>
+                    </div>
+                </label>
+
+                {{-- Keluar --}}
+                <label class="flex items-start gap-3 p-3 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all has-[:checked]:border-gray-400 has-[:checked]:bg-gray-50">
+                    <input type="radio" name="reason" value="checkout" class="mt-0.5 accent-gray-500" required>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">Penghuni Keluar</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Penghuni sudah tidak tinggal di kos ini</p>
+                    </div>
+                </label>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="button"
+                        onclick="closeDeactivateModal()"
+                        class="flex-1 py-2.5 text-sm font-semibold border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                    Batal
+                </button>
+                <button type="submit"
+                        class="flex-1 py-2.5 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors">
+                    <i class="fas fa-ban mr-1"></i>Nonaktifkan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openDeactivateModal(residentId) {
+    document.getElementById('deactivateForm').action = `/admin/tenants/${residentId}/deactivate`;
+    const modal = document.getElementById('deactivateModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+}
+function closeDeactivateModal() {
+    const modal = document.getElementById('deactivateModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+    // Reset radio
+    document.querySelectorAll('#deactivateForm input[type=radio]').forEach(r => r.checked = false);
+}
+// Tutup modal kalau klik luar
+document.getElementById('deactivateModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeactivateModal();
+});
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeDeactivateModal();
+});
+</script>
 
 <script>
 function openImageModal(src, caption) {
