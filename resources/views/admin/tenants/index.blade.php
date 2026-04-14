@@ -38,7 +38,7 @@
             $inactiveTenants = $totalTenants - $activeTenants;
             $overdueCount    = \App\Models\User::where('role_id', 2)
                                 ->whereHas('residents.payments', function($q) {
-                                    $q->where('due_date', '<', now())->where('status', '!=', 'paid');
+                                    $q->where('due_date', '<', now())->where('status', '!=', 'pending');
                                 })->count();
         @endphp
 
@@ -131,7 +131,7 @@
                     @foreach($tenants as $tenant)
                         @php
                             $tenantOverdue = $tenant->residents->flatMap->payments
-                                ->filter(fn($p) => $p->due_date->isPast() && $p->status !== 'paid');
+                                ->filter(fn($p) => $p->due_date->isPast() && $p->status !== 'pending');
                             $isOverdue = $tenantOverdue->count() > 0;
                             $phone = $tenant->profile?->phone;
                             $waNumber = $phone ? preg_replace('/^0/', '62', preg_replace('/[^0-9]/', '', $phone)) : null;
@@ -236,7 +236,7 @@
                             @foreach($tenants as $tenant)
                                 @php
                                     $tenantOverdue = $tenant->residents->flatMap->payments
-                                        ->filter(fn($p) => $p->due_date->isPast() && $p->status !== 'paid');
+                                        ->filter(fn($p) => $p->due_date->isPast() && $p->status !== 'pending');
                                     $isOverdue = $tenantOverdue->count() > 0;
                                     $phone = $tenant->profile?->phone;
                                     $waNumber = $phone ? preg_replace('/^0/', '62', preg_replace('/[^0-9]/', '', $phone)) : null;
