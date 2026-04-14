@@ -34,6 +34,44 @@
             </div>
         @endif
 
+        {{-- ═══════════════════════════════════════════ --}}
+        {{-- ALERT NUNGGAK                               --}}
+        {{-- ═══════════════════════════════════════════ --}}
+        @php
+            $overduePayments = collect();
+            foreach($tenant->residents as $res) {
+                $overdue = $res->payments->filter(
+                    fn($p) => $p->status === 'pending' && $p->due_date->isPast()
+                );
+                $overduePayments = $overduePayments->merge($overdue);
+            }
+        @endphp
+
+        @if($overduePayments->count() > 0)
+            <div class="mb-5 p-4 bg-red-50 border border-red-300 rounded-xl">
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-base"></i>
+                    <span class="font-bold text-red-700 text-sm">
+                        Penghuni ini nunggak {{ $overduePayments->count() }} tagihan!
+                    </span>
+                </div>
+                <div class="space-y-1.5">
+                    @foreach($overduePayments as $op)
+                        <div class="flex items-center justify-between text-xs bg-white border border-red-200 rounded-lg px-3 py-2">
+                            <span class="font-medium text-gray-800">{{ $op->billing_month->format('F Y') }}</span>
+                            <span class="text-gray-500">Jatuh tempo {{ $op->due_date->format('d M Y') }}</span>
+                            <span class="text-red-600 font-semibold">{{ $op->due_date->diffForHumans() }}</span>
+                            <span class="font-bold text-gray-900">Rp {{ number_format($op->amount, 0, ',', '.') }}</span>
+                        </div>
+                    @endforeach
+                </div>
+                <p class="text-xs text-red-600 font-semibold mt-3">
+                    Total tunggakan: Rp {{ number_format($overduePayments->sum('amount'), 0, ',', '.') }}
+                </p>
+            </div>
+        @endif
+        {{-- ═══════════════════════════════════════════ --}}
+
         {{-- Profile Completion Progress --}}
         @php
             $completionPercent = 0;
@@ -170,7 +208,6 @@
                      {{-- Action buttons --}}
                         <div class="mt-4 pt-4 border-t border-blue-100 flex flex-col gap-2">
                             @if($tenant->resident->status === 'active')
-                                {{-- Trigger modal --}}
                                 <button type="button"
                                         onclick="openDeactivateModal('{{ $tenant->resident->id }}')"
                                         class="w-full py-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-sm font-semibold rounded-xl transition-colors">
@@ -447,10 +484,17 @@
                         @if($allPayments->count() > 0)
                             <div class="space-y-3">
                                 @foreach($allPayments as $payment)
-                                    <div class="flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors">
+                                    @php $isOverdue = $payment->status === 'pending' && $payment->due_date->isPast(); @endphp
+                                    <div class="flex items-center justify-between p-4 border rounded-xl transition-colors
+                                        {{ $isOverdue ? 'border-red-200 bg-red-50' : 'border-gray-100 hover:bg-gray-50' }}">
                                         <div>
                                             <p class="text-sm font-semibold text-gray-900">{{ $payment->billing_month->format('F Y') }}</p>
                                             <p class="text-xs text-gray-400 mt-0.5">Jatuh tempo: {{ $payment->due_date->format('d M Y') }}</p>
+                                            @if($isOverdue)
+                                                <p class="text-xs text-red-500 mt-0.5 font-medium">
+                                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ $payment->due_date->diffForHumans() }}
+                                                </p>
+                                            @endif
                                             @if($payment->status === 'paid' && $payment->paid_at)
                                                 <p class="text-xs text-green-600 mt-0.5">
                                                     <i class="fas fa-check-circle mr-1"></i>Dibayar: {{ $payment->paid_at->format('d M Y H:i') }}
@@ -459,28 +503,25 @@
                                         </div>
                                         <div class="text-right">
                                             <p class="text-sm font-bold text-gray-900">Rp {{ number_format($payment->amount, 0, ',', '.') }}</p>
-                                    <div class="mt-1">
-                                        @if($payment->status === 'paid')
-                                            <span class="text-xs font-semibold px-2.5 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-full">
-                                                <i class="fas fa-check-circle mr-0.5"></i>Lunas
-                                            </span>
-{{-- 
-                                        @elseif($isOverdue)
-                                            <span class="text-xs font-semibold px-2.5 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-full animate-pulse">
-                                                <i class="fas fa-exclamation-circle mr-0.5"></i>Terlambat
-                                            </span> --}}
-
-                                        @elseif($payment->status === 'pending')
-                                            <span class="text-xs font-semibold px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
-                                                <i class="fas fa-clock mr-0.5"></i>Pending
-                                            </span>
-
-                                        @elseif($payment->status === 'failed')
-                                            <span class="text-xs font-semibold px-2.5 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-full">
-                                                <i class="fas fa-times-circle mr-0.5"></i>Gagal
-                                            </span>
-                                        @endif
-                                    </div>
+                                            <div class="mt-1">
+                                                @if($payment->status === 'paid')
+                                                    <span class="text-xs font-semibold px-2.5 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-full">
+                                                        <i class="fas fa-check-circle mr-0.5"></i>Lunas
+                                                    </span>
+                                                @elseif($isOverdue)
+                                                    <span class="text-xs font-semibold px-2.5 py-0.5 bg-red-100 text-red-700 border border-red-300 rounded-full animate-pulse">
+                                                        <i class="fas fa-exclamation-circle mr-0.5"></i>Terlambat
+                                                    </span>
+                                                @elseif($payment->status === 'pending')
+                                                    <span class="text-xs font-semibold px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
+                                                        <i class="fas fa-clock mr-0.5"></i>Pending
+                                                    </span>
+                                                @elseif($payment->status === 'failed')
+                                                    <span class="text-xs font-semibold px-2.5 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-full">
+                                                        <i class="fas fa-times-circle mr-0.5"></i>Gagal
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
                                 @endforeach
