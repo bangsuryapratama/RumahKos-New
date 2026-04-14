@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Tenant\AuthController;
 use App\Http\Controllers\Api\Tenant\ResidentApiController;
 use App\Http\Controllers\Api\Tenant\ProfileApiController;
 use App\Http\Controllers\Api\RoomApiController;
+use App\Http\Controllers\Api\Tenant\DashboardController;
 use App\Http\Controllers\Tenant\PaymentController;
 use App\Http\Controllers\Api\Tenant\PaymentApiController;
 
@@ -38,6 +39,10 @@ Route::prefix('tenant')->group(function () {
     // ==========================
     Route::middleware('auth:sanctum')->group(function () {
 
+        // ==========================
+        // DASHBOARD
+        // ==========================
+        Route::get('/dashboard', [DashboardController::class, 'index']);
         // ==========================
         // AUTH
         // ==========================
