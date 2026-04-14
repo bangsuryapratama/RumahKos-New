@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
@@ -47,8 +46,6 @@ class DashboardController extends Controller
     {
         /** @var User $user */
         $user = Auth::guard('tenant')->user();
-        $user->load('profile');
-
         return view('tenant.profile', compact('user'));
     }
 
@@ -96,7 +93,6 @@ class DashboardController extends Controller
                 $profile = $user->profile()->create($profileData);
             }
 
-            // Handle delete flags
             $deleteFlags = [
                 'delete_ktp'      => 'ktp_photo',
                 'delete_sim'      => 'sim_photo',
@@ -113,7 +109,6 @@ class DashboardController extends Controller
                 }
             }
 
-            // Handle document uploads
             $documents = ['ktp_photo', 'sim_photo', 'passport_photo'];
 
             foreach ($documents as $doc) {
@@ -140,35 +135,6 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             Log::error('Profile update error: ' . $e->getMessage());
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
-        }
-    }
-
-    public function updatePassword(Request $request)
-    {
-        try {
-            /** @var User $user */
-            $user = Auth::guard('tenant')->user();
-
-            $request->validate([
-                'current_password' => 'required|string',
-                'password'         => 'required|string|min:8|confirmed',
-            ]);
-
-            if (!Hash::check($request->current_password, $user->password)) {
-                return back()->withErrors(['current_password' => 'Password lama tidak sesuai.']);
-            }
-
-            $user->update([
-                'password' => Hash::make($request->password),
-            ]);
-
-            Log::info("Password updated for user {$user->id}");
-
-            return back()->with('success', 'Password berhasil diubah!');
-
-        } catch (\Exception $e) {
-            Log::error('Password update error: ' . $e->getMessage());
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 

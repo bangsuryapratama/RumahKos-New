@@ -18,40 +18,43 @@ class TenantController extends Controller
      * Display a listing of tenants
      */
     public function index(Request $request)
-    {
-        $query = User::with(['resident.room.property', 'residents', 'profile'])
-            ->where('role_id', 2); // 2 = tenant
-
-        // Search
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhereHas('profile', function($pq) use ($search) {
-                      $pq->where('phone', 'like', "%{$search}%")
-                         ->orWhere('identity_number', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        // Filter by status
-        if ($request->filled('status')) {
-            if ($request->status === 'active') {
-                $query->whereHas('resident', function($q) {
-                    $q->where('status', 'active');
-                });
-            } elseif ($request->status === 'inactive') {
-                $query->whereHas('residents', function($q) {
-                    $q->where('status', 'inactive');
-                })->orWhereDoesntHave('residents');
-            }
-        }
-
-        $tenants = $query->latest()->paginate(15);
-
-        return view('admin.tenants.index', compact('tenants'));
+{
+    $query = User::with([
+        'profile',
+        'resident.room.property',
+        'residents.payments', // untuk cek overdue di view
+    ])->where('role', 'tenant');
+ 
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+              ->orWhere('email', 'like', "%{$search}%")
+              ->orWhereHas('profile', function ($p) use ($search) {
+                  $p->where('phone', 'like', "%{$search}%")
+                    ->orWhere('identity_number', 'like', "%{$search}%");
+              });
+        });
     }
+ 
+    if ($request->filled('status')) {
+        if ($request->status === 'overdue') {
+            // Filter hanya tenant yang punya payment pending + due_date lewat
+            $query->whereHas('residents.payments', function ($q) {
+                $q->where('status', 'pending')
+                  ->where('due_date', '<', now());
+            });
+        } else {
+            $query->whereHas('resident', fn($q) => $q->where('status', $request->status));
+        }
+    }
+ 
+    $tenants = $query->latest()->paginate(15)->withQueryString();
+ 
+    return view('admin.tenants.index', compact('tenants'));
+}
+ 
+
 
     /**
      * Show the form for creating a new tenant
