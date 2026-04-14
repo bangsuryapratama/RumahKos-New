@@ -29,17 +29,15 @@ class AuthenticatedSessionController extends Controller
     $user = Auth::user();
 
     $allowedRoles = [1];
-
+        
     if (!in_array($user->role_id, $allowedRoles)) {
-        Auth::logout();
-
-        return redirect()->route('no-access');
+        abort(403, 'Akses ditolak');
     }
 
-    $request->session()->regenerate();
+        $request->session()->regenerate();
 
-    return redirect()->intended(route('dashboard'));
-}
+        return redirect()->intended(route('dashboard'));
+    }
 
 
     /**
