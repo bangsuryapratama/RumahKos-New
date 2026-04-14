@@ -64,16 +64,19 @@ class DashboardController extends Controller
                     'start_date' => $resident->start_date,
                 ],
 
-                'payments' => $payments->take(10)->map(fn ($p) => [
+                'payments' => $payments
+                ->whereIn('status', ['pending', 'failed']) 
+                ->take(10)
+                ->map(fn ($p) => [
                     'id' => $p->id,
                     'month' => $p->billing_month,
                     'amount' => $p->amount,
                     'status' => $p->status,
                     'due_date' => $p->due_date,
                     'is_overdue' =>
-                        $p->status === 'pending' &&
-                        $p->due_date &&
-                        $p->due_date < now(),
+                        $p->status === 'pending'
+                        && $p->due_date
+                        && $p->due_date < now(),
                 ])->values(),
             ]
         ]);
