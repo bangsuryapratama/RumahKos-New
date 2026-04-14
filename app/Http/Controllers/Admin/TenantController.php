@@ -46,9 +46,9 @@ class TenantController extends Controller
                     $q->where('status', 'inactive');
                 })->orWhereDoesntHave('residents');
             } elseif ($request->status === 'overdue') {
-                $query->whereHas('residents.payments', function($q) {
+               $query->whereHas('residents.payments', function($q) {
                     $q->where('due_date', '<', now())
-                    ->where('status', '!=', 'paid');
+                    ->where('status', 'pending');
                 });
             }
         }
@@ -421,7 +421,7 @@ class TenantController extends Controller
     /**
      * Deactivate tenant's booking
      */
-     public function deactivate(Request $request, Resident $resident)
+ public function deactivate(Request $request, Resident $resident)
 {
     if ($resident->status !== 'active') {
         return redirect()->back()
@@ -431,15 +431,15 @@ class TenantController extends Controller
     DB::beginTransaction();
     try {
 
-        // ❗ TAMBAH INI (PENTING BANGET)
+        // Cancel semua tagihan pending
         $resident->payments()
             ->where('status', 'pending')
             ->update(['status' => 'cancelled']);
 
-        // Ubah status jadi inactive
-        $resident->update(['status' => 'inactive']);
+        // ❗ GANTI INI
+        $resident->update(['status' => 'cancelled']);
 
-        // Kembalikan kamar jadi available jika tidak ada penghuni aktif lain
+        // Update room
         $room = $resident->room;
         $hasActiveResident = $room->residents()
             ->where('status', 'active')
@@ -452,7 +452,7 @@ class TenantController extends Controller
         DB::commit();
 
         return redirect()->back()
-            ->with('success', 'Penghuni berhasil dikeluarkan & tagihan dibatalkan.');
+            ->with('success', 'Penghuni berhasil dikeluarkan & booking dibatalkan.');
 
     } catch (\Exception $e) {
         DB::rollBack();
