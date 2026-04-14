@@ -27,7 +27,6 @@ Route::prefix('tenant')->group(function () {
 
         // DASHBOARD
         Route::get('/dashboard', [DashboardController::class, 'index']);
-
         // AUTH
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/refresh-token', [AuthController::class, 'refreshToken']);

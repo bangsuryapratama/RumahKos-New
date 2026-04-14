@@ -11,22 +11,21 @@ class DashboardController extends Controller
     {
         $user = Auth::guard('sanctum')->user();
 
-        $resident = $user->resident()->with([
-            'room.property',
-            'payments' => fn ($q) => $q->orderBy('billing_month', 'desc')
-        ])->first();
+        $resident = $user->resident()
+            ->with(['room.property', 'payments'])
+            ->first();
 
         if (!$resident) {
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'user' => [
-                        'name' => $user->name,
-                        'email' => $user->email,
-                    ],
-                    'resident' => null,
+                    'user' => ['name' => $user->name],
                     'room' => null,
-                    'billing' => null,
+                    'billing' => [
+                        'pending_count' => 0,
+                        'overdue_count' => 0,
+                        'total_overdue' => 0,
+                    ],
                     'payments' => [],
                 ]
             ]);
@@ -34,13 +33,12 @@ class DashboardController extends Controller
 
         $payments = $resident->payments;
 
+
         $pending = $payments->where('status', 'pending');
 
-        $overdue = $pending->filter(fn ($p) =>
+        $overdue = $pending->filter(fn($p) =>
             $p->due_date && $p->due_date < now()
         );
-
-        $latest = $payments->first();
 
         return response()->json([
             'success' => true,
@@ -50,30 +48,23 @@ class DashboardController extends Controller
                     'email' => $user->email,
                 ],
 
-                'resident' => [
-                    'status' => $resident->status,
-                    'start_date' => $resident->start_date,
+                'room' => [
+                    'name' => $resident->room?->name,
+                    'property' => $resident->room?->property?->name,
                 ],
 
-                'room' => $resident->room ? [
-                    'name' => $resident->room->name,
-                    'property' => $resident->room->property->name ?? '-',
-                    'price' => $resident->room->price,
-                ] : null,
-
                 'billing' => [
-                    'latest_amount' => $latest?->amount ?? 0,
                     'pending_count' => $pending->count(),
                     'overdue_count' => $overdue->count(),
                     'total_overdue' => $overdue->sum('amount'),
                 ],
 
-                'payments' => $pending->values()->map(fn ($p) => [
+                'payments' => $pending->values()->map(fn($p) => [
                     'id' => $p->id,
                     'month' => $p->billing_month,
                     'amount' => $p->amount,
                     'due_date' => $p->due_date,
-                    'is_overdue' => $p->due_date && $p->due_date < now(),
+                    'status' => $p->status,
                 ]),
             ]
         ]);
