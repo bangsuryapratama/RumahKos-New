@@ -45,6 +45,11 @@ class TenantController extends Controller
                 $query->whereHas('residents', function($q) {
                     $q->where('status', 'inactive');
                 })->orWhereDoesntHave('residents');
+            } elseif ($request->status === 'overdue') {
+                $query->whereHas('residents.payments', function($q) {
+                    $q->where('due_date', '<', now())
+                    ->where('status', '!=', 'paid');
+                });
             }
         }
 
@@ -344,7 +349,7 @@ class TenantController extends Controller
 
         if ($activeResident) {
             return redirect()->back()
-                ->with('error', 'Tidak dapat menghapus penghuni dengan status aktif. Silakan nonaktifkan terlebih dahulu.');
+                ->with('error', 'Tidak dapat menghapus penghuni dengan status aktif');
         }
 
         DB::beginTransaction();

@@ -10,7 +10,7 @@
                     <p class="text-sm sm:text-base text-gray-600">Manajemen data penghuni kos</p>
                 </div>
                 <a href="{{ route('admin.tenants.create') }}"
-                   class="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg sm:rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-semibold text-sm sm:text-base shadow-md hover:shadow-lg active:scale-[0.98]">
+                   class="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-semibold text-sm sm:text-base shadow-sm active:scale-[0.98]">
                     <i class="fas fa-plus"></i>
                     <span>Tambah Penghuni</span>
                 </a>
@@ -19,189 +19,185 @@
 
         {{-- Alert Messages --}}
         @if(session('success'))
-            <div class="mb-6 p-4 bg-blue-50 text-blue-700 rounded-lg sm:rounded-xl border border-blue-200 text-sm sm:text-base">
-                <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
+            <div class="mb-6 flex items-center gap-3 p-4 bg-green-50 text-green-700 rounded-xl border border-green-200 text-sm">
+                <i class="fas fa-check-circle flex-shrink-0"></i>{{ session('success') }}
             </div>
         @endif
         @if(session('error'))
-            <div class="mb-6 p-4 bg-red-50 text-red-700 rounded-lg sm:rounded-xl border border-red-200 text-sm sm:text-base">
-                <i class="fas fa-exclamation-circle mr-2"></i>{{ session('error') }}
+            <div class="mb-6 flex items-center gap-3 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-sm">
+                <i class="fas fa-exclamation-circle flex-shrink-0"></i>{{ session('error') }}
             </div>
         @endif
 
+        {{-- Stats Cards --}}
+        @php
+            $totalTenants    = \App\Models\User::where('role_id', 2)->count();
+            $activeTenants   = \App\Models\Resident::where('status', 'active')->distinct('user_id')->count('user_id');
+            $inactiveTenants = $totalTenants - $activeTenants;
+            $overdueCount    = \App\Models\User::where('role_id', 2)
+                                ->whereHas('residents.payments', function($q) {
+                                    $q->where('due_date', '<', now())->where('status', '!=', 'paid');
+                                })->count();
+        @endphp
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 sm:p-5">
+                <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total</p>
+                <p class="text-2xl sm:text-3xl font-bold text-gray-900">{{ $totalTenants }}</p>
+                <p class="text-xs text-gray-500 mt-1">Penghuni terdaftar</p>
+            </div>
+            <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 sm:p-5">
+                <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Aktif</p>
+                <p class="text-2xl sm:text-3xl font-bold text-blue-600">{{ $activeTenants }}</p>
+                <p class="text-xs text-gray-500 mt-1">Sedang menghuni</p>
+            </div>
+            <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 sm:p-5">
+                <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Tidak Aktif</p>
+                <p class="text-2xl sm:text-3xl font-bold text-gray-500">{{ $inactiveTenants }}</p>
+                <p class="text-xs text-gray-500 mt-1">Belum/sudah keluar</p>
+            </div>
+            <a href="{{ route('admin.tenants.index', ['status' => 'overdue']) }}"
+               class="bg-red-50 border border-red-200 rounded-2xl shadow-sm p-4 sm:p-5 hover:bg-red-100 transition-colors group">
+                <p class="text-xs text-red-500 uppercase tracking-wide mb-1">Nunggak</p>
+                <p class="text-2xl sm:text-3xl font-bold text-red-600">{{ $overdueCount }}</p>
+                <p class="text-xs text-red-400 mt-1 group-hover:text-red-500 transition-colors">Klik untuk lihat</p>
+            </a>
+        </div>
+
         {{-- Search & Filter --}}
-        <div class="bg-white rounded-lg sm:rounded-xl shadow-md p-4 sm:p-6 mb-6">
-            <form method="GET" action="{{ route('admin.tenants.index') }}" class="space-y-4 sm:space-y-0 sm:flex sm:gap-4">
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 sm:p-5 mb-6">
+            <form method="GET" action="{{ route('admin.tenants.index') }}" class="flex flex-col sm:flex-row gap-3">
                 <div class="flex-1">
                     <input type="text" name="search" value="{{ request('search') }}"
                            placeholder="Cari nama, email, telepon, atau NIK..."
-                           class="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base">
+                           class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-gray-50 focus:bg-white transition-colors">
                 </div>
-                <div class="w-full sm:w-48">
+                <div class="w-full sm:w-44">
                     <select name="status"
-                            class="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base">
+                            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-gray-50 focus:bg-white transition-colors">
                         <option value="">Semua Status</option>
                         <option value="active"   {{ request('status') === 'active'   ? 'selected' : '' }}>Aktif</option>
                         <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Tidak Aktif</option>
-                        <option value="overdue"  {{ request('status') === 'overdue'  ? 'selected' : '' }}> Nunggak</option>
+                        <option value="overdue"  {{ request('status') === 'overdue'  ? 'selected' : '' }}>Nunggak</option>
                     </select>
                 </div>
                 <div class="flex gap-2">
                     <button type="submit"
-                            class="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold text-sm sm:text-base active:scale-[0.98]">
+                            class="flex-1 sm:flex-none px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold text-sm active:scale-[0.98]">
                         <i class="fas fa-search mr-2"></i>Cari
                     </button>
                     @if(request('search') || request('status'))
                         <a href="{{ route('admin.tenants.index') }}"
-                           class="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-semibold text-sm sm:text-base text-center active:scale-[0.98]">
+                           class="flex-1 sm:flex-none px-5 py-2.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors font-semibold text-sm text-center active:scale-[0.98]">
                             <i class="fas fa-times mr-2"></i>Reset
                         </a>
                     @endif
                 </div>
             </form>
-        </div>
 
-        {{-- Stats Cards --}}
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
-            @php
-                $totalTenants    = \App\Models\User::where('role_id', 2)->count();
-                $activeTenants   = \App\Models\Resident::where('status', 'active')->distinct('user_id')->count('user_id');
-                $inactiveTenants = $totalTenants - $activeTenants;
-                $pendingPayments = \App\Models\Payment::where('status', 'pending')->count();
-                $overdueCount    = \App\Models\Payment::where('status', 'pending')
-                                    ->where('due_date', '<', now())
-                                    ->distinct('resident_id')
-                                    ->count('resident_id');
-            @endphp
-
-            <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg sm:rounded-xl p-4 sm:p-5 text-white shadow-md">
-                <div class="flex items-center justify-between mb-2">
-                    <i class="fas fa-users text-2xl sm:text-3xl opacity-20"></i>
-                    <span class="text-xs sm:text-sm opacity-90">Total</span>
+            {{-- Active filter indicator --}}
+            @if(request('status') === 'overdue')
+                <div class="mt-3 flex items-center gap-2 text-xs text-red-500">
+                    <i class="fas fa-filter"></i>
+                    Menampilkan penghuni dengan tagihan jatuh tempo yang belum lunas
                 </div>
-                <div class="text-2xl sm:text-3xl font-bold">{{ $totalTenants }}</div>
-                <p class="text-xs sm:text-sm opacity-90 mt-1">Penghuni</p>
-            </div>
-
-            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-4 sm:p-5 text-white shadow-md">
-                <div class="flex items-center justify-between mb-2">
-                    <i class="fas fa-user-check text-2xl sm:text-3xl opacity-20"></i>
-                    <span class="text-xs sm:text-sm opacity-90">Status</span>
+            @elseif(request('status') || request('search'))
+                <div class="mt-3 flex items-center gap-2 text-xs text-gray-400">
+                    <i class="fas fa-filter"></i>
+                    Filter aktif — {{ $tenants->total() }} hasil ditemukan
                 </div>
-                <div class="text-2xl sm:text-3xl font-bold">{{ $activeTenants }}</div>
-                <p class="text-xs sm:text-sm opacity-90 mt-1">Aktif</p>
-            </div>
-
-            <div class="bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg sm:rounded-xl p-4 sm:p-5 text-white shadow-md">
-                <div class="flex items-center justify-between mb-2">
-                    <i class="fas fa-user-clock text-2xl sm:text-3xl opacity-20"></i>
-                    <span class="text-xs sm:text-sm opacity-90">Status</span>
-                </div>
-                <div class="text-2xl sm:text-3xl font-bold">{{ $inactiveTenants }}</div>
-                <p class="text-xs sm:text-sm opacity-90 mt-1">Tidak Aktif</p>
-            </div>
-
-            {{-- Card Nunggak --}}
-            <a href="{{ route('admin.tenants.index', ['status' => 'overdue']) }}"
-               class="bg-gradient-to-br from-red-500 to-red-600 rounded-lg sm:rounded-xl p-4 sm:p-5 text-white shadow-md hover:from-red-600 hover:to-red-700 transition-all group">
-                <div class="flex items-center justify-between mb-2">
-                    <i class="fas fa-exclamation-triangle text-2xl sm:text-3xl opacity-20 group-hover:opacity-30 transition-opacity"></i>
-                    <span class="text-xs sm:text-sm opacity-90">Tunggakan</span>
-                </div>
-                <div class="text-2xl sm:text-3xl font-bold">{{ $overdueCount }}</div>
-                <p class="text-xs sm:text-sm opacity-90 mt-1">Penghuni Nunggak</p>
-            </a>
+            @endif
         </div>
 
         {{-- Tenants Table --}}
-        <div class="bg-white rounded-lg sm:rounded-xl shadow-md overflow-hidden">
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
             @if($tenants->count() > 0)
 
                 {{-- Mobile View --}}
-                <div class="block lg:hidden divide-y divide-gray-200">
+                <div class="block lg:hidden divide-y divide-gray-100">
                     @foreach($tenants as $tenant)
                         @php
                             $tenantOverdue = $tenant->residents->flatMap->payments
-                                ->filter(fn($p) => $p->status === 'pending' && $p->due_date->isPast());
+                                ->filter(fn($p) => $p->due_date->isPast() && $p->status !== 'paid');
                             $isOverdue = $tenantOverdue->count() > 0;
                         @endphp
                         <div class="p-4 hover:bg-gray-50 transition-colors {{ $isOverdue ? 'bg-red-50 border-l-4 border-red-400' : '' }}">
                             <div class="flex items-start justify-between mb-3">
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <h3 class="font-semibold text-gray-900 truncate">{{ $tenant->name }}</h3>
-                                        @if($isOverdue)
-                                            <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-red-100 text-red-700 border border-red-300 rounded-full font-semibold animate-pulse">
-                                                <i class="fas fa-exclamation-circle text-xs"></i>
-                                                {{ $tenantOverdue->count() }} Nunggak
-                                            </span>
+                                <div class="flex items-center gap-3 flex-1 min-w-0">
+                                    <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-sm
+                                        {{ $isOverdue ? 'bg-red-100 text-red-700' : 'bg-violet-100 text-violet-700' }}">
+                                        {{ strtoupper(substr($tenant->name, 0, 1)) }}{{ strtoupper(substr(strstr($tenant->name, ' '), 1, 1)) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h3 class="font-semibold text-gray-900 text-sm truncate">{{ $tenant->name }}</h3>
+                                        <p class="text-xs text-gray-500 truncate">{{ $tenant->email }}</p>
+                                        @if($tenant->profile?->phone)
+                                            <p class="text-xs text-gray-400 mt-0.5"><i class="fas fa-phone mr-1 text-gray-300"></i>{{ $tenant->profile->phone }}</p>
                                         @endif
                                     </div>
-                                    <p class="text-xs text-gray-600 truncate">{{ $tenant->email }}</p>
-                                    @if($tenant->profile && $tenant->profile->phone)
-                                        <p class="text-xs text-gray-600"><i class="fas fa-phone mr-1"></i>{{ $tenant->profile->phone }}</p>
-                                    @endif
-                                    @if($isOverdue)
-                                        <p class="text-xs text-red-600 font-semibold mt-1">
-                                            Tunggakan: Rp {{ number_format($tenantOverdue->sum('amount'), 0, ',', '.') }}
-                                        </p>
-                                    @endif
                                 </div>
-                                <div class="ml-3">
+                                <div class="ml-3 flex-shrink-0">
                                     @if($isOverdue)
-                                        <span class="px-2.5 py-1 bg-red-100 text-red-700 border border-red-300 rounded-full text-xs font-semibold whitespace-nowrap">
-                                            <i class="fas fa-exclamation-triangle"></i> Nunggak
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-100 text-red-700 border border-red-200 rounded-full text-xs font-semibold">
+                                            <i class="fas fa-exclamation-triangle" style="font-size:10px"></i> Nunggak
                                         </span>
-                                    @elseif($tenant->resident && $tenant->resident->status === 'active')
-                                        <span class="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold whitespace-nowrap">
-                                            <i class="fas fa-check-circle"></i> Aktif
+                                    @elseif($tenant->resident?->status === 'active')
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded-full text-xs font-semibold">
+                                            <i class="fas fa-check-circle" style="font-size:10px"></i> Aktif
+                                        </span>
+                                    @elseif($tenant->resident?->status === 'suspended')
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-orange-50 text-orange-700 border border-orange-100 rounded-full text-xs font-semibold">
+                                            <i class="fas fa-ban" style="font-size:10px"></i> Suspend
+                                        </span>
+                                    @elseif($tenant->resident?->status === 'inactive')
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-100 rounded-full text-xs font-semibold">
+                                            <i class="fas fa-clock" style="font-size:10px"></i> Menunggu
                                         </span>
                                     @else
-                                        <span class="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold whitespace-nowrap">
-                                            <i class="fas fa-times-circle"></i> Tidak Aktif
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">
+                                            <i class="fas fa-times-circle" style="font-size:10px"></i> Tidak Aktif
                                         </span>
                                     @endif
                                 </div>
                             </div>
 
+                            @if($isOverdue)
+                                <div class="mb-3 px-3 py-2 bg-red-100 border border-red-200 rounded-xl text-xs text-red-700 flex justify-between items-center">
+                                    <span><i class="fas fa-exclamation-circle mr-1"></i>{{ $tenantOverdue->count() }} tagihan nunggak</span>
+                                    <span class="font-bold">Rp {{ number_format($tenantOverdue->sum('amount'), 0, ',', '.') }}</span>
+                                </div>
+                            @endif
+
                             @if($tenant->resident)
-                                <div class="{{ $isOverdue ? 'bg-red-100 border-red-200' : 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200' }} rounded-lg p-3 mb-3 text-xs border">
-                                    <div class="flex items-start gap-2 mb-2">
-                                        <i class="fas fa-home {{ $isOverdue ? 'text-red-500' : 'text-blue-600' }} mt-0.5"></i>
-                                        <div class="flex-1">
-                                            <span class="font-medium text-gray-900">{{ $tenant->resident->room->name }}</span>
-                                            <span class="text-gray-600"> • {{ $tenant->resident->room->property->name }}</span>
-                                        </div>
+                                <div class="bg-gray-50 border border-gray-100 rounded-xl p-3 mb-3 text-xs">
+                                    <div class="flex items-center gap-2 mb-1.5">
+                                        <i class="fas fa-home text-gray-300"></i>
+                                        <span class="font-medium text-gray-900">{{ $tenant->resident->room->name }}</span>
+                                        <span class="text-gray-300">•</span>
+                                        <span class="text-gray-500 truncate">{{ $tenant->resident->room->property->name }}</span>
                                     </div>
-                                    <div class="flex items-center justify-between mt-2 pt-2 {{ $isOverdue ? 'border-red-200' : 'border-blue-200' }} border-t">
-                                        <span class="text-gray-700">
-                                            <i class="fas fa-money-bill-wave {{ $isOverdue ? 'text-red-500' : 'text-blue-600' }}"></i>
-                                            Rp {{ number_format($tenant->resident->room->price, 0, ',', '.') }}/bln
-                                        </span>
-                                        <span class="text-gray-700">
-                                            <i class="fas fa-calendar-alt {{ $isOverdue ? 'text-red-500' : 'text-blue-600' }}"></i>
-                                            {{ $tenant->resident->getDurationInMonths() }} bulan
-                                        </span>
+                                    <div class="flex items-center justify-between text-gray-400">
+                                        <span>Rp {{ number_format($tenant->resident->room->price, 0, ',', '.') }}/bln</span>
+                                        <span>{{ $tenant->resident->getDurationInMonths() }} bulan</span>
                                     </div>
                                 </div>
                             @else
-                                <div class="bg-gray-50 rounded-lg p-3 mb-3 text-xs text-center border border-gray-200">
-                                    <i class="fas fa-door-open text-gray-400 mr-1"></i>
-                                    <span class="text-gray-600">Belum assign kamar</span>
+                                <div class="bg-gray-50 border border-gray-100 rounded-xl p-3 mb-3 text-xs text-center text-gray-400">
+                                    <i class="fas fa-door-open mr-1"></i> Belum assign kamar
                                 </div>
                             @endif
 
                             <div class="flex gap-2">
                                 <a href="{{ route('admin.tenants.show', $tenant) }}"
-                                   class="flex-1 px-3 py-1.5 {{ $isOverdue ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100' }} rounded-lg transition-all text-xs font-semibold text-center border">
+                                   class="flex-1 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-lg text-xs font-semibold text-center hover:bg-blue-100 transition-colors">
                                     <i class="fas fa-eye mr-1"></i>Detail
                                 </a>
                                 <a href="{{ route('admin.tenants.edit', $tenant) }}"
-                                   class="flex-1 px-3 py-1.5 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-all text-xs font-semibold text-center border border-gray-200">
+                                   class="flex-1 px-3 py-1.5 bg-gray-50 text-gray-600 border border-gray-200 rounded-lg text-xs font-semibold text-center hover:bg-gray-100 transition-colors">
                                     <i class="fas fa-edit mr-1"></i>Edit
                                 </a>
                                 <button onclick="confirmDelete({{ $tenant->id }})"
-                                        class="flex-1 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all text-xs font-semibold text-center border border-red-200">
+                                        class="flex-1 px-3 py-1.5 bg-red-50 text-red-600 border border-red-100 rounded-lg text-xs font-semibold text-center hover:bg-red-100 transition-colors">
                                     <i class="fas fa-trash mr-1"></i>Hapus
                                 </button>
                             </div>
@@ -212,119 +208,106 @@
                 {{-- Desktop View --}}
                 <div class="hidden lg:block overflow-x-auto">
                     <table class="w-full">
-                        <thead class="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Penghuni</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Kontak</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Kamar & Properti</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Periode</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Aksi</th>
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-100">
+                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Penghuni</th>
+                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Kontak</th>
+                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Kamar & Properti</th>
+                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Periode</th>
+                                <th class="px-6 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3.5 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody class="divide-y divide-gray-50">
                             @foreach($tenants as $tenant)
                                 @php
                                     $tenantOverdue = $tenant->residents->flatMap->payments
-                                        ->filter(fn($p) => $p->status === 'pending' && $p->due_date->isPast());
+                                        ->filter(fn($p) => $p->due_date->isPast() && $p->status !== 'paid');
                                     $isOverdue = $tenantOverdue->count() > 0;
                                 @endphp
-                                <tr class="transition-colors {{ $isOverdue ? 'bg-red-50 hover:bg-red-100 border-l-4 border-red-400' : 'hover:bg-gray-50' }}">
+                                <tr class="transition-colors {{ $isOverdue ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-gray-50' }}">
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 {{ $isOverdue ? 'bg-gradient-to-br from-red-400 to-red-500' : 'bg-gradient-to-br from-blue-500 to-blue-600' }} rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
-                                                {{ substr($tenant->name, 0, 1) }}
+                                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0
+                                                {{ $isOverdue ? 'bg-red-100 text-red-700' : 'bg-violet-100 text-violet-700' }}">
+                                                {{ strtoupper(substr($tenant->name, 0, 1)) }}{{ strtoupper(substr(strstr($tenant->name, ' '), 1, 1)) }}
                                             </div>
                                             <div class="min-w-0">
-                                                <div class="font-semibold text-gray-900 flex items-center gap-2 flex-wrap">
-                                                    {{ $tenant->name }}
-                                                    @if($isOverdue)
-                                                        <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-red-100 text-red-700 border border-red-300 rounded-full font-semibold">
-                                                            <i class="fas fa-exclamation-circle"></i>
-                                                            {{ $tenantOverdue->count() }}x nunggak
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                                <div class="text-sm text-gray-500 truncate">{{ $tenant->email }}</div>
+                                                <p class="font-semibold text-gray-900 text-sm truncate">{{ $tenant->name }}</p>
+                                                <p class="text-xs text-gray-400 truncate">{{ $tenant->email }}</p>
                                                 @if($isOverdue)
-                                                    <div class="text-xs text-red-600 font-semibold mt-0.5">
-                                                        Tunggakan: Rp {{ number_format($tenantOverdue->sum('amount'), 0, ',', '.') }}
-                                                    </div>
+                                                    <p class="text-xs text-red-600 font-semibold mt-0.5">
+                                                        {{ $tenantOverdue->count() }}x nunggak &middot; Rp {{ number_format($tenantOverdue->sum('amount'), 0, ',', '.') }}
+                                                    </p>
                                                 @endif
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-gray-600">
+                                    <td class="px-6 py-4">
                                         @if($tenant->profile)
-                                            <div>{{ $tenant->profile->phone ?? '-' }}</div>
-                                            <div class="text-xs text-gray-500">{{ $tenant->profile->identity_number ?? '-' }}</div>
+                                            <p class="text-sm text-gray-700">{{ $tenant->profile->phone ?? '-' }}</p>
+                                            <p class="text-xs text-gray-400">{{ $tenant->profile->identity_number ?? '-' }}</p>
                                         @else
-                                            <span class="text-gray-400">-</span>
+                                            <span class="text-xs text-gray-400">-</span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 text-sm">
+                                    <td class="px-6 py-4">
                                         @if($tenant->resident)
-                                            <div class="font-medium text-gray-900">{{ $tenant->resident->room->name }}</div>
-                                            <div class="text-xs text-gray-600">{{ $tenant->resident->room->property->name }}</div>
-                                            <div class="text-xs {{ $isOverdue ? 'text-red-500' : 'text-blue-600' }} mt-1">
-                                                <i class="fas fa-money-bill-wave"></i>
-                                                Rp {{ number_format($tenant->resident->room->price, 0, ',', '.') }}/bln
-                                            </div>
+                                            <p class="text-sm font-medium text-gray-900">{{ $tenant->resident->room->name }}</p>
+                                            <p class="text-xs text-gray-500">{{ $tenant->resident->room->property->name }}</p>
+                                            <p class="text-xs text-gray-400 mt-0.5">Rp {{ number_format($tenant->resident->room->price, 0, ',', '.') }}/bln</p>
                                         @else
-                                            <span class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">Belum assign</span>
+                                            <span class="inline-flex items-center px-2 py-0.5 bg-gray-100 text-gray-500 rounded-lg text-xs">Belum assign</span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 text-sm">
+                                    <td class="px-6 py-4">
                                         @if($tenant->resident)
-                                            <div class="text-gray-900">{{ $tenant->resident->start_date->format('d M Y') }}</div>
-                                            <div class="text-xs text-gray-600">s/d {{ $tenant->resident->end_date->format('d M Y') }}</div>
-                                            <div class="text-xs {{ $isOverdue ? 'text-red-500' : 'text-blue-600' }} mt-1">
-                                                <i class="fas fa-calendar-alt"></i>
-                                                {{ $tenant->resident->getDurationInMonths() }} bulan
-                                            </div>
+                                            <p class="text-sm text-gray-900">{{ $tenant->resident->start_date->format('d M Y') }}</p>
+                                            <p class="text-xs text-gray-400">s/d {{ $tenant->resident->end_date->format('d M Y') }}</p>
+                                            <p class="text-xs text-gray-400 mt-0.5">{{ $tenant->resident->getDurationInMonths() }} bulan</p>
                                         @else
-                                            <span class="text-gray-400">-</span>
+                                            <span class="text-sm text-gray-400">-</span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4">
                                         @if($isOverdue)
-                                            <span class="px-3 py-1 bg-red-100 text-red-700 border border-red-300 rounded-full text-xs font-semibold animate-pulse">
-                                                <i class="fas fa-exclamation-triangle"></i> Nunggak
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-red-100 text-red-700 border border-red-200 rounded-full text-xs font-semibold">
+                                                <i class="fas fa-exclamation-triangle" style="font-size:10px"></i> Nunggak
                                             </span>
-                                        @elseif($tenant->resident && $tenant->resident->status === 'active')
-                                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
-                                                <i class="fas fa-check-circle"></i> Aktif
+                                        @elseif($tenant->resident?->status === 'active')
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded-full text-xs font-semibold">
+                                                <i class="fas fa-check-circle" style="font-size:10px"></i> Aktif
                                             </span>
-                                        @elseif($tenant->resident && $tenant->resident->status === 'suspended')
-                                            <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold">
-                                                <i class="fas fa-ban"></i> Disuspend
+                                        @elseif($tenant->resident?->status === 'suspended')
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-50 text-orange-700 border border-orange-100 rounded-full text-xs font-semibold">
+                                                <i class="fas fa-ban" style="font-size:10px"></i> Disuspend
                                             </span>
-                                        @elseif($tenant->resident && $tenant->resident->status === 'inactive')
-                                            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">
-                                                <i class="fas fa-clock"></i> Menunggu
+                                        @elseif($tenant->resident?->status === 'inactive')
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 border border-amber-100 rounded-full text-xs font-semibold">
+                                                <i class="fas fa-clock" style="font-size:10px"></i> Menunggu
                                             </span>
                                         @else
-                                            <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">
-                                                <i class="fas fa-times-circle"></i> Tidak Aktif
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">
+                                                <i class="fas fa-times-circle" style="font-size:10px"></i> Tidak Aktif
                                             </span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4">
-                                        <div class="flex items-center justify-center gap-2">
+                                        <div class="flex items-center justify-center gap-1">
                                             <a href="{{ route('admin.tenants.show', $tenant) }}"
-                                               class="p-2 {{ $isOverdue ? 'text-red-600 hover:bg-red-100' : 'text-blue-600 hover:bg-blue-50' }} rounded-lg transition-all"
-                                               title="Lihat Detail">
-                                                <i class="fas fa-eye"></i>
+                                               class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                               title="Detail">
+                                                <i class="fas fa-eye text-sm"></i>
                                             </a>
                                             <a href="{{ route('admin.tenants.edit', $tenant) }}"
-                                               class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
+                                               class="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
                                                title="Edit">
-                                                <i class="fas fa-edit"></i>
+                                                <i class="fas fa-edit text-sm"></i>
                                             </a>
                                             <button onclick="confirmDelete({{ $tenant->id }})"
-                                                    class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all"
+                                                    class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                                                     title="Hapus">
-                                                <i class="fas fa-trash"></i>
+                                                <i class="fas fa-trash text-sm"></i>
                                             </button>
                                         </div>
                                     </td>
@@ -335,19 +318,40 @@
                 </div>
 
                 {{-- Pagination --}}
-                <div class="px-4 py-3 sm:px-6 border-t border-gray-200">
-                    {{ $tenants->links() }}
+                <div class="px-6 py-4 border-t border-gray-100">
+                    {{ $tenants->appends(request()->query())->links() }}
                 </div>
 
             @else
-                <div class="text-center py-12">
-                    <i class="fas fa-users text-4xl text-gray-300 mb-3"></i>
-                    <p class="text-gray-600 mb-4">Tidak ada data penghuni</p>
-                    <a href="{{ route('admin.tenants.create') }}"
-                       class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold text-sm">
-                        <i class="fas fa-plus"></i>
-                        <span>Tambah Penghuni</span>
-                    </a>
+                <div class="text-center py-16">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-users text-2xl text-gray-300"></i>
+                    </div>
+                    <p class="text-gray-500 font-medium mb-1">
+                        @if(request('search') || request('status'))
+                            Tidak ada penghuni yang sesuai filter
+                        @else
+                            Belum ada data penghuni
+                        @endif
+                    </p>
+                    <p class="text-sm text-gray-400 mb-5">
+                        @if(request('search') || request('status'))
+                            Coba ubah kata kunci atau filter status
+                        @else
+                            Tambahkan penghuni pertama Anda
+                        @endif
+                    </p>
+                    @if(request('search') || request('status'))
+                        <a href="{{ route('admin.tenants.index') }}"
+                           class="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-semibold text-sm">
+                            <i class="fas fa-times"></i> Reset Filter
+                        </a>
+                    @else
+                        <a href="{{ route('admin.tenants.create') }}"
+                           class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold text-sm shadow-sm">
+                            <i class="fas fa-plus"></i> Tambah Penghuni
+                        </a>
+                    @endif
                 </div>
             @endif
         </div>
@@ -356,23 +360,23 @@
 </div>
 
 {{-- Delete Confirmation Modal --}}
-<div id="deleteModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 max-w-md mx-4 shadow-2xl">
+<div id="deleteModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
         <div class="text-center">
-            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-exclamation-triangle text-3xl sm:text-4xl text-red-600"></i>
+            <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-trash text-2xl text-red-600"></i>
             </div>
-            <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Hapus Penghuni?</h3>
-            <p class="text-sm sm:text-base text-gray-600 mb-6">Tindakan ini akan menghapus semua data penghuni termasuk riwayat pembayaran. Apakah Anda yakin?</p>
-            <form id="deleteForm" method="POST" class="flex flex-col sm:flex-row gap-3">
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Hapus Penghuni?</h3>
+            <p class="text-sm text-gray-500 mb-6">Tindakan ini akan menghapus semua data termasuk riwayat pembayaran. Tidak dapat dibatalkan.</p>
+            <form id="deleteForm" method="POST" class="flex gap-3">
                 @csrf
                 @method('DELETE')
                 <button type="button" onclick="closeDeleteModal()"
-                        class="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-gray-300 text-gray-700 rounded-lg sm:rounded-xl font-semibold hover:bg-gray-50 transition-all text-sm sm:text-base">
+                        class="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-colors">
                     Batal
                 </button>
                 <button type="submit"
-                        class="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-red-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-red-700 transition-all shadow-md text-sm sm:text-base">
+                        class="flex-1 py-2.5 bg-red-600 text-white rounded-xl font-semibold text-sm hover:bg-red-700 transition-colors">
                     Ya, Hapus
                 </button>
             </form>
@@ -382,17 +386,22 @@
 
 <script>
 function confirmDelete(tenantId) {
-    const modal = document.getElementById('deleteModal');
     document.getElementById('deleteForm').action = `/admin/tenants/${tenantId}`;
+    const modal = document.getElementById('deleteModal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
 }
 function closeDeleteModal() {
     const modal = document.getElementById('deleteModal');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+    document.body.style.overflow = '';
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDeleteModal(); });
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+});
 </script>
 
 </x-app-layout>
