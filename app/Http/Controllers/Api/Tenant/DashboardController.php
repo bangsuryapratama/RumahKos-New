@@ -11,7 +11,10 @@ class DashboardController extends Controller
     {
         $user = Auth::guard('sanctum')->user();
 
-        $resident = $user->resident;
+        $resident = $user->resident()->with([
+            'room.property',
+            'payments' => fn ($q) => $q->orderBy('billing_month', 'desc')
+        ])->first();
 
         if (!$resident) {
             return response()->json([
@@ -20,36 +23,58 @@ class DashboardController extends Controller
             ], 404);
         }
 
-        $room = $resident->room;
+        $payments = $resident->payments;
 
-        // Ambil payment terakhir
-        $payment = $resident->payments()
-            ->latest()
-            ->first();
+        $overdue = $payments->filter(fn ($p) =>
+            $p->status === 'pending' &&
+            $p->due_date &&
+            $p->due_date < now()
+        );
+
+        $unpaid = $payments->where('status', 'pending');
+        $latest = $payments->first();
 
         return response()->json([
             'success' => true,
             'data' => [
-                
-                // 👤 USER
+
                 'user' => [
                     'name' => $user->name,
                     'email' => $user->email,
                 ],
 
-                // 🏠 ROOM
                 'room' => [
-                    'name' => $room->name ?? '-',
+                    'name' => $resident->room?->name ?? '-',
                     'status' => $resident->status,
+                    'property' => $resident->room?->property?->name ?? '-',
+                    'price' => $resident->room?->price ?? 0,
                 ],
 
-                // 💰 BILLING
                 'billing' => [
-                    'amount' => $payment?->amount ?? 0,
-                    'status' => $payment?->status ?? 'none',
-                    'due_date' => $payment?->due_date,
+                    'amount' => $latest?->amount ?? 0,
+                    'status' => $latest?->status ?? 'none',
+                    'due_date' => $latest?->due_date,
+                    'unpaid_count' => $unpaid->count(),
+                    'overdue_count' => $overdue->count(),
+                    'total_overdue' => $overdue->sum('amount'),
                 ],
 
+                'stats' => [
+                    'duration' => $resident->getDurationInMonths(),
+                    'start_date' => $resident->start_date,
+                ],
+
+                'payments' => $payments->take(10)->map(fn ($p) => [
+                    'id' => $p->id,
+                    'month' => $p->billing_month,
+                    'amount' => $p->amount,
+                    'status' => $p->status,
+                    'due_date' => $p->due_date,
+                    'is_overdue' =>
+                        $p->status === 'pending' &&
+                        $p->due_date &&
+                        $p->due_date < now(),
+                ])->values(),
             ]
         ]);
     }
