@@ -421,45 +421,38 @@ class TenantController extends Controller
     /**
      * Deactivate tenant's booking
      */
-   public function deactivate(Request $request, Resident $resident)
-{
-    if ($resident->status !== 'active') {
-        return redirect()->back()
-            ->with('error', 'Status penghuni tidak aktif.');
-    }
-
-    $request->validate([
-        'reason' => 'required|in:late_payment,violation,checkout',
-    ]);
-
-    $reasonLabel = match($request->reason) {
-        'late_payment' => 'Telat Bayar',
-        'violation'    => 'Pelanggaran Peraturan',
-        'checkout'     => 'Penghuni Keluar',
-    };
-
-    DB::beginTransaction();
-    try {
-        $resident->update(['status' => 'suspended']);
-
-        $room = $resident->room;
-        $hasActiveResident = $room->residents()
-            ->where('status', 'active')
-            ->exists();
-
-        if (!$hasActiveResident) {
-            $room->update(['status' => 'available']);
+      public function deactivate(Request $request, Resident $resident)
+    {
+        if ($resident->status !== 'active') {
+            return redirect()->back()
+                ->with('error', 'Status penghuni tidak aktif.');
         }
-
-        DB::commit();
-
-        return redirect()->back()
-            ->with('success', "Penghuni berhasil dinonaktifkan. Alasan: {$reasonLabel}");
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return redirect()->back()
-            ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+ 
+        DB::beginTransaction();
+        try {
+            // Ubah status jadi inactive (bukan suspended)
+            $resident->update(['status' => 'inactive']);
+ 
+            // Kembalikan kamar jadi available jika tidak ada penghuni aktif lain
+            $room = $resident->room;
+            $hasActiveResident = $room->residents()
+                ->where('status', 'active')
+                ->exists();
+ 
+            if (!$hasActiveResident) {
+                $room->update(['status' => 'available']);
+            }
+ 
+            DB::commit();
+ 
+            return redirect()->back()
+                ->with('success', 'Penghuni berhasil dikeluarkan. Status kamar dikembalikan ke tersedia.');
+ 
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
-}
+ 
 }
