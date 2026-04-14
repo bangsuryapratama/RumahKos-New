@@ -281,8 +281,8 @@ Route::prefix('tenant')->name('tenant.')->group(function () {
         Route::get('/payment/{payment}/invoice', [PaymentController::class, 'invoice'])
             ->name('payment.invoice');
 
-        Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])->name('document.ktp');
-        Route::get('/document/sim', [DashboardController::class, 'serveSim'])->name('document.sim');
+        Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])->name('document.global.ktp');
+        Route::get('/document/sim', [DashboardController::class, 'serveSim'])->name('document.global.sim');
 
         // Logout
         Route::post('logout', [LoginController::class, 'logout'])->name('logout');
