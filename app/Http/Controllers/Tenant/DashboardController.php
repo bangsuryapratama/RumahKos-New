@@ -134,7 +134,7 @@ class DashboardController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Profile update error: ' . $e->getMessage());
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+            return back()->with('error', 'Validasi Error Input Harus Number');
         }
     }
 
