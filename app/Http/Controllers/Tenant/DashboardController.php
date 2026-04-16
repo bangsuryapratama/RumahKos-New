@@ -57,7 +57,7 @@ class DashboardController extends Controller
 
             $validated = $request->validate([
                 'name'                   => 'required|string|max:255',
-                'phone'                  => 'nullable|number|max:20',
+                'phone'                  => 'nullable|string|max:20',
                 'address'                => 'nullable|string',
                 'identity_number'        => 'nullable|string|max:20',
                 'date_of_birth'          => 'nullable|date',
@@ -134,7 +134,7 @@ class DashboardController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Profile update error: ' . $e->getMessage());
-            return back()->with('error', 'Validasi Error Input Harus Number');
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
         }
     }
 
