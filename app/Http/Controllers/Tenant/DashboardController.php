@@ -57,7 +57,7 @@ class DashboardController extends Controller
 
             $validated = $request->validate([
                 'name'                   => 'required|string|max:255',
-                'phone'                  => 'nullable|string|max:20',
+                'phone'                  => 'nullable|number|max:20',
                 'address'                => 'nullable|string',
                 'identity_number'        => 'nullable|string|max:20',
                 'date_of_birth'          => 'nullable|date',
