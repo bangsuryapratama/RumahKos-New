@@ -339,7 +339,7 @@
                         {{-- Property name --}}
                         <div class="absolute bottom-3 left-3">
                             <span class="text-[11px] text-white bg-black/55 px-2.5 py-1 rounded-full backdrop-blur-sm font-medium">
-                                <i class="fas fa-building mr-1 opacity-70 text-[9px]"></i>{{ $room->property->name }}
+                                <i class="fas fa-building mr-1 opacity-70 text-[9px]"></i>{{ $room->property?->name ?? 'RumahKos' }}
                             </span>
                         </div>
                     </div>
@@ -470,7 +470,13 @@
 
             {{-- Map --}}
             <div class="rounded-2xl overflow-hidden shadow-lg border border-gray-100 h-60 sm:h-80 lg:h-full min-h-[280px]">
-                {!! $mapsEmbed->maps_embed !!}
+                @if(!empty($mapsEmbed?->maps_embed))
+                    {!! $mapsEmbed->maps_embed !!}
+                @elseif(!empty($globalProperty?->maps_embed))
+                    {!! $globalProperty->maps_embed !!}
+                @else
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126748.42371987557!2d107.5731165!3d-6.9034443!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e6398252477f%3A0x146a1f93d3e815b2!2sBandung%2C%20Bandung%20City%2C%20West%20Java!5e0!3m2!1sen!2sid!4v1700000000000!5m2!1sen!2sid" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                @endif
             </div>
         </div>
     </div>
@@ -489,8 +495,8 @@
             Hubungi kami sekarang atau jadwalkan kunjungan langsung ke lokasi.
         </p>
         <div class="flex flex-col xs:flex-row gap-3 justify-center">
-             <a href="https://wa.me/{{ $contact && $contact->whatsapp ? preg_replace('/[^0-9]/', '', $contact->whatsapp) : '6283841806357' }}?text=Halo,%20saya%20ingin%20info%20lengkap%20tentang%20kos"
-               class="inline-flex items-center justify-center gap-2 bg-white text-blue-700 font-bold px-7 py-3.5 rounded-2xl hover:bg-blue-50 active:scale-95 transition-all shadow-md text-sm sm:text-base">
+             <a href="https://wa.me/{{ !empty($contact?->whatsapp) ? preg_replace('/[^0-9]/', '', $contact->whatsapp) : (!empty($globalProperty?->whatsapp) ? preg_replace('/[^0-9]/', '', $globalProperty->whatsapp) : '6283841806357') }}?text=Halo,%20saya%20ingin%20info%20lengkap%20tentang%20kos"
+                class="inline-flex items-center justify-center gap-2 bg-white text-blue-700 font-bold px-7 py-3.5 rounded-2xl hover:bg-blue-50 active:scale-95 transition-all shadow-md text-sm sm:text-base">
                 <i class="fab fa-whatsapp text-green-500 text-lg"></i> Chat WhatsApp
             </a>
             <a href="tel:+6283841806357"

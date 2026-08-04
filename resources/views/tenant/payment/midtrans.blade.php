@@ -161,7 +161,7 @@
                             </div>
                         </div>
 
-                        @if($contact && $contact->whatsapp)
+                        @if(!empty($contact?->whatsapp))
                             <div class="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-gray-200">
                                 <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $contact->whatsapp) }}"
                                    target="_blank"

@@ -93,9 +93,9 @@
                 <div>
                     <div class="font-display text-3xl sm:text-4xl text-white mb-1">RumahKos</div>
                     <div class="text-slate-400 text-sm leading-relaxed max-w-xs">
-                        {{ $property->address ?? ($contact->address ?? 'Jl. Kos Indah No. 1') }}
+                        {{ $property?->address ?? ($contact?->address ?? 'Jl. Kos Indah No. 1') }}
                     </div>
-                    @if($contact && $contact->phone)
+                    @if(!empty($contact?->phone))
                         <div class="text-slate-400 text-sm mt-1">
                             <i class="fas fa-phone mr-1 text-xs"></i>{{ $contact->phone }}
                         </div>

@@ -78,12 +78,12 @@
                 <div class="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-gray-600">
                     <span class="flex items-center gap-1">
                         <i class="fas fa-building"></i>
-                        {{ $room->property->name }}
+                        {{ $room->property?->name ?? 'RumahKos' }}
                     </span>
                     <span class="hidden sm:inline">•</span>
                     <span class="flex items-center gap-1">
                         <i class="fas fa-map-marker-alt"></i>
-                        {{ $room->property->address ?? 'Bandung' }}
+                        {{ $room->property?->address ?? $address?->address ?? 'Bandung' }}
                     </span>
                     <span class="hidden sm:inline">•</span>
                     <div class="flex items-center gap-1.5 bg-blue-50 px-2 py-1 rounded">
@@ -259,7 +259,7 @@
                                     </a>
                                 @endauth
 
-                                <a href="https://wa.me/{{ $contact && $contact->whatsapp ? preg_replace('/[^0-9]/', '', $contact->whatsapp) : '6283841806357' }}?text=Halo,%20saya%20tertarik%20dengan%20{{ urlencode($room->name) }}"
+                                <a href="https://wa.me/{{ !empty($contact?->whatsapp) ? preg_replace('/[^0-9]/', '', $contact->whatsapp) : (!empty($globalProperty?->whatsapp) ? preg_replace('/[^0-9]/', '', $globalProperty->whatsapp) : '6283841806357') }}?text=Halo,%20saya%20tertarik%20dengan%20{{ urlencode($room->name) }}"
                                    target="_blank"
                                    class="block w-full text-center bg-green-500 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-600 transition-all text-sm shadow-md hover:shadow-lg active:scale-[0.98]">
                                     <i class="fab fa-whatsapp mr-1"></i>Tanya via WhatsApp

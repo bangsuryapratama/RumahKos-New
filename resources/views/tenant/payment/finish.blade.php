@@ -135,7 +135,7 @@
                     <div class="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-gray-200">
                         <p class="text-xs sm:text-sm text-gray-600 mb-3">Butuh bantuan?</p>
                         <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-                            @if($contact && $contact->whatsapp)
+                            @if(!empty($contact?->whatsapp))
                                 <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $contact->whatsapp) }}"
                                    target="_blank"
                                    class="inline-flex items-center gap-2 px-4 sm:px-5 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all duration-200 font-semibold text-sm shadow-sm hover:shadow-md active:scale-[0.98]">
@@ -143,7 +143,7 @@
                                     <span>Hubungi via WhatsApp</span>
                                 </a>
                             @endif
-                            @if($contact && $contact->phone)
+                            @if(!empty($contact?->phone))
                                 <a href="tel:{{ $contact->phone }}"
                                    class="inline-flex items-center gap-2 px-4 sm:px-5 py-2 border-2 border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-200 font-semibold text-sm active:scale-[0.98]">
                                     <i class="fas fa-phone text-sm sm:text-base"></i>
