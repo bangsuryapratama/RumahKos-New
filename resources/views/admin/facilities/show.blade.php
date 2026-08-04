@@ -87,7 +87,7 @@
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center flex-1">
                                         @if($room->image)
-                                        <img src="{{ asset('storage/'.$room->image) }}" 
+                                        <img loading="lazy" decoding="async" src="{{ asset('storage/'.$room->image) }}" 
                                              class="w-16 h-16 rounded-lg object-cover"
                                              alt="{{ $room->name }}">
                                         @else

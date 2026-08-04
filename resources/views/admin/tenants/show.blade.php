@@ -176,7 +176,7 @@
                         <div class="bg-gray-50 border border-gray-100 rounded-xl p-3 mb-4 flex gap-3 items-center">
                             <div class="w-14 h-14 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                                 @if($tenant->resident->room->image)
-                                    <img src="{{ asset('storage/' . $tenant->resident->room->image) }}"
+                                    <img loading="lazy" decoding="async" src="{{ asset('storage/' . $tenant->resident->room->image) }}"
                                          class="w-full h-full object-cover" alt="Kamar">
                                 @else
                                     <div class="w-full h-full flex items-center justify-center text-gray-300 text-xl">
@@ -367,7 +367,7 @@
                                     </div>
                                     <div class="bg-white rounded-lg border border-blue-100 overflow-hidden mb-3 h-28 flex items-center justify-center">
                                         @if($ktpIsImage)
-                                            <img src="{{ asset($ktpPath) }}" alt="KTP"
+                                            <img loading="lazy" decoding="async" src="{{ asset($ktpPath) }}" alt="KTP"
                                                  class="w-full h-full object-contain cursor-pointer hover:opacity-90 transition-opacity"
                                                  onclick="openImageModal('{{ asset($ktpPath) }}', 'KTP - {{ $tenant->name }}')">
                                         @else
@@ -404,7 +404,7 @@
                                     </div>
                                     <div class="bg-white rounded-lg border border-green-100 overflow-hidden mb-3 h-28 flex items-center justify-center">
                                         @if($simIsImage)
-                                            <img src="{{ asset($simPath) }}" alt="SIM"
+                                            <img loading="lazy" decoding="async" src="{{ asset($simPath) }}" alt="SIM"
                                                  class="w-full h-full object-contain cursor-pointer hover:opacity-90 transition-opacity"
                                                  onclick="openImageModal('{{ asset($simPath) }}', 'SIM - {{ $tenant->name }}')">
                                         @else
@@ -441,7 +441,7 @@
                                     </div>
                                     <div class="bg-white rounded-lg border border-purple-100 overflow-hidden mb-3 h-28 flex items-center justify-center">
                                         @if($passportIsImage)
-                                            <img src="{{ asset($passportPath) }}" alt="Passport"
+                                            <img loading="lazy" decoding="async" src="{{ asset($passportPath) }}" alt="Passport"
                                                  class="w-full h-full object-contain cursor-pointer hover:opacity-90 transition-opacity"
                                                  onclick="openImageModal('{{ asset($passportPath) }}', 'Passport - {{ $tenant->name }}')">
                                         @else
@@ -624,7 +624,7 @@
                 class="absolute -top-10 right-0 text-white/70 hover:text-white text-2xl transition-colors">
             <i class="fas fa-times"></i>
         </button>
-        <img id="modalImage" src="" alt="" class="w-full h-auto rounded-xl shadow-2xl">
+        <img loading="lazy" decoding="async" id="modalImage" src="" alt="" class="w-full h-auto rounded-xl shadow-2xl">
         <p id="modalCaption" class="text-white/70 text-center mt-3 text-sm"></p>
     </div>
 </div>

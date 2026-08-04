@@ -38,7 +38,7 @@
                 <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl shadow-sm border border-blue-200 p-6">
                     <div class="flex items-center">
                         @if($room->image)
-                        <img src="{{ asset('storage/'.$room->image) }}" 
+                        <img loading="lazy" decoding="async" src="{{ asset('storage/'.$room->image) }}" 
                              class="w-20 h-20 rounded-lg object-cover"
                              alt="{{ $room->name }}">
                         @else

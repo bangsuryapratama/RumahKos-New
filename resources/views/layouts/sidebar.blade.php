@@ -9,7 +9,7 @@
         <div class="flex items-center gap-3">
             <a href="{{ url('/') }}" class="flex items-center gap-2">
                 <div class="flex-shrink-0 rounded-lg p-1">
-                    <img src="{{ asset('favicon.ico') }}" alt="RumahKos logo" class="h-7 w-7 object-contain">
+                    <img loading="lazy" decoding="async" src="{{ asset('favicon.ico') }}" alt="RumahKos logo" class="h-7 w-7 object-contain">
                 </div>
                 <span class="whitespace-nowrap text-xl font-extrabold tracking-tight text-gray-900">
                     Rumah<span class="text-blue-600">Kos</span>

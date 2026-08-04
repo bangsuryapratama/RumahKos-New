@@ -160,7 +160,7 @@
                             <div class="flex items-start gap-3 mb-3">
                                 {{-- Thumbnail --}}
                                 @if($room->image)
-                                    <img src="{{ asset('storage/'.$room->image) }}"
+                                    <img loading="lazy" decoding="async" src="{{ asset('storage/'.$room->image) }}"
                                          class="w-14 h-14 rounded-xl object-cover flex-shrink-0"
                                          alt="{{ $room->name }}">
                                 @else
@@ -233,7 +233,7 @@
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-3">
                                             @if($room->image)
-                                                <img src="{{ asset('storage/'.$room->image) }}"
+                                                <img loading="lazy" decoding="async" src="{{ asset('storage/'.$room->image) }}"
                                                      class="w-10 h-10 rounded-lg object-cover flex-shrink-0"
                                                      alt="{{ $room->name }}">
                                             @else

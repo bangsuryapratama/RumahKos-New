@@ -15,16 +15,24 @@ class DashboardAdminController extends Controller
     public function index()
     {
         // ── Stats Utama ──────────────────────────────────────────────
-        $totalRooms     = Room::count();
-        $availableRooms = Room::where('status', 'available')->count();
-        $occupiedRooms  = Room::where('status', 'occupied')->count();
+        $roomStats = Room::selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available,
+            SUM(CASE WHEN status = 'occupied' THEN 1 ELSE 0 END) as occupied
+        ")->first();
+        $totalRooms     = $roomStats->total;
+        $availableRooms = $roomStats->available;
+        $occupiedRooms  = $roomStats->occupied;
 
         // Pendapatan: hanya dari payment yang sudah PAID
         $totalRevenue = Payment::where('status', 'paid')->sum('amount');
 
         // Pembayaran tertunda (pending)
-        $pendingRevenue = Payment::where('status', 'pending')->sum('amount');
-        $pendingCount   = Payment::where('status', 'pending')->count();
+        $pendingStats = Payment::where('status', 'pending')
+            ->selectRaw('COALESCE(SUM(amount), 0) as total, COUNT(*) as count')
+            ->first();
+        $pendingRevenue = $pendingStats->total;
+        $pendingCount   = $pendingStats->count;
 
         // ── Penghuni Aktif ────────────────────────────────────────────
         $activeTenants = Resident::where('status', 'active')->count();

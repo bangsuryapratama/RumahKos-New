@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureIsAdmin;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,10 +14,23 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
 
-    ->withMiddleware(function ($middleware) {
+    ->withMiddleware(function (Middleware $middleware) {
+        // CSRF exceptions
         $middleware->validateCsrfTokens(except: [
-            'tenant/payment/callback',  
+            'tenant/payment/callback',
+            'api/*',
         ]);
+
+        // Global middleware
+        $middleware->append(SecurityHeaders::class);
+
+        // Middleware aliases
+        $middleware->alias([
+            'admin' => EnsureIsAdmin::class,
+        ]);
+
+        // API throttle
+        $middleware->throttleApi('60,1');
     })
 
     ->withExceptions(function (Exceptions $exceptions): void {

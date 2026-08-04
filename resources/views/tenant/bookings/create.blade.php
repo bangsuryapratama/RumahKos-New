@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking Kamar - {{ $room->name }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         html { scroll-behavior: smooth; }
@@ -189,19 +189,19 @@
                                 <div class="mb-3">
                                     <p class="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">E-Wallet & QRIS</p>
                                     <div class="flex items-center gap-3 flex-wrap">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Gopay_logo.svg/120px-Gopay_logo.svg.png"
+                                        <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Gopay_logo.svg/120px-Gopay_logo.svg.png"
                                             alt="GoPay" class="h-5 object-contain"
                                             onerror="this.style.display='none'">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Logo_ovo_purple.svg/120px-Logo_ovo_purple.svg.png"
+                                        <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Logo_ovo_purple.svg/120px-Logo_ovo_purple.svg.png"
                                             alt="OVO" class="h-5 object-contain"
                                             onerror="this.style.display='none'">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Logo_dana_blue.svg/120px-Logo_dana_blue.svg.png"
+                                        <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Logo_dana_blue.svg/120px-Logo_dana_blue.svg.png"
                                             alt="DANA" class="h-5 object-contain"
                                             onerror="this.style.display='none'">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/ShopeePay.svg/120px-ShopeePay.svg.png"
+                                        <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/ShopeePay.svg/120px-ShopeePay.svg.png"
                                             alt="ShopeePay" class="h-5 object-contain"
                                             onerror="this.style.display='none'">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo_QRIS.svg/120px-Logo_QRIS.svg.png"
+                                        <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo_QRIS.svg/120px-Logo_QRIS.svg.png"
                                             alt="QRIS" class="h-5 object-contain"
                                             onerror="this.style.display='none'">
                                     </div>
@@ -211,16 +211,16 @@
                                 <div>
                                     <p class="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">Transfer Bank</p>
                                     <div class="flex items-center gap-3 flex-wrap">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/120px-Bank_Central_Asia.svg.png"
+                                        <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/120px-Bank_Central_Asia.svg.png"
                                             alt="BCA" class="h-4 object-contain"
                                             onerror="this.style.display='none'">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Bank_Mandiri_logo_2016.svg/120px-Bank_Mandiri_logo_2016.svg.png"
+                                        <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Bank_Mandiri_logo_2016.svg/120px-Bank_Mandiri_logo_2016.svg.png"
                                             alt="Mandiri" class="h-4 object-contain"
                                             onerror="this.style.display='none'">
-                                        <img src="https://upload.wikimedia.org/wikipedia/id/thumb/5/55/BNI_logo.svg/120px-BNI_logo.svg.png"
+                                        <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/id/thumb/5/55/BNI_logo.svg/120px-BNI_logo.svg.png"
                                             alt="BNI" class="h-4 object-contain"
                                             onerror="this.style.display='none'">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/BANK_BRI_logo.svg/120px-BANK_BRI_logo.svg.png"
+                                        <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/BANK_BRI_logo.svg/120px-BANK_BRI_logo.svg.png"
                                             alt="BRI" class="h-4 object-contain"
                                             onerror="this.style.display='none'">
                                     </div>
@@ -289,13 +289,13 @@
                         {{-- Room Image --}}
                         <div class="relative">
                             @if($room->image)
-                                <img src="{{ asset('storage/' . $room->image) }}"
+                                <img loading="lazy" decoding="async" src="{{ asset('storage/' . $room->image) }}"
                                      alt="{{ $room->name }}"
-                                     class="w-full h-40 sm:h-48 object-cover">
+                                     loading="lazy" decoding="async" class="w-full h-40 sm:h-48 object-cover">
                             @else
-                                <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&h=400&fit=crop"
+                                <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&h=400&fit=crop"
                                      alt="{{ $room->name }}"
-                                     class="w-full h-40 sm:h-48 object-cover">
+                                     loading="lazy" decoding="async" class="w-full h-40 sm:h-48 object-cover">
                             @endif
                             <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                             <div class="absolute bottom-0 left-0 right-0 p-4">

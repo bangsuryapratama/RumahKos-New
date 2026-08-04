@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $room->name }} - RumahKos</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         html { scroll-behavior: smooth; }
@@ -472,12 +472,12 @@
                     <div class="bg-white rounded-lg shadow hover:shadow-md transition overflow-hidden">
                         <div class="h-40">
                             @if($similarRoom->image)
-                                <img src="{{ asset('storage/' . $similarRoom->image) }}" alt="{{ $similarRoom->name }}"
-                                     class="w-full h-full object-cover">
+                                <img loading="lazy" decoding="async" src="{{ asset('storage/' . $similarRoom->image) }}" alt="{{ $similarRoom->name }}"
+                                     loading="lazy" decoding="async" class="w-full h-full object-cover">
                             @else
-                                <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&h=400&fit=crop"
+                                <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&h=400&fit=crop"
                                      alt="{{ $similarRoom->name }}"
-                                     class="w-full h-full object-cover">
+                                     loading="lazy" decoding="async" class="w-full h-full object-cover">
                             @endif
                         </div>
                         <div class="p-4">

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RumahKos - KosNyaman</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -309,11 +309,11 @@
                     {{-- Image --}}
                     <div class="relative h-44 sm:h-48 overflow-hidden bg-gray-100">
                         @if($room->image)
-                            <img src="{{ asset('storage/'.$room->image) }}" alt="{{ $room->name }}"
-                                 class="card-img w-full h-full object-cover">
+                            <img loading="lazy" decoding="async" src="{{ asset('storage/'.$room->image) }}" alt="{{ $room->name }}"
+                                 loading="lazy" decoding="async" class="card-img w-full h-full object-cover">
                         @else
-                            <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&h=400&fit=crop"
-                                 alt="{{ $room->name }}" class="card-img w-full h-full object-cover">
+                            <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&h=400&fit=crop"
+                                 alt="{{ $room->name }}" loading="lazy" decoding="async" class="card-img w-full h-full object-cover">
                         @endif
 
                         <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>

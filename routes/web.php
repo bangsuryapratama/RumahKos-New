@@ -58,7 +58,7 @@ Route::middleware(['auth'])->get('/dashboard', function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
     // Dashboard Admin
     Route::get('/dashboard', [DashboardAdminController::class, 'index'])

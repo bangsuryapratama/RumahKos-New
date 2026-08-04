@@ -20,7 +20,7 @@ class TenantController extends Controller
     public function index(Request $request)
     {
         $query = User::with(['resident.room.property', 'residents', 'profile'])
-            ->where('role_id', 2); // 2 = tenant
+            ->where('role_id', User::ROLE_PENGHUNI);
 
         // Search
         if ($request->filled('search')) {
@@ -105,7 +105,7 @@ class TenantController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
-                'role_id' => 2, // 2 = tenant
+                'role_id' => User::ROLE_PENGHUNI,
             ]);
 
             // Prepare profile data
@@ -184,30 +184,30 @@ class TenantController extends Controller
     /**
      * Display the specified tenant
      */
-  public function show(User $tenant)
-{
-    if ($tenant->role_id !== 2) {
-        abort(404);
-    }
-
-    $tenant->load([
-        'profile',
-        'currentResident.room.property',
-        'residents.room.property',
-        'residents.payments' => function($q) {
-            $q->orderBy('billing_month', 'desc');
+    public function show(User $tenant)
+    {
+        if ($tenant->role_id !== User::ROLE_PENGHUNI) {
+            abort(404);
         }
-    ]);
 
-    return view('admin.tenants.show', compact('tenant'));
-}
+        $tenant->load([
+            'profile',
+            'currentResident.room.property',
+            'residents.room.property',
+            'residents.payments' => function($q) {
+                $q->orderBy('billing_month', 'desc');
+            }
+        ]);
+
+        return view('admin.tenants.show', compact('tenant'));
+    }
 
     /**
      * Show the form for editing the specified tenant
      */
     public function edit(User $tenant)
     {
-        if ($tenant->role_id !== 2) { // 2 = tenant
+        if ($tenant->role_id !== User::ROLE_PENGHUNI) {
             abort(404);
         }
 
@@ -221,7 +221,7 @@ class TenantController extends Controller
      */
     public function update(Request $request, User $tenant)
     {
-        if ($tenant->role_id !== 2) { // 2 = tenant
+        if ($tenant->role_id !== User::ROLE_PENGHUNI) {
             abort(404);
         }
 
@@ -338,7 +338,7 @@ class TenantController extends Controller
      */
     public function destroy(User $tenant)
     {
-        if ($tenant->role_id !== 2) { // 2 = tenant
+        if ($tenant->role_id !== User::ROLE_PENGHUNI) {
             abort(404);
         }
 

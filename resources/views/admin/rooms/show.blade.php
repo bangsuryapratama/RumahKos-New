@@ -25,7 +25,7 @@
                     <!-- Image -->
                     <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
                         @if ($room->image)
-                            <img src="{{ asset('storage/'.$room->image) }}" class="w-full h-72 object-cover">
+                            <img loading="lazy" decoding="async" src="{{ asset('storage/'.$room->image) }}" class="w-full h-72 object-cover">
                         @else
                             <div class="h-72 flex items-center justify-center bg-gray-100 text-gray-400">
                                 Tidak ada foto

@@ -34,8 +34,6 @@ class LandingController extends Controller
         $maxPrice = $availableRoomsCollection->max('price') ?? 0;
 
         $allFacilities = Facility::whereHas('rooms')->orderBy('name')->get();
-        $FacilityAll = Facility::all();
-
         $properties = Property::withCount(['rooms' => function($query) {
             $query->where('status', 'available');
         }])->get();
@@ -48,21 +46,6 @@ class LandingController extends Controller
             $propertyLocation = 'Bandung';
         }
 
-        $contact = Property::select('phone', 'whatsapp')->first();
-        view()->share('contact', $contact);
-
-        $address = Property::select('address')->first();
-        view()->share('address', $address);
-
-        $mapsEmbed = Property::select('maps_embed')->first();
-        view()->share('mapsEmbed', $mapsEmbed);
-
-        $description = Property::select('description')->first();
-        view()->share('description', $description);
-
-        $socialmedia = SocialMedia::select('instagram', 'facebook', 'tiktok')->first();
-        view()->share('socialmedia', $socialmedia);
-
         return view('landing.index', compact(
             'rooms',
             'availableRooms',
@@ -72,10 +55,7 @@ class LandingController extends Controller
             'maxPrice',
             'allFacilities',
             'properties',
-            'FacilityAll',
             'propertyLocation',
-            'socialmedia',
-            'description',
         ));
     }
 
@@ -225,23 +205,6 @@ class LandingController extends Controller
             ->take(3)
             ->get();
 
-        // Kebutuhan Footer
-        $contact = Property::select('phone', 'whatsapp')->first();
-        view()->share('contact', $contact);
-
-        $address = Property::select('address')->first();
-        view()->share('address', $address);
-
-        $mapsEmbed = Property::select('maps_embed')->first();
-        view()->share('mapsEmbed', $mapsEmbed);
-
-        $socialmedia = SocialMedia::select('instagram', 'facebook', 'tiktok')->first();
-        view()->share('socialmedia', $socialmedia);
-
-        $description = Property::select('description')->first();
-        view()->share('description', $description);;
-
-
         return view('landing.room-detail', compact(
             'room',
             'reviews',
@@ -253,11 +216,6 @@ class LandingController extends Controller
             'similarRooms',
             'canReview',
             'reviewMessage',
-            'contact',
-            'address',
-            'mapsEmbed',
-            'socialmedia',
-            'description',
         ));
     }
 

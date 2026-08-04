@@ -186,7 +186,7 @@
                         
                         @isset($room->image)
                         <div class="mb-4">
-                            <img src="{{ asset('storage/'.$room->image) }}" 
+                            <img loading="lazy" decoding="async" src="{{ asset('storage/'.$room->image) }}" 
                                  class="w-full sm:w-64 h-48 object-cover rounded-lg border border-gray-200"
                                  alt="Current room image">
                             <p class="mt-2 text-sm text-gray-500">Foto saat ini (upload foto baru untuk menggantinya)</p>
@@ -210,7 +210,7 @@
                             </div>
                         </div>
                         <div id="imagePreview" class="mt-4 hidden">
-                            <img id="previewImg" class="w-full sm:w-64 h-48 object-cover rounded-lg border border-gray-200" alt="Preview">
+                            <img loading="lazy" decoding="async" id="previewImg" class="w-full sm:w-64 h-48 object-cover rounded-lg border border-gray-200" alt="Preview">
                         </div>
                         @error('image')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

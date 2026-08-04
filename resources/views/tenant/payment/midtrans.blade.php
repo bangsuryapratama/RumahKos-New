@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pembayaran - {{ $room->name }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
     <style>
@@ -42,10 +42,10 @@
                             <div class="flex gap-3 sm:gap-4">
                                 <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-lg overflow-hidden flex-shrink-0 shadow-sm">
                                     @if($room->image)
-                                        <img src="{{ asset('storage/' . $room->image) }}"
+                                        <img loading="lazy" decoding="async" src="{{ asset('storage/' . $room->image) }}"
                                              alt="{{ $room->name }}" class="w-full h-full object-cover">
                                     @else
-                                        <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=200&h=200&fit=crop"
+                                        <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=200&h=200&fit=crop"
                                              alt="{{ $room->name }}" class="w-full h-full object-cover">
                                     @endif
                                 </div>

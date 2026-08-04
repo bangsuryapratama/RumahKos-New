@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id
@@ -40,8 +41,15 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Payment extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
+    /**
+     * Mass assignable fields.
+     * 
+     * IMPORTANT: Jangan pernah gunakan $request->all() atau $request->validated()
+     * langsung untuk update Payment. Field 'status' dan 'paid_at' harus
+     * di-set secara eksplisit melalui payment processing logic.
+     */
     protected $fillable = [
         'resident_id',
         'amount',
@@ -63,6 +71,22 @@ class Payment extends Model
         'due_date' => 'date',
         'paid_at' => 'datetime',
     ];
+
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopePaid($query)
+    {
+        return $query->where('status', 'paid');
+    }
+
+    public function scopeOverdue($query)
+    {
+        return $query->where('status', 'pending')
+            ->where('due_date', '<', now());
+    }
 
     /**
      * Relasi dengan Resident

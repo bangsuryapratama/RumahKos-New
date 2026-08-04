@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
  * @property int $id
@@ -19,11 +19,13 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FacilityRoom whereRoomId($value)
  * @mixin \Eloquent
  */
-class FacilityRoom extends Model
+class FacilityRoom extends Pivot
 {
     use HasFactory;
 
     protected $table = 'facility_room';
+    
+    public $incrementing = true;
 
     protected $fillable = [
         'room_id', 'facility_id'

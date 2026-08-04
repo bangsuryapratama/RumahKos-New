@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id
@@ -49,7 +50,7 @@ use Laravel\Sanctum\HasApiTokens;
  */
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
         'role_id',
@@ -70,6 +71,12 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * Role ID constants
+     */
+    const ROLE_ADMIN = 1;
+    const ROLE_PENGHUNI = 2;
 
     /**
      * Relasi dengan Role
@@ -123,17 +130,17 @@ class User extends Authenticatable
     /**
      * Helper: Cek apakah user adalah admin
      */
-    public function isAdmin()
+    public function isAdmin(): bool
     {
-        return in_array($this->role->name, ['admin']);
+        return $this->role_id === self::ROLE_ADMIN;
     }
 
     /**
      * Helper: Cek apakah user adalah penghuni
      */
-    public function isPenghuni()
+    public function isPenghuni(): bool
     {
-        return $this->role->name === 'penghuni';
+        return $this->role_id === self::ROLE_PENGHUNI;
     }
 
     /**

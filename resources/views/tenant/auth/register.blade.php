@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar Penghuni - RumahKos</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="min-h-screen flex items-center justify-center px-4 py-10 bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -20,7 +20,7 @@
 
             <!-- Logo Section -->
             <div class="flex flex-col items-center mb-8">
-                <img src="{{ asset('favicon.ico') }}" alt="RumahKos Logo" class="w-16 h-16 mb-4">
+                <img loading="lazy" decoding="async" src="{{ asset('favicon.ico') }}" alt="RumahKos Logo" class="w-16 h-16 mb-4">
 
                 <h1 class="text-slate-900 text-3xl font-semibold tracking-wide">
                     Daftar Penghuni

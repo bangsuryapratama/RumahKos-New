@@ -429,7 +429,7 @@ function validateFile(input, previewId) {
             preview.innerHTML = `
                 <div class="mt-2 p-2 bg-green-50 border border-green-200 rounded">
                     <p class="text-xs text-green-700 mb-1">✓ File valid</p>
-                    <img src="${e.target.result}" class="max-w-full h-24 object-contain rounded border">
+                    <img loading="lazy" decoding="async" src="${e.target.result}" class="max-w-full h-24 object-contain rounded border">
                     <p class="text-xs text-gray-600 mt-1">${file.name} (${(file.size / 1024).toFixed(1)} KB)</p>
                 </div>
             `;

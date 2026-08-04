@@ -49,7 +49,7 @@
 
                     {{-- Room Image --}}
                     @if($room->image)
-                        <img src="{{ asset('storage/'.$room->image) }}"
+                        <img loading="lazy" decoding="async" src="{{ asset('storage/'.$room->image) }}"
                              class="w-full h-44 object-cover"
                              alt="{{ $room->name }}">
                     @else

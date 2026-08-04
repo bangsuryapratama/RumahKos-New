@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\Room;
 use App\Models\Resident;
-use App\Models\SocialMedia;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,12 +18,6 @@ class BookingController extends Controller
         /** @var User $user */
         $user = Auth::guard('tenant')->user();
 
-        $contact = Property::select('phone', 'whatsapp')->first();
-        view()->share('contact', $contact);
-
-        $address = Property::select('address')->first();
-        view()->share('address', $address);
-
         $residents = $user->residents()
         ->with(['room.property', 'payments' => function($q) {
             $q->orderBy('billing_month', 'asc');
@@ -32,20 +25,11 @@ class BookingController extends Controller
         ->latest()
         ->get();
         
-        $socialmedia = SocialMedia::select('instagram', 'facebook', 'tiktok')->first();
-        view()->share('socialmedia', $socialmedia);
-
-        return view('tenant.bookings.index', compact('user', 'residents', 'address', 'contact', 'socialmedia'));
+        return view('tenant.bookings.index', compact('user', 'residents'));
     }
 
     public function create(Room $room)
     {
-        $contact = Property::select('phone', 'whatsapp')->first();
-        view()->share('contact', $contact);
-
-        $address = Property::select('address')->first();
-        view()->share('address', $address);
-
         if ($room->status !== 'available') {
             return redirect()->back()
                 ->with('error', 'Kamar tidak tersedia.');
@@ -71,10 +55,7 @@ class BookingController extends Controller
                 ->with('error', 'Mohon lengkapi data profil Anda terlebih dahulu (No. Telepon, No. KTP, dan Upload KTP).');
         }
 
-        $socialmedia = SocialMedia::select('instagram', 'facebook', 'tiktok')->first();
-        view()->share('socialmedia', $socialmedia);
-
-        return view('tenant.bookings.create', compact('room', 'address', 'contact','socialmedia'));
+        return view('tenant.bookings.create', compact('room'));
     }
 
     public function store(Request $request, Room $room)

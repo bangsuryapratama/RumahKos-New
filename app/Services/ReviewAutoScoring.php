@@ -96,7 +96,7 @@ class ReviewAutoScoring
             return max(1.0, $baseRating - ($negativeCount * 0.5));
         } else {
             // Neutral or mixed: use base rating with slight variation
-            return $baseRating + (rand(-2, 2) * 0.1);
+            return $baseRating;
         }
     }
 

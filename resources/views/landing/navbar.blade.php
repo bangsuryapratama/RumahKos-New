@@ -31,7 +31,7 @@
                         {{-- Avatar --}}
                         <div class="w-7 h-7 shrink-0 relative">
                             @if($user->avatar)
-                                <img src="{{ $user->avatar }}" alt="{{ $name }}"
+                                <img loading="lazy" decoding="async" src="{{ $user->avatar }}" alt="{{ $name }}"
                                      class="w-7 h-7 rounded-full object-cover border border-blue-200"
                                      onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
                                 <div style="display:none"
@@ -86,7 +86,7 @@
             @auth('tenant')
                 <div class="w-8 h-8 shrink-0">
                     @if($user->avatar)
-                        <img src="{{ $user->avatar }}" alt="{{ $name }}"
+                        <img loading="lazy" decoding="async" src="{{ $user->avatar }}" alt="{{ $name }}"
                              class="w-8 h-8 rounded-full object-cover border border-gray-200"
                              onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
                         <div style="display:none"
@@ -131,7 +131,7 @@
                 <div class="flex items-center gap-3 px-3 py-2 mb-1">
                     <div class="w-10 h-10 shrink-0">
                         @if($user->avatar)
-                            <img src="{{ $user->avatar }}" alt="{{ $name }}"
+                            <img loading="lazy" decoding="async" src="{{ $user->avatar }}" alt="{{ $name }}"
                                  class="w-10 h-10 rounded-full object-cover border border-gray-200"
                                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
                             <div style="display:none"

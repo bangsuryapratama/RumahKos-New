@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - RumahKos</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .doc-canvas-wrap {
@@ -518,11 +518,11 @@
                             <div class="flex gap-3 sm:gap-4">
                                 <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-lg overflow-hidden flex-shrink-0">
                                     @if($resident->room->image)
-                                        <img src="{{ asset('storage/' . $resident->room->image) }}"
-                                             alt="{{ $resident->room->name }}" class="w-full h-full object-cover">
+                                        <img loading="lazy" decoding="async" src="{{ asset('storage/' . $resident->room->image) }}"
+                                             alt="{{ $resident->room->name }}" loading="lazy" decoding="async" class="w-full h-full object-cover">
                                     @else
                                         <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=80&h=80&fit=crop"
-                                             alt="Kamar" class="w-full h-full object-cover">
+                                             alt="Kamar" loading="lazy" decoding="async" class="w-full h-full object-cover">
                                     @endif
                                 </div>
                                 <div class="flex-1 min-w-0">

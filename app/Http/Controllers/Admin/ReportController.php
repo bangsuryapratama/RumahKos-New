@@ -167,13 +167,14 @@ class ReportController extends Controller
     {
         $payments   = $this->financeQuery($request)->paginate(15)->withQueryString();
         $properties = Property::orderBy('name')->get();
-        $allData    = $this->financeQuery($request)->get();
 
+        // Calculate stats using aggregate queries instead of loading all data
+        $baseQuery = $this->financeQuery($request);
         $stats = [
-            'total_tagihan' => $allData->sum('amount'),
-            'total_lunas'   => $allData->where('status', 'paid')->sum('amount'),
-            'total_pending' => $allData->where('status', 'pending')->count(),
-            'total_failed'  => $allData->whereIn('status', ['failed', 'cancelled'])->count(),
+            'total_tagihan' => (clone $baseQuery)->sum('amount'),
+            'total_lunas'   => (clone $baseQuery)->where('status', 'paid')->sum('amount'),
+            'total_pending' => (clone $baseQuery)->where('status', 'pending')->count(),
+            'total_failed'  => (clone $baseQuery)->whereIn('status', ['failed', 'cancelled'])->count(),
         ];
 
         $revenueChart = Payment::where('status', 'paid')
