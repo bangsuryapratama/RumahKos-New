@@ -34,6 +34,7 @@ class LandingController extends Controller
         $maxPrice = $availableRoomsCollection->max('price') ?? 0;
 
         $allFacilities = Facility::whereHas('rooms')->orderBy('name')->get();
+        $FacilityAll = $allFacilities;
         $properties = Property::withCount(['rooms' => function($query) {
             $query->where('status', 'available');
         }])->get();
@@ -54,6 +55,7 @@ class LandingController extends Controller
             'minPrice',
             'maxPrice',
             'allFacilities',
+            'FacilityAll',
             'properties',
             'propertyLocation',
         ));

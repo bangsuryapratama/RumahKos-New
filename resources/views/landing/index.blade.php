@@ -204,8 +204,9 @@
         </div>
 
         @php
-            $facList = $FacilityAll->count() > 0
-                ? $FacilityAll->take(8)->map(fn($f) => ['icon'=>$f->icon,'name'=>$f->name])->toArray()
+            $facilitiesCollection = $allFacilities ?? $FacilityAll ?? collect();
+            $facList = $facilitiesCollection->count() > 0
+                ? $facilitiesCollection->take(8)->map(fn($f) => ['icon'=>$f->icon,'name'=>$f->name])->toArray()
                 : [
                     ['icon'=>'fas fa-bed',            'name'=>'Kasur & Lemari'],
                     ['icon'=>'fas fa-wifi',            'name'=>'WiFi 100Mbps'],
