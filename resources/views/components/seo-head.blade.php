@@ -19,6 +19,11 @@
 <meta name="robots" content="{{ $seo['robots'] }}">
 <link rel="canonical" href="{{ $seo['canonical'] }}">
 
+<!-- Favicon & Icons -->
+<link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
+
 <!-- Geo Tags for Local SEO (Bandung, Indonesia) -->
 <meta name="geo.region" content="ID-JB">
 <meta name="geo.placename" content="Bandung">

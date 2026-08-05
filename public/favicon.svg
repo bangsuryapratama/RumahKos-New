@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE68A" />
+      <stop offset="50%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Shield / Rounded Square -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
+  <rect width="500" height="500" x="6" y="6" rx="122" fill="none" stroke="url(#goldGrad)" stroke-width="6" opacity="0.4" />
+
+  <!-- Monogram & Luxury Architectural Pine Emblem -->
+  <g transform="translate(64, 64) scale(0.75)" filter="url(#glow)">
+    <!-- Roof / Crest Lines -->
+    <path d="M256 40 L440 180 L400 210 L256 95 L112 210 L72 180 Z" fill="url(#goldGrad)" />
+    
+    <!-- Central Luxury 'C' & Pine Symbol -->
+    <path d="M370 280 C360 210 300 170 230 170 C140 170 80 240 80 340 C80 440 145 500 240 500 C320 500 370 440 375 385 L305 385 C295 415 270 440 235 440 C175 440 145 390 145 338 C145 285 175 230 235 230 C275 230 298 255 308 280 Z" fill="url(#goldGrad)" />
+    
+    <!-- Star / Diamond Crown Accent -->
+    <polygon points="256,120 266,145 292,145 271,160 279,185 256,170 233,185 241,160 220,145 246,145" fill="#FDE68A" />
+  </g>
+</svg>

@@ -11,24 +11,44 @@ class SeoService
     /**
      * Generate comprehensive metadata array for a page.
      */
-    public static function getMetadata(?string $title = null, ?string $description = null, ?string $image = null, ?string $type = 'website'): array
+    public static function getMetadata($title = null, $description = null, $image = null, $type = 'website'): array
     {
         $siteName = 'Cemara Living & Residence';
         $defaultTitle = 'Cemara Living & Residence | Sewa Kost Eksklusif & Hotel-Grade Living Bandung';
         $defaultDescription = 'Nikmati hunian eksklusif berfasilitas hotel bintang 5 di Bandung. Dilengkapi AC, WiFi 100Mbps, Water Heater, Smart TV, Kamar Mandi Dalam, Keamanan 24 Jam & Pembayaran Midtrans.';
         $defaultImage = asset('images/hero-residence.webp');
 
-        $fullTitle = $title ? "{$title} | {$siteName}" : $defaultTitle;
-        $cleanDesc = $description ? strip_tags(trim($description)) : $defaultDescription;
+        // Normalize title
+        if (is_object($title)) {
+            $title = $title->title ?? $title->name ?? null;
+        }
+        $fullTitle = (!empty($title) && is_string($title)) ? "{$title} | {$siteName}" : $defaultTitle;
+
+        // Normalize description
+        if (is_object($description)) {
+            $description = $description->description ?? $description->content ?? $description->meta_description ?? null;
+        }
+        $cleanDesc = (!empty($description) && is_string($description)) ? strip_tags(trim($description)) : $defaultDescription;
+
+        // Normalize image
+        if (is_object($image)) {
+            $image = $image->image ?? $image->url ?? null;
+        }
+        if (!empty($image) && is_string($image)) {
+            $finalImage = str_starts_with($image, 'http') ? $image : asset($image);
+        } else {
+            $finalImage = $defaultImage;
+        }
+
         $canonicalUrl = Request::url();
-        $finalImage = $image ? (str_starts_with($image, 'http') ? $image : asset($image)) : $defaultImage;
+        $typeString = is_string($type) ? $type : 'website';
 
         return [
             'title' => $fullTitle,
             'description' => $cleanDesc,
             'canonical' => $canonicalUrl,
             'image' => $finalImage,
-            'type' => $type,
+            'type' => $typeString,
             'site_name' => $siteName,
             'keywords' => 'kost eksklusif bandung, kost mewah hegarmanah, sewa kos setiabudi, boutique residence bandung, kost fasilitas hotel, sewa kamar bulanan bandung',
             'author' => 'Cemara Residence Management',
@@ -39,20 +59,20 @@ class SeoService
     /**
      * Generate Schema.org JSON-LD for Landing Page (LodgingBusiness / ApartmentComplex).
      */
-    public static function getLodgingBusinessSchema(?Property $property, $rooms = null, float $avgRating = 4.9, int $reviewCount = 48): string
+    public static function getLodgingBusinessSchema($property = null, $rooms = null, float $avgRating = 4.9, int $reviewCount = 48): string
     {
-        $name = $property->name ?? 'Cemara Living & Residence';
-        $address = $property->address ?? 'Jl. Hegarmanah Kulon No. 42, Setiabudi, Kota Bandung, Jawa Barat 40141';
-        $phone = $property->phone ?? '+6281234567890';
-        $minPrice = $rooms ? $rooms->where('status', 'available')->min('price') : 2000000;
-        $maxPrice = $rooms ? $rooms->where('status', 'available')->max('price') : 4500000;
+        $name = is_object($property) ? ($property->name ?? 'Cemara Living & Residence') : 'Cemara Living & Residence';
+        $address = is_object($property) ? ($property->address ?? 'Jl. Hegarmanah Kulon No. 42, Setiabudi, Kota Bandung, Jawa Barat 40141') : 'Jl. Hegarmanah Kulon No. 42, Setiabudi, Kota Bandung, Jawa Barat 40141';
+        $phone = is_object($property) ? ($property->phone ?? '+6281234567890') : '+6281234567890';
+        $minPrice = ($rooms && is_iterable($rooms)) ? (collect($rooms)->where('status', 'available')->min('price') ?: 2000000) : 2000000;
+        $maxPrice = ($rooms && is_iterable($rooms)) ? (collect($rooms)->where('status', 'available')->max('price') ?: 4500000) : 4500000;
 
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'LodgingBusiness',
             '@id' => url('/#lodging'),
             'name' => $name,
-            'description' => $property->description ?? 'Hunian eksklusif dan kost premium dengan fasilitas lengkap berstandar hotel di Bandung.',
+            'description' => is_object($property) ? ($property->description ?? 'Hunian eksklusif dan kost premium dengan fasilitas lengkap berstandar hotel di Bandung.') : 'Hunian eksklusif dan kost premium dengan fasilitas lengkap berstandar hotel di Bandung.',
             'url' => url('/'),
             'telephone' => $phone,
             'priceRange' => 'Rp ' . number_format($minPrice ?: 2000000, 0, ',', '.') . ' - Rp ' . number_format($maxPrice ?: 4500000, 0, ',', '.'),
@@ -93,22 +113,33 @@ class SeoService
     /**
      * Generate Schema.org JSON-LD for Room Detail Page (HotelRoom / Accommodation).
      */
-    public static function getRoomSchema(Room $room, ?Property $property = null): string
+    public static function getRoomSchema($room, $property = null): string
     {
-        $propertyName = $property->name ?? 'Cemara Living & Residence';
-        $roomImg = $room->image ? (str_starts_with($room->image, 'http') ? $room->image : asset('storage/' . $room->image)) : asset('images/room-default.webp');
-        $avgRating = $room->reviews->avg('rating') ?: 4.9;
-        $reviewCount = $room->reviews->count() ?: 12;
+        $propertyName = is_object($property) ? ($property->name ?? 'Cemara Living & Residence') : 'Cemara Living & Residence';
+        $roomName = is_object($room) ? ($room->name ?? 'Kamar Kost') : 'Kamar Kost';
+        $roomDesc = is_object($room) ? ($room->description ?? "Kamar sewa premium tipe {$roomName} dengan fasilitas lengkap di {$propertyName}.") : "Kamar sewa premium dengan fasilitas lengkap.";
+        $roomPrice = is_object($room) ? ($room->price ?? 2000000) : 2000000;
+        $roomSize = is_object($room) ? ($room->size ?? 24) : 24;
+        $roomId = is_object($room) ? ($room->id ?? 1) : 1;
+        $roomStatus = is_object($room) ? ($room->status ?? 'available') : 'available';
+
+        $roomImg = asset('images/room-default.webp');
+        if (is_object($room) && !empty($room->image)) {
+            $roomImg = str_starts_with($room->image, 'http') ? $room->image : asset('storage/' . $room->image);
+        }
+
+        $avgRating = (is_object($room) && isset($room->reviews) && method_exists($room->reviews, 'avg')) ? ($room->reviews->avg('rating') ?: 4.9) : 4.9;
+        $reviewCount = (is_object($room) && isset($room->reviews) && method_exists($room->reviews, 'count')) ? ($room->reviews->count() ?: 12) : 12;
 
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'HotelRoom',
-            'name' => $room->name . ' - ' . $propertyName,
-            'description' => $room->description ?: "Kamar sewa premium tipe {$room->name} dengan fasilitas lengkap di {$propertyName}.",
+            'name' => $roomName . ' - ' . $propertyName,
+            'description' => $roomDesc,
             'image' => $roomImg,
             'floorSize' => [
                 '@type' => 'QuantitativeValue',
-                'value' => (float) ($room->size ?? 24),
+                'value' => (float) $roomSize,
                 'unitCode' => 'MTK',
             ],
             'occupancy' => [
@@ -118,11 +149,11 @@ class SeoService
             ],
             'offers' => [
                 '@type' => 'Offer',
-                'price' => (string) $room->price,
+                'price' => (string) $roomPrice,
                 'priceCurrency' => 'IDR',
-                'availability' => $room->status === 'available' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+                'availability' => $roomStatus === 'available' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
                 'validFrom' => now()->toDateString(),
-                'url' => url("/rooms/{$room->id}"),
+                'url' => url("/rooms/{$roomId}"),
             ],
             'aggregateRating' => [
                 '@type' => 'AggregateRating',
