@@ -20,14 +20,8 @@ export default defineConfig({
         },
         // Enable source maps for debugging
         sourcemap: false,
-        // Minify output
-        minify: 'terser',
-        terserOptions: {
-            compress: {
-                drop_console: true,
-                drop_debugger: true,
-            },
-        },
+        // Minify output using built-in esbuild
+        minify: 'esbuild',
         // Chunk size warning limit
         chunkSizeWarningLimit: 500,
     },
