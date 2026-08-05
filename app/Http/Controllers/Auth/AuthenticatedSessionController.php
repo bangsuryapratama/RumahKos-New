@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +13,7 @@ use Illuminate\View\View;
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login view.
+     * Display the luxury hotel smart login view.
      */
     public function create(): View
     {
@@ -20,37 +21,53 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Handle an incoming authentication request.
+     * Handle an incoming authentication request with smart role routing.
      */
     public function store(LoginRequest $request): RedirectResponse
-{
-    $request->authenticate();
-
-    $user = Auth::user();
-
-    $allowedRoles = [1];
-        
-    if (!in_array($user->role_id, $allowedRoles)) {
-        abort(403, 'Akses ditolak');
-    }
+    {
+        $request->authenticate();
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        /** @var User $user */
+        $user = Auth::user();
+
+        // Also log in to tenant guard if applicable for seamless compatibility
+        Auth::guard('tenant')->login($user, $request->boolean('remember'));
+
+        // 1. Admin Role -> Admin CMS Dashboard
+        if ($user->isAdmin()) {
+            return redirect()->intended(route('admin.dashboard'));
+        }
+
+        // 2. Tenant / Penghuni Role
+        if ($user->isPenghuni()) {
+            $isSuspended = $user->residents()
+                ->where('status', 'suspended')
+                ->exists();
+
+            if ($isSuspended) {
+                return redirect()->route('tenant.suspended');
+            }
+
+            return redirect()->intended(route('tenant.dashboard'));
+        }
+
+        // 3. Fallback for general guests
+        return redirect()->intended(route('landing'));
     }
 
-
     /**
-     * Destroy an authenticated session.
+     * Destroy an authenticated session across all guards.
      */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
+        Auth::guard('tenant')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/')->with('success', 'Anda telah berhasil keluar.');
     }
 }

@@ -11,7 +11,7 @@ class LoginController extends Controller
 {
     public function showLoginForm()
     {
-        return view('tenant.auth.login');
+        return redirect()->route('login');
     }
 
     public function login(Request $request)
@@ -21,41 +21,40 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::guard('tenant')->attempt($request->only('email', 'password'), $request->filled('remember'))) {
-
+        if (Auth::attempt($request->only('email', 'password'), $request->filled('remember'))) {
             $request->session()->regenerate();
-            $user = Auth::guard('tenant')->user();
+            $user = Auth::user();
+
+            Auth::guard('tenant')->login($user, $request->boolean('remember'));
+
+            if ($user->isAdmin()) {
+                return redirect()->intended(route('admin.dashboard'));
+            }
 
             if ($user->isPenghuni()) {
-                // Cek apakah ada resident yang suspended
                 $isSuspended = $user->residents()
                     ->where('status', 'suspended')
                     ->exists();
 
                 if ($isSuspended) {
-                    // Tetap login tapi redirect ke halaman suspended
                     return redirect()->route('tenant.suspended');
                 }
 
                 return redirect()->intended(route('tenant.dashboard'));
             }
 
-            Auth::guard('tenant')->logout();
-            throw ValidationException::withMessages([
-                'email' => 'Akun ini bukan untuk penghuni.',
-            ]);
+            return redirect()->intended(route('landing'));
         }
 
         throw ValidationException::withMessages([
-            'email' => 'Email atau password salah.',
+            'email' => 'Email atau password yang Anda masukkan salah.',
         ]);
     }
 
     public function suspended()
     {
-        $user = Auth::guard('tenant')->user();
+        $user = Auth::user() ?? Auth::guard('tenant')->user();
 
-        // Kalau tidak ada yang suspended, kembalikan ke dashboard
         if (!$user || !$user->residents()->where('status', 'suspended')->exists()) {
             return redirect()->route('tenant.dashboard');
         }
@@ -65,10 +64,11 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        Auth::guard('web')->logout();
         Auth::guard('tenant')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/')->with('success', 'Anda telah berhasil keluar.');
     }
 }

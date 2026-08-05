@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Property;
 use App\Models\SocialMedia;
 
@@ -18,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Share property info, social media, and global variables to ALL views with bulletproof fallbacks
+        // Share property info, social media, auth user, and global variables to ALL views with bulletproof fallbacks
         View::composer('*', function ($view) {
             $property = null;
             $socialmedia = null;
@@ -38,14 +39,17 @@ class AppServiceProvider extends ServiceProvider
                 // Fallback gracefully during migrations or if table does not exist
             }
 
-            $defaultAddress = 'Jl. Contoh Alamat No.123, Bandung';
-            $defaultPhone = '08123456789';
-            $defaultWhatsapp = '08123456789';
-            $defaultMapsEmbed = '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126748.42371987557!2d107.5731165!3d-6.9034443!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e6398252477f%3A0x146a1f93d3e815b2!2sBandung%2C%20Bandung%20City%2C%20West%20Java!5e0!3m2!1sen!2sid!4v1700000000000!5m2!1sen!2sid" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>';
-            $defaultDescription = 'Kos Nyaman bersih dan strategis di Bandung';
+            $defaultAddress = 'Jl. Hegarmanah Kulon No. 42, Setiabudi, Kota Bandung, Jawa Barat 40141';
+            $defaultPhone = '081234567890';
+            $defaultWhatsapp = '081234567890';
+            $defaultMapsEmbed = '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3961.0504172457814!2d107.5956041!3d-6.8845579!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e6931557088b%3A0x6b8f1d8f58b761!2sHegarmanah%2C%20Cidadap%2C%20Bandung%20City%2C%20West%20Java!5e0!3m2!1sen!2sid!4v1700000000000!5m2!1sen!2sid" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>';
+            $defaultDescription = 'Cemara Living & Residence - Hunian Eksklusif & Kost Premium Berfasilitas Lengkap di Bandung.';
+
+            $currentUser = Auth::guard('web')->user() ?? Auth::guard('tenant')->user() ?? Auth::user();
 
             $view->with('globalProperty', $property);
             $view->with('property', $property);
+            $view->with('currentUser', $currentUser);
 
             $view->with('socialmedia', $socialmedia ?? (object) [
                 'instagram' => null,

@@ -1,21 +1,26 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardAdminController;
+use App\Http\Controllers\Admin\FacilityController;
+use App\Http\Controllers\Admin\FacilityRoomController;
+use App\Http\Controllers\Admin\PropertyController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\SocialMediaController;
-use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\TenantController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\SeoController;
+use App\Http\Controllers\Tenant\Auth\ForgotPasswordController;
 use App\Http\Controllers\Tenant\Auth\LoginController;
 use App\Http\Controllers\Tenant\Auth\RegisterController;
-use App\Http\Controllers\Tenant\Auth\SocialAuthController;
-use App\Http\Controllers\Tenant\Auth\ForgotPasswordController;
 use App\Http\Controllers\Tenant\Auth\ResetPasswordController;
-use App\Http\Controllers\Tenant\DashboardController;
+use App\Http\Controllers\Tenant\Auth\SocialAuthController;
 use App\Http\Controllers\Tenant\BookingController;
+use App\Http\Controllers\Tenant\DashboardController;
 use App\Http\Controllers\Tenant\PaymentController;
 use App\Services\SecureDocumentService;
 use Illuminate\Support\Facades\Auth;
@@ -24,20 +29,31 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Landing Page
+| SEO & Search Engine Crawlers
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
+Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
+
+/*
+|--------------------------------------------------------------------------
+| Public Landing & Room Showcase
 |--------------------------------------------------------------------------
 */
 
 Route::get('/', [LandingController::class, 'index'])->name('landing');
-Route::get('/rooms/{room}', [LandingController::class, 'roomDetail'])->name('rooms.detail');
+Route::get('/rooms/{room}', [LandingController::class, 'roomDetail'])->name('rooms.show');
+Route::get('/room/{room}', [LandingController::class, 'roomDetail'])->name('rooms.detail'); // Alias backward compatibility
 
 /*
 |--------------------------------------------------------------------------
-| Dashboard Redirect (fix Breeze error)
+| Smart Role-Based Dashboard Dispatcher
 |--------------------------------------------------------------------------
 */
 
 Route::middleware(['auth'])->get('/dashboard', function () {
+    /** @var \App\Models\User $user */
     $user = Auth::user();
 
     if ($user->isAdmin()) {
@@ -45,110 +61,143 @@ Route::middleware(['auth'])->get('/dashboard', function () {
     }
 
     if ($user->isPenghuni()) {
+        $isSuspended = $user->residents()->where('status', 'suspended')->exists();
+        if ($isSuspended) {
+            return redirect()->route('tenant.suspended');
+        }
         return redirect()->route('tenant.dashboard');
     }
 
-    Auth::logout();
-    return redirect('/')->with('error', 'Akun tidak memiliki akses.');
+    return redirect()->route('landing');
 })->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
-| CMS ADMIN
+| CMS ADMIN (Hotel & Property Management System)
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
 
-    // Dashboard Admin
-    Route::get('/dashboard', [DashboardAdminController::class, 'index'])
-        ->name('admin.dashboard');
-    Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])
-        ->name('admin.document.ktp');
+    // Dashboard
+    Route::get('/dashboard', [DashboardAdminController::class, 'index'])->name('dashboard');
 
-    Route::get('/document/sim', [DashboardController::class, 'serveSim'])
-        ->name('admin.document.sim');
-    // Profile
+    // Admin Secure Documents
+    Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])->name('document.ktp');
+    Route::get('/document/sim', [DashboardController::class, 'serveSim'])->name('document.sim');
+
+    // Admin Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Room CRUD
-    Route::resource('rooms', RoomController::class)
-        ->names('admin.rooms');
+    // Core Management Resources (Kebab-Case URLs)
+    Route::resource('rooms', RoomController::class)->names('rooms');
+    Route::resource('users', UserController::class)->names('users');
+    Route::resource('roles', RoleController::class)->names('roles');
+    Route::resource('properties', PropertyController::class)->names('properties');
+    Route::resource('facilities', FacilityController::class)->names('facilities');
 
-    // Management User
-    Route::resource('users', UserController::class)
-        ->names('admin.users');
+    // Social Media Management
+    Route::resource('social-media', SocialMediaController::class)->names('social-media');
+    Route::resource('socialmedia', SocialMediaController::class)->names('socialmedia'); // Backward alias
 
-    // Management Role
-    Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class)
-        ->names('admin.roles');
+    // Facility Rooms Pivot
+    Route::resource('facility-rooms', FacilityRoomController::class)->names('facility-rooms');
+    Route::resource('facility_rooms', FacilityRoomController::class)->names('facility_rooms'); // Backward alias
 
-    // Management Property
-    Route::resource('properties', \App\Http\Controllers\Admin\PropertyController::class)
-        ->names('admin.properties');
+    // Tenants Management
+    Route::resource('tenants', TenantController::class)->names('tenants');
+    Route::post('/tenants/residents/{resident}/activate', [TenantController::class, 'activate'])->name('tenants.activate');
+    Route::post('/tenants/residents/{resident}/deactivate', [TenantController::class, 'deactivate'])->name('tenants.deactivate');
 
-    // Management Facility
-    Route::resource('facilities', \App\Http\Controllers\Admin\FacilityController::class)
-        ->names('admin.facilities');
+    // Reviews Management & Replies
+    Route::post('/reviews/{review}/reply', [ReviewController::class, 'reply'])->name('review.reply');
+    Route::delete('/review-replies/{reply}', [ReviewController::class, 'deleteReply'])->name('review.reply.delete');
 
-    // Management SocialMedia
-    Route::resource('socialmedia', \App\Http\Controllers\Admin\SocialMediaController::class)
-        ->names('admin.socialmedia');
+    // Reports Engine
+    Route::get('/reports/tenants', [ReportController::class, 'tenants'])->name('reports.tenants');
+    Route::get('/reports/tenants/pdf', [ReportController::class, 'tenantsPdf'])->name('reports.tenants.pdf');
+    Route::get('/reports/tenants/excel', [ReportController::class, 'tenantsExcel'])->name('reports.tenants.excel');
 
-    // Management Facility Room
-    Route::resource('facility_rooms', \App\Http\Controllers\Admin\FacilityRoomController::class)
-        ->names('admin.facility_rooms');
-
-    // Management Tenants
-    Route::resource('tenants', \App\Http\Controllers\Admin\TenantController::class)
-        ->names('admin.tenants');
-
-    // Tenant Activation/Deactivation — pakai {resident} bukan {tenant}
-    Route::post('tenants/residents/{resident}/activate', [TenantController::class, 'activate'])
-        ->name('admin.tenants.activate');
-    Route::post('tenants/residents/{resident}/deactivate', [TenantController::class, 'deactivate'])
-        ->name('admin.tenants.deactivate');
-
-    // Review Management
-    Route::post('/review/{review}/reply', [ReviewController::class, 'reply'])
-        ->name('admin.review.reply');
-    Route::delete('/review-reply/{reply}', [ReviewController::class, 'deleteReply'])
-        ->name('admin.review.reply.delete');
-
-    // Reports
-    Route::get('reports/tenants',       [ReportController::class, 'tenants'])->name('admin.reports.tenants');
-    Route::get('reports/tenants/pdf',   [ReportController::class, 'tenantsPdf'])->name('admin.reports.tenants.pdf');
-    Route::get('reports/tenants/excel', [ReportController::class, 'tenantsExcel'])->name('admin.reports.tenants.excel');
-
-    Route::get('reports/finance',       [ReportController::class, 'finance'])->name('admin.reports.finance');
-    Route::get('reports/finance/pdf',   [ReportController::class, 'financePdf'])->name('admin.reports.finance.pdf');
-    Route::get('reports/finance/excel', [ReportController::class, 'financeExcel'])->name('admin.reports.finance.excel');
-
+    Route::get('/reports/finance', [ReportController::class, 'finance'])->name('reports.finance');
+    Route::get('/reports/finance/pdf', [ReportController::class, 'financePdf'])->name('reports.finance.pdf');
+    Route::get('/reports/finance/excel', [ReportController::class, 'financeExcel'])->name('reports.finance.excel');
 });
 
 /*
 |--------------------------------------------------------------------------
-| Review Routes (Tenant)
+| Tenant & Guest Portal Routes
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth:tenant'])->group(function () {
-    // Create review
-    Route::post('/room/{room}/review', [ReviewController::class, 'store'])
-        ->name('room.review.store');
+Route::prefix('tenant')->name('tenant.')->group(function () {
 
-    // Update review
-    Route::put('/review/{review}', [ReviewController::class, 'update'])
-        ->name('review.update');
+    // Guest Auth Redirects (Maps to unified auth system)
+    Route::middleware('guest')->group(function () {
+        Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+        Route::post('/login', [LoginController::class, 'login']);
 
-    // Delete review
-    Route::delete('/review/{review}', [ReviewController::class, 'destroy'])
-        ->name('review.destroy');
+        Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+        Route::post('/register', [RegisterController::class, 'register']);
 
-    Route::get('document/view/{type}', function ($type, SecureDocumentService $secureDoc) {
-        $user = Auth::guard('tenant')->user();
+        // Social Login
+        Route::get('/auth/{provider}', [SocialAuthController::class, 'redirect'])->name('social.redirect');
+        Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
+
+        // Forgot / Reset Password
+        Route::get('/password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+        Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+        Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+        Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
+    });
+
+    // Authenticated Tenant Portal
+    Route::middleware(['auth'])->group(function () {
+
+        // Guest Dashboard & Status
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/suspended', [LoginController::class, 'suspended'])->name('suspended');
+        Route::put('/profile', [DashboardController::class, 'updateProfile'])->name('profile.update');
+
+        // Room Bookings
+        Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
+        Route::get('/booking/{room}', [BookingController::class, 'create'])->name('booking.create');
+        Route::post('/booking/{room}', [BookingController::class, 'store'])->name('booking.store');
+        Route::delete('/bookings/{resident}', [BookingController::class, 'destroy'])->name('bookings.destroy');
+
+        // Payment & Invoices
+        Route::get('/payment/midtrans/{payment}', [PaymentController::class, 'midtrans'])->name('payment.midtrans');
+        Route::get('/payment/finish/{payment}', [PaymentController::class, 'finish'])->name('payment.finish');
+        Route::get('/payment/{payment}/check-status', [PaymentController::class, 'checkStatus'])->name('payment.check-status');
+        Route::get('/payment/{payment}/invoice', [PaymentController::class, 'invoice'])->name('payment.invoice');
+
+        // Tenant Documents
+        Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])->name('document.global.ktp');
+        Route::get('/document/sim', [DashboardController::class, 'serveSim'])->name('document.global.sim');
+
+        // Logout
+        Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+    });
+
+    // Midtrans Payment Webhook / Notification Callback (Open endpoint)
+    Route::post('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Tenant Review & Document Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/rooms/{room}/reviews', [LandingController::class, 'storeReview'])->name('room.review.store');
+    Route::put('/reviews/{review}', [ReviewController::class, 'update'])->name('review.update');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('review.destroy');
+
+    Route::get('/document/view/{type}', function ($type, SecureDocumentService $secureDoc) {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
         $profile = $user->profile;
 
         if (!$profile) {
@@ -168,19 +217,13 @@ Route::middleware(['auth:tenant'])->group(function () {
 
         try {
             $content = $secureDoc->secureRead($path);
-
             $extension = pathinfo($path, PATHINFO_EXTENSION);
             $mimeType = match($extension) {
                 'jpg', 'jpeg' => 'image/jpeg',
                 'png'         => 'image/png',
+                'webp'        => 'image/webp',
                 default       => 'application/octet-stream',
             };
-
-            Log::info('Document viewed', [
-                'user_id' => $user->id,
-                'type'    => $type,
-                'ip'      => request()->ip(),
-            ]);
 
             return response($content)
                 ->header('Content-Type', $mimeType)
@@ -194,22 +237,14 @@ Route::middleware(['auth:tenant'])->group(function () {
                 'type'    => $type,
                 'error'   => $e->getMessage()
             ]);
-
             abort(500, 'Failed to load document');
         }
-
     })->name('document.view');
-
-   Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])
-        ->name('tenant.document.ktp');
-
-    Route::get('/document/sim', [DashboardController::class, 'serveSim'])
-        ->name('tenant.document.sim');
 });
 
 /*
 |--------------------------------------------------------------------------
-| Auth Routes (Breeze)
+| Breeze Authentication Routes
 |--------------------------------------------------------------------------
 */
 
@@ -217,84 +252,10 @@ require __DIR__.'/auth.php';
 
 /*
 |--------------------------------------------------------------------------
-| Error Pages
+| Fallback & Error Pages
 |--------------------------------------------------------------------------
 */
 
 Route::get('/no-access', function () {
     return view('errors.no-access');
 })->name('no-access');
-
-/*
-|--------------------------------------------------------------------------
-| Tenant Routes (Penghuni Kos)
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('tenant')->name('tenant.')->group(function () {
-
-    // Guest Routes (belum login)
-    Route::middleware('guest:tenant')->group(function () {
-
-        // Login
-        Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
-        Route::post('login', [LoginController::class, 'login']);
-
-        // Register
-        Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-        Route::post('register', [RegisterController::class, 'register']);
-
-        // Social Login
-        Route::get('auth/{provider}', [SocialAuthController::class, 'redirect'])->name('social.redirect');
-        Route::get('auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
-
-        // Forgot Password
-        Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])
-            ->name('password.request');
-        Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])
-            ->name('password.email');
-
-        // Reset Password
-        Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])
-            ->name('password.reset');
-        Route::post('password/reset', [ResetPasswordController::class, 'reset'])
-            ->name('password.update');
-    });
-
-    // Authenticated Routes (sudah login)
-    Route::middleware('auth:tenant')->group(function () {
-
-        // Dashboard
-        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('suspended', [LoginController::class, 'suspended'])->name('suspended');
-        // Profile Update
-        Route::put('profile', [DashboardController::class, 'updateProfile'])->name('profile.update');
-
-        // Booking
-        Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
-        Route::get('/booking/{room}', [BookingController::class, 'create'])->name('booking.create');
-        Route::post('/booking/{room}', [BookingController::class, 'store'])->name('booking.store');
-        Route::delete('/bookings/{resident}', [BookingController::class, 'destroy'])->name('bookings.destroy');
-
-        // Payment Routes
-        Route::get('/payment/midtrans/{payment}', [PaymentController::class, 'midtrans'])
-            ->name('payment.midtrans');
-        Route::get('/payment/finish/{payment}', [PaymentController::class, 'finish'])
-            ->name('payment.finish');
-        Route::get('/payment/{payment}/check-status', [PaymentController::class, 'checkStatus'])
-            ->name('payment.check-status');
-        Route::get('/payment/{payment}/invoice', [PaymentController::class, 'invoice'])
-            ->name('payment.invoice');
-
-        Route::get('/document/ktp', [DashboardController::class, 'serveKtp'])->name('document.global.ktp');
-        Route::get('/document/sim', [DashboardController::class, 'serveSim'])->name('document.global.sim');
-
-        // Logout
-        Route::post('logout', [LoginController::class, 'logout'])->name('logout');
-    });
-
-    // Payment Callback (outside middleware - for Midtrans webhook)
-    Route::post('/payment/callback', [PaymentController::class, 'callback'])
-        ->name('payment.callback');
-});
-

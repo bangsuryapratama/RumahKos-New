@@ -3,375 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking Saya - RumahKos</title>
+    <title>Reservasi & Tagihan Saya - Cemara Residence</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        .modal {
-            transition: opacity 0.25s ease;
-        }
-        body.modal-active {
-            overflow-x: hidden;
-            overflow-y: visible !important;
-        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FAFAFC; color: #0F172A; }
+        .font-heading { font-family: 'Outfit', sans-serif; }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="antialiased selection:bg-amber-500 selection:text-slate-950">
 
     @include('landing.navbar')
 
-    <section class="pt-20 sm:pt-24 pb-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            {{-- Header --}}
-            <div class="mb-6 sm:mb-8">
-                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Booking & Pembayaran Saya</h1>
-                <p class="text-sm sm:text-base text-gray-600">Kelola booking kamar dan riwayat pembayaran Anda</p>
-            </div>
-
-            {{-- Alert Messages --}}
-            @if(session('success'))
-                <div class="mb-6 p-4 bg-green-50 text-green-700 rounded-lg sm:rounded-xl border border-green-200 text-sm sm:text-base">
-                    <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="mb-6 p-4 bg-red-50 text-red-700 rounded-lg sm:rounded-xl border border-red-200 text-sm sm:text-base">
-                    <i class="fas fa-exclamation-circle mr-2"></i>{{ session('error') }}
-                </div>
-            @endif
-
-            @if($residents->isEmpty())
-                {{-- No Bookings --}}
-                <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-8 sm:p-12 text-center">
-                    <div class="bg-gray-100 w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-home text-3xl sm:text-4xl text-gray-400"></i>
-                    </div>
-                    <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Belum Ada Booking</h3>
-                    <p class="text-sm sm:text-base text-gray-600 mb-6">Anda belum memiliki riwayat booking kamar kos</p>
-                    <a href="/#kamar" class="inline-block px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg sm:rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-semibold text-sm sm:text-base shadow-md hover:shadow-lg active:scale-[0.98]">
-                        <i class="fas fa-search mr-2"></i>Cari Kamar Tersedia
-                    </a>
-                </div>
-            @else
-                {{-- Bookings List --}}
-                <div class="space-y-4 sm:space-y-6">
-                    @foreach($residents as $resident)
-                        @php
-                            // Ambil payment pertama yang belum lunas berdasarkan urutan bulan (asc)
-                            $firstUnpaid = $resident->payments
-                                ->whereNotIn('status', ['paid', 'cancelled'])
-                                ->sortBy('billing_month')
-                                ->first();
-                        @endphp
-
-                        <div class="bg-white rounded-xl sm:rounded-2xl shadow-md sm:shadow-lg overflow-hidden">
-
-                            {{-- Booking Header --}}
-                            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 sm:p-6 text-white">
-                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                                    <div class="flex-1 min-w-0">
-                                        <h3 class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 truncate">{{ $resident->room->name }}</h3>
-                                        <p class="opacity-90 text-sm sm:text-base truncate">
-                                            <i class="fas fa-building mr-1 sm:mr-2"></i>{{ $resident->room->property->name }}
-                                        </p>
-                                    </div>
-                                    <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
-                                        @if($resident->status === 'active')
-                                            <span class="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-500 text-white rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap">
-                                                <i class="fas fa-check-circle mr-1"></i>Aktif
-                                            </span>
-                                        @elseif($resident->status === 'inactive')
-                                            <span class="px-3 sm:px-4 py-1.5 sm:py-2 bg-yellow-500 text-white rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap">
-                                                <i class="fas fa-clock mr-1"></i>Menunggu
-                                            </span>
-                                        @elseif($resident->status === 'cancelled')
-                                            <span class="px-3 sm:px-4 py-1.5 sm:py-2 bg-red-500 text-white rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap">
-                                                <i class="fas fa-ban mr-1"></i>Dibatalkan
-                                            </span>
-                                        @else
-                                            <span class="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-500 text-white rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap">
-                                                {{ ucfirst($resident->status) }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Booking Details --}}
-                            <div class="p-4 sm:p-6">
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-calendar-alt text-blue-600 text-lg sm:text-xl"></i>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <div class="text-xs sm:text-sm text-gray-600">Tanggal Mulai</div>
-                                            <div class="font-semibold text-sm sm:text-base text-gray-900">{{ $resident->start_date->format('d M Y') }}</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-calendar-check text-purple-600 text-lg sm:text-xl"></i>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <div class="text-xs sm:text-sm text-gray-600">Tanggal Berakhir</div>
-                                            <div class="font-semibold text-sm sm:text-base text-gray-900">{{ $resident->end_date->format('d M Y') }}</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-clock text-green-600 text-lg sm:text-xl"></i>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <div class="text-xs sm:text-sm text-gray-600">Durasi</div>
-                                            <div class="font-semibold text-sm sm:text-base text-gray-900">{{ $resident->getDurationInMonths() }} Bulan</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- Cancel Button (Only for inactive status) --}}
-                                @if($resident->status === 'inactive')
-                                    <div class="mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
-                                        <button onclick="openCancelModal({{ $resident->id }})"
-                                                class="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 bg-red-50 text-red-600 border-2 border-red-200 rounded-lg sm:rounded-xl hover:bg-red-100 hover:border-red-300 transition-all duration-200 font-semibold text-sm sm:text-base active:scale-[0.98]">
-                                            <i class="fas fa-times-circle mr-2"></i>Batalkan Booking
-                                        </button>
-                                    </div>
-                                @endif
-
-                                {{-- Payment History --}}
-                                <div class="border-t pt-4 sm:pt-6">
-                                    <h4 class="font-bold text-base sm:text-lg text-gray-900 mb-3 sm:mb-4">Riwayat Pembayaran</h4>
-
-                                    {{-- Mobile View --}}
-                                    <div class="block sm:hidden space-y-3">
-                                        @forelse($resident->payments as $payment)
-                                            <div class="bg-gray-50 rounded-lg p-4 space-y-2">
-                                                <div class="flex justify-between items-start">
-                                                    <div>
-                                                        <div class="font-semibold text-sm text-gray-900">{{ $payment->billing_month->format('F Y') }}</div>
-                                                        <div class="text-xs text-gray-600">Jatuh tempo: {{ $payment->due_date->format('d M Y') }}</div>
-                                                    </div>
-                                                    @if($payment->status === 'paid')
-                                                        <span class="px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold whitespace-nowrap">
-                                                            <i class="fas fa-check-circle"></i> Lunas
-                                                        </span>
-                                                    @elseif($payment->status === 'pending')
-                                                        @if($firstUnpaid && $payment->id === $firstUnpaid->id)
-                                                            <span class="px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold whitespace-nowrap">
-                                                                <i class="fas fa-clock"></i> Pending
-                                                            </span>
-                                                        @else
-                                                            <span class="px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold whitespace-nowrap">
-                                                                <i class="fas fa-lock"></i> Terkunci
-                                                            </span>
-                                                        @endif
-                                                    @elseif($payment->status === 'failed')
-                                                        <span class="px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold whitespace-nowrap">
-                                                            <i class="fas fa-times-circle"></i> Gagal
-                                                        </span>
-                                                    @else
-                                                        <span class="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold whitespace-nowrap">
-                                                            {{ ucfirst($payment->status) }}
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                                <div class="flex justify-between items-center pt-2 border-t border-gray-200">
-                                                    <div class="font-bold text-sm text-gray-900">Rp {{ number_format($payment->amount, 0, ',', '.') }}</div>
-                                                    @if($payment->status === 'pending')
-                                                        @if($firstUnpaid && $payment->id === $firstUnpaid->id)
-                                                            <a href="{{ route('tenant.payment.midtrans', $payment->id) }}"
-                                                               class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold text-xs active:scale-[0.98]">
-                                                                <i class="fas fa-credit-card mr-1"></i>Bayar
-                                                            </a>
-                                                        @else
-                                                            <span class="px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-xs font-semibold cursor-not-allowed"
-                                                                  title="Selesaikan pembayaran bulan sebelumnya dulu">
-                                                                <i class="fas fa-lock mr-1"></i>Terkunci
-                                                            </span>
-                                                        @endif
-                                                    @elseif($payment->status === 'paid')
-                                                        <div class="flex flex-col items-end gap-1">
-                                                            <span class="text-gray-400 text-xs">
-                                                                <i class="fas fa-receipt mr-1"></i>{{ $payment->paid_at->format('d/m/Y') }}
-                                                            </span>
-                                                            <a href="{{ route('tenant.payment.invoice', $payment->id) }}"
-                                                               target="_blank"
-                                                               class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-600 border border-green-200 rounded-lg hover:bg-green-100 transition-all font-semibold text-xs active:scale-[0.98]">
-                                                                <i class="fas fa-file-invoice"></i> Faktur
-                                                            </a>
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        @empty
-                                            <div class="text-center py-8 text-gray-500 text-sm">
-                                                Tidak ada riwayat pembayaran
-                                            </div>
-                                        @endforelse
-                                    </div>
-
-                                    {{-- Desktop View --}}
-                                    <div class="hidden sm:block overflow-x-auto">
-                                        <table class="w-full">
-                                            <thead>
-                                                <tr class="bg-gray-50">
-                                                    <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Periode</th>
-                                                    <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Jatuh Tempo</th>
-                                                    <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Jumlah</th>
-                                                    <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Status</th>
-                                                    <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="divide-y divide-gray-200">
-                                                @forelse($resident->payments as $payment)
-                                                    <tr class="hover:bg-gray-50 transition-colors {{ ($payment->status === 'pending' && (!$firstUnpaid || $payment->id !== $firstUnpaid->id)) ? 'opacity-60' : '' }}">
-                                                        <td class="px-4 py-3 text-xs sm:text-sm text-gray-900">
-                                                            {{ $payment->billing_month->format('F Y') }}
-                                                        </td>
-                                                        <td class="px-4 py-3 text-xs sm:text-sm text-gray-600">
-                                                            {{ $payment->due_date->format('d M Y') }}
-                                                        </td>
-                                                        <td class="px-4 py-3 text-xs sm:text-sm font-semibold text-gray-900">
-                                                            Rp {{ number_format($payment->amount, 0, ',', '.') }}
-                                                        </td>
-                                                        <td class="px-4 py-3">
-                                                            @if($payment->status === 'paid')
-                                                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold whitespace-nowrap">
-                                                                    <i class="fas fa-check-circle mr-1"></i>Lunas
-                                                                </span>
-                                                            @elseif($payment->status === 'pending')
-                                                                @if($firstUnpaid && $payment->id === $firstUnpaid->id)
-                                                                    <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold whitespace-nowrap">
-                                                                        <i class="fas fa-clock mr-1"></i>Pending
-                                                                    </span>
-                                                                @else
-                                                                    <span class="px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold whitespace-nowrap">
-                                                                        <i class="fas fa-lock mr-1"></i>Terkunci
-                                                                    </span>
-                                                                @endif
-                                                            @elseif($payment->status === 'failed')
-                                                                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold whitespace-nowrap">
-                                                                    <i class="fas fa-times-circle mr-1"></i>Gagal
-                                                                </span>
-                                                            @else
-                                                                <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold whitespace-nowrap">
-                                                                    {{ ucfirst($payment->status) }}
-                                                                </span>
-                                                            @endif
-                                                        </td>
-                                                        <td class="px-4 py-3">
-                                                            @if($payment->status === 'pending')
-                                                                @if($firstUnpaid && $payment->id === $firstUnpaid->id)
-                                                                    <a href="{{ route('tenant.payment.midtrans', $payment->id) }}"
-                                                                       class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 font-semibold text-xs sm:text-sm transition-colors">
-                                                                        <i class="fas fa-credit-card"></i>
-                                                                        <span>Bayar Sekarang</span>
-                                                                    </a>
-                                                                @else
-                                                                    <span class="inline-flex items-center gap-1 text-gray-400 text-xs sm:text-sm cursor-not-allowed"
-                                                                          title="Selesaikan pembayaran bulan sebelumnya dulu">
-                                                                        <i class="fas fa-lock"></i>
-                                                                        <span>Terkunci</span>
-                                                                    </span>
-                                                                @endif
-                                                            @elseif($payment->status === 'paid')
-                                                                <div class="flex flex-col gap-1">
-                                                                    <span class="text-gray-400 text-xs sm:text-sm">
-                                                                        <i class="fas fa-receipt mr-1"></i>{{ $payment->paid_at->format('d M Y') }}
-                                                                    </span>
-                                                                    <a href="{{ route('tenant.payment.invoice', $payment->id) }}"
-                                                                       target="_blank"
-                                                                       class="inline-flex items-center gap-1 text-green-600 hover:text-green-700 font-semibold text-xs sm:text-sm transition-colors">
-                                                                        <i class="fas fa-file-invoice"></i>
-                                                                        <span>Lihat Faktur</span>
-                                                                    </a>
-                                                                </div>
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                @empty
-                                                    <tr>
-                                                        <td colspan="5" class="px-4 py-8 text-center text-gray-500 text-sm">
-                                                            Tidak ada riwayat pembayaran
-                                                        </td>
-                                                    </tr>
-                                                @endforelse
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-
-        </div>
-    </section>
-
-    {{-- Cancel Confirmation Modal --}}
-    <div id="cancelModal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
-        <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50" onclick="closeCancelModal()"></div>
-
-        <div class="modal-container bg-white w-11/12 sm:w-96 mx-auto rounded-xl sm:rounded-2xl shadow-2xl z-50 overflow-y-auto animate-fade-in-up">
-            <div class="modal-content p-6 sm:p-8 text-center">
-                <div class="w-16 h-16 sm:w-20 sm:h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                    <i class="fas fa-exclamation-triangle text-3xl sm:text-4xl text-red-600"></i>
-                </div>
-
-                <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">Batalkan Booking?</h3>
-                <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
-                    Apakah Anda yakin ingin membatalkan booking ini? Tindakan ini tidak dapat dibatalkan.
-                </p>
-
-                <form id="cancelForm" method="POST" action="">
-                    @csrf
-                    @method('DELETE')
-
-                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                        <button type="button"
-                                onclick="closeCancelModal()"
-                                class="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-gray-300 text-gray-700 rounded-lg sm:rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 text-sm sm:text-base active:scale-[0.98]">
-                            Batal
-                        </button>
-                        <button type="submit"
-                                class="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-red-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base active:scale-[0.98]">
-                            Ya, Batalkan
-                        </button>
-                    </div>
-                </form>
-            </div>
+    <!-- Breadcrumbs -->
+    <div class="bg-white border-b border-slate-100 py-3.5 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex items-center gap-2 text-xs font-semibold text-slate-500">
+            <a href="{{ route('landing') }}" class="hover:text-amber-600 transition-colors">Beranda</a>
+            <i class="fas fa-chevron-right text-[10px] text-slate-300"></i>
+            <a href="{{ route('tenant.dashboard') }}" class="hover:text-amber-600 transition-colors">Portal Penghuni</a>
+            <i class="fas fa-chevron-right text-[10px] text-slate-300"></i>
+            <span class="text-slate-900 font-bold">Reservasi & Tagihan</span>
         </div>
     </div>
 
+    <main class="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="mb-8">
+            <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-black uppercase tracking-wider">
+                Resident Portal
+            </span>
+            <h1 class="text-2xl sm:text-4xl font-extrabold font-heading text-slate-900 tracking-tight mt-2">
+                Daftar Reservasi & Pembayaran
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Pantau masa sewa hunian, unduh faktur resmi, dan lunasi tagihan berjalan.
+            </p>
+        </div>
+
+        @if(session('success'))
+            <div class="mb-6 p-4 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold flex items-center gap-2">
+                <i class="fas fa-check-circle text-base"></i>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="mb-6 p-4 rounded-2xl bg-rose-50 text-rose-800 border border-rose-200 text-xs font-semibold flex items-center gap-2">
+                <i class="fas fa-exclamation-circle text-base"></i>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+
+        @if($residents->isEmpty())
+            <div class="bg-white rounded-3xl border border-slate-200/80 p-12 text-center shadow-sm space-y-4 max-w-md mx-auto">
+                <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl mx-auto">
+                    <i class="fas fa-bed"></i>
+                </div>
+                <h3 class="text-lg font-bold font-heading text-slate-900">Belum Ada Riwayat Sewa</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    Anda belum memesan kamar apapun. Temukan kamar eksklusif dengan fasilitas lengkap sekarang.
+                </p>
+                <a href="{{ route('landing') }}#kamar" class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-slate-900 text-amber-400 hover:bg-slate-800 font-bold text-xs shadow-lg transition-all">
+                    <span>Jelajahi Kamar Tersedia</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        @else
+            <div class="space-y-8">
+                @foreach($residents as $resident)
+                    @php
+                        $firstUnpaid = $resident->payments->whereNotIn('status', ['paid', 'cancelled'])->sortBy('billing_month')->first();
+                    @endphp
+
+                    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-md overflow-hidden">
+                        
+                        <!-- CARD HEADER -->
+                        <div class="p-6 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <span class="px-2.5 py-0.5 rounded-lg bg-amber-500 text-slate-950 text-[10px] font-black uppercase">
+                                    Lantai {{ $resident->room->floor }} • {{ $resident->room->size ?? 24 }} m²
+                                </span>
+                                <h3 class="text-xl font-black font-heading text-white mt-1">{{ $resident->room->name }}</h3>
+                                <p class="text-xs text-slate-300 flex items-center gap-1.5 mt-0.5">
+                                    <i class="fas fa-map-marker-alt text-amber-400"></i>
+                                    <span>{{ $resident->room->property->name ?? 'Cemara Residence Bandung' }}</span>
+                                </p>
+                            </div>
+
+                            <div>
+                                @if($resident->status === 'active')
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-bold">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                        Sewa Aktif
+                                    </span>
+                                @elseif($resident->status === 'inactive')
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 text-xs font-bold">
+                                        <i class="fas fa-clock"></i>
+                                        Menunggu Pembayaran
+                                    </span>
+                                @elseif($resident->status === 'cancelled')
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-400/30 text-xs font-bold">
+                                        <i class="fas fa-ban"></i>
+                                        Dibatalkan
+                                    </span>
+                                @else
+                                    <span class="px-3 py-1.5 rounded-full bg-slate-800 text-slate-300 text-xs font-bold">
+                                        {{ ucfirst($resident->status) }}
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- CONTRACT DETAILS -->
+                        <div class="p-6 border-b border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase">Tanggal Masuk</div>
+                                <div class="text-xs font-bold text-slate-900 mt-0.5">{{ $resident->start_date->format('d M Y') }}</div>
+                            </div>
+                            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase">Tanggal Berakhir</div>
+                                <div class="text-xs font-bold text-slate-900 mt-0.5">{{ $resident->end_date->format('d M Y') }}</div>
+                            </div>
+                            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase">Total Durasi</div>
+                                <div class="text-xs font-bold text-slate-900 mt-0.5">{{ $resident->getDurationInMonths() }} Bulan</div>
+                            </div>
+                        </div>
+
+                        <!-- BILLING INVOICES TABLE -->
+                        <div class="p-6 space-y-4">
+                            <h4 class="text-sm font-bold font-heading text-slate-900 uppercase tracking-wider">Jadwal Tagihan & Faktur</h4>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs">
+                                    <thead>
+                                        <tr class="text-slate-400 border-b border-slate-100 text-[10px] uppercase font-bold text-left">
+                                            <th class="pb-3">Periode</th>
+                                            <th class="pb-3">Jatuh Tempo</th>
+                                            <th class="pb-3">Nominal</th>
+                                            <th class="pb-3">Status</th>
+                                            <th class="pb-3 text-right">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 font-medium">
+                                        @forelse($resident->payments as $payment)
+                                            <tr>
+                                                <td class="py-3 font-bold text-slate-900">{{ $payment->billing_month ? $payment->billing_month->format('F Y') : '-' }}</td>
+                                                <td class="py-3 text-slate-600">{{ $payment->due_date ? $payment->due_date->format('d M Y') : '-' }}</td>
+                                                <td class="py-3 font-black text-slate-900">Rp {{ number_format($payment->amount, 0, ',', '.') }}</td>
+                                                <td class="py-3">
+                                                    @if($payment->status === 'paid')
+                                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                                                            <i class="fas fa-check"></i> Lunas
+                                                        </span>
+                                                    @elseif($payment->status === 'pending')
+                                                        @if($firstUnpaid && $payment->id === $firstUnpaid->id)
+                                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+                                                                <i class="fas fa-clock"></i> Belum Bayar
+                                                            </span>
+                                                        @else
+                                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">
+                                                                <i class="fas fa-lock"></i> Terkunci
+                                                            </span>
+                                                        @endif
+                                                    @else
+                                                        <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">{{ ucfirst($payment->status) }}</span>
+                                                    @endif
+                                                </td>
+                                                <td class="py-3 text-right">
+                                                    @if($payment->status === 'pending')
+                                                        @if($firstUnpaid && $payment->id === $firstUnpaid->id)
+                                                            <a href="{{ route('tenant.payment.midtrans', $payment->id) }}" 
+                                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-amber-400 hover:bg-slate-800 text-xs font-bold shadow-sm transition-all">
+                                                                <i class="fas fa-credit-card"></i> Bayar
+                                                            </a>
+                                                        @else
+                                                            <span class="text-[10px] text-slate-400 italic">Bulan sebelumnya belum lunas</span>
+                                                        @endif
+                                                    @elseif($payment->status === 'paid')
+                                                        <a href="{{ route('tenant.payment.invoice', $payment->id) }}" target="_blank"
+                                                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-bold transition-all">
+                                                            <i class="fas fa-file-invoice"></i> Faktur Resmi
+                                                        </a>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="5" class="py-4 text-center text-slate-400">Belum ada tagihan terbit.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
+    </main>
+
     @include('landing.footer')
-
-    <script>
-        function openCancelModal(residentId) {
-            const modal = document.getElementById('cancelModal');
-            const form = document.getElementById('cancelForm');
-            form.action = `/tenant/bookings/${residentId}`;
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            modal.classList.add('opacity-100', 'pointer-events-auto');
-            document.body.classList.add('modal-active');
-        }
-
-        function closeCancelModal() {
-            const modal = document.getElementById('cancelModal');
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modal.classList.remove('opacity-100', 'pointer-events-auto');
-            document.body.classList.remove('modal-active');
-        }
-
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeCancelModal();
-            }
-        });
-    </script>
 
 </body>
 </html>
