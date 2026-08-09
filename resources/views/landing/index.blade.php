@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
+    <link rel="icon" type="image/jpeg" href="{{ asset('favicon.jpg') }}">
+    <link rel="icon" type="image/jpeg" sizes="32x32" href="{{ asset('favicon.jpg') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
-    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/jpeg" href="{{ asset('favicon.jpg') }}">
 
     @php
         $schemaJson = \App\Services\SeoService::getLodgingBusinessSchema($globalProperty ?? null, $rooms ?? null, 4.9, 120);

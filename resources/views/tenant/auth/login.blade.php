@@ -20,7 +20,7 @@
 
             <!-- Logo Section -->
             <div class="flex flex-col items-center mb-8">
-                <img loading="lazy" decoding="async" src="{{ asset('favicon.ico') }}" alt="RumahKos Logo" class="w-16 h-16 mb-4">
+                <img loading="lazy" decoding="async" src="{{ asset('favicon.jpg') }}" alt="RumahKos Logo" class="w-16 h-16 mb-4">
 
                 <h1 class="text-slate-900 text-3xl font-semibold tracking-wide">
                     Login Penghuni

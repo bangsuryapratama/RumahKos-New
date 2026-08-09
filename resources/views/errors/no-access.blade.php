@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akses Terbatas - Cemara Living & Residence</title>
-    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <title>Akses Terbatas - RumahKos</title>
+    <link rel="icon" type="image/jpeg" href="{{ asset('favicon.jpg') }}">
 
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

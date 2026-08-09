@@ -53,7 +53,7 @@
 
                             {{-- Logo (Mobile Only) --}}
                             <div class="flex items-center gap-2 lg:hidden">
-                                <img loading="lazy" decoding="async" src="{{ asset('favicon.ico') }}" alt="RumahKos logo" class="w-6 h-6 object-contain">
+                                <img loading="lazy" decoding="async" src="{{ asset('favicon.jpg') }}" alt="RumahKos logo" class="w-6 h-6 object-contain">
                                 <span class="text-lg font-bold text-gray-900">
                                     Rumah<span class="text-blue-600">Kos</span>
                                 </span>

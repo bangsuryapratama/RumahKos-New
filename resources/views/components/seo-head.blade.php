@@ -20,8 +20,8 @@
 <link rel="canonical" href="{{ $seo['canonical'] }}">
 
 <!-- Favicon & Icons -->
-<link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-<link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
+<link rel="icon" type="image/jpeg" href="{{ asset('favicon.jpg') }}">
+<link rel="icon" type="image/jpeg" sizes="32x32" href="{{ asset('favicon.jpg') }}">
 <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
 
 <!-- Geo Tags for Local SEO (Bandung, Indonesia) -->
