@@ -13,14 +13,16 @@ use Illuminate\Support\Str;
 
 class SocialAuthController extends Controller
 {
-     public function redirect($provider)
+    public function redirect($provider)
     {
+        if (Auth::guard('tenant')->check()) {
+            Auth::guard('tenant')->logout();
+        }
+        if (Auth::guard('web')->check()) {
+            Auth::guard('web')->logout();
+        }
 
-    if (Auth::guard('tenant')->check()) {
-        Auth::guard('tenant')->logout();
-    }
-
-    return Socialite::driver($provider)->redirect();
+        return Socialite::driver($provider)->redirect();
     }
 
    public function callback($provider)
@@ -67,9 +69,12 @@ class SocialAuthController extends Controller
                 ->with('error', 'Akun ini bukan akun penghuni.');
         }
 
+        // Sync both web and tenant guards to prevent 403s and session mismatch
+        Auth::guard('web')->login($user, true);
         Auth::guard('tenant')->login($user, true);
 
-        return redirect()->route('tenant.dashboard');
+        // If intended URL is set (e.g. from booking redirect), go there
+        return redirect()->intended(route('tenant.dashboard'));
 
     } catch (\Exception $e) {
         return redirect()->route('tenant.login')

@@ -21,6 +21,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/*',
         ]);
 
+        // Redirect guests based on route
+        $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
+            if ($request->is('tenant') || $request->is('tenant/*')) {
+                return route('tenant.login');
+            }
+            return route('login');
+        });
+
         // Global middleware
         $middleware->append(SecurityHeaders::class);
 
