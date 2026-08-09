@@ -14,7 +14,7 @@ class RegisterController extends Controller
 {
     public function showRegistrationForm()
     {
-        return redirect()->route('register');
+        return view('tenant.auth.register');
     }
 
     public function register(Request $request)

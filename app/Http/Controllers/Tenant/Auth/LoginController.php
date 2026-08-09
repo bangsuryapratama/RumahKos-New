@@ -11,7 +11,7 @@ class LoginController extends Controller
 {
     public function showLoginForm()
     {
-        return redirect()->route('login');
+        return view('tenant.auth.login');
     }
 
     public function login(Request $request)
