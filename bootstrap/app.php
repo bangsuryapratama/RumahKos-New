@@ -23,10 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Redirect guests based on route
         $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
-            if ($request->is('tenant') || $request->is('tenant/*')) {
-                return route('tenant.login');
+            if ($request->is('admin') || $request->is('admin/*')) {
+                return route('login'); // Admin login route
             }
-            return route('login');
+            return route('tenant.login'); // Tenant login route
         });
 
         // Global middleware
