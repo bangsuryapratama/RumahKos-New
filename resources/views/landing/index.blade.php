@@ -3,596 +3,1108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/jpeg" href="{{ asset('favicon.jpg') }}">
-    <link rel="icon" type="image/jpeg" sizes="32x32" href="{{ asset('favicon.jpg') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
-    <link rel="icon" type="image/jpeg" href="{{ asset('favicon.jpg') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('favicon.webp') }}">
+    <link rel="icon" type="image/webp" sizes="64x64" href="{{ asset('favicon.webp') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.webp') }}">
+    <link rel="preload" as="image" href="{{ asset('images/hero-kos.webp') }}" type="image/webp" fetchpriority="high">
 
     @php
         $schemaJson = \App\Services\SeoService::getLodgingBusinessSchema($globalProperty ?? null, $rooms ?? null, 4.9, 120);
     @endphp
     @include('components.seo-head', [
-        'title' => $globalProperty->name ?? 'RumahKos - KosNyaman',
-        'description' => $globalProperty->description ?? 'Platform sewa kamar kost nyaman dan terpercaya.',
+        'title' => 'RumahKos - Sewa Kos & Co-Living di Berbagai Kota',
+        'description' => 'Cari dan sewa kamar kos aesthetic buat kuliah, kerja, atau keluarga di berbagai kota di Indonesia.',
         'schemaJson' => $schemaJson
     ])
     @include('components.meta-pixel')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        :root {
-            --blue: #2563eb;
-            --blue-dark: #1d4ed8;
-            --blue-light: #eff6ff;
-            --text: #111827;
-            --muted: #6b7280;
-            --border: #e5e7eb;
-        }
-
         * { box-sizing: border-box; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); overflow-x: hidden; }
-        html { scroll-behavior: smooth; }
-
-        /* ── Gradient text ── */
-        .gradient-text {
-            background: linear-gradient(135deg, #1d4ed8 0%, #06b6d4 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #0f172a;
+            overflow-x: hidden;
+            background-color: #ffffff;
+        }
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 4.5rem;
         }
 
-        /* ── Room card ── */
-        .room-card {
-            transition: transform .3s cubic-bezier(.22,.61,.36,1), box-shadow .3s ease;
-            will-change: transform;
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .first-screen-section {
+            min-height: 100vh;
+            min-height: 100svh;
         }
-        .room-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(37,99,235,.12); }
-        .room-card:hover .card-img { transform: scale(1.07); }
-        .card-img { transition: transform .5s ease; }
-
-        /* ── Filter active ── */
-        .filter-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
-        .hidden-filter { display: none !important; }
-
-        /* ── Horizontal scroll (mobile) ── */
-        .h-scroll {
-            display: flex; overflow-x: auto; gap: .75rem;
-            scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; -ms-overflow-style: none; padding-bottom: .5rem;
+        @media (min-width: 1024px) {
+            .full-screen-section {
+                min-height: calc(100vh - 4.5rem);
+                min-height: calc(100svh - 4.5rem);
+            }
         }
-        .h-scroll::-webkit-scrollbar { display: none; }
-        .h-scroll > * { scroll-snap-align: start; flex: 0 0 auto; }
 
-        /* ── Back to top ── */
+        /* Lightweight Pure-CSS Shimmer Skeleton */
+        @keyframes rkShimmer {
+            0%   { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .shimmer-bg {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 37%, #f1f5f9 63%);
+            background-size: 200% 100%;
+            animation: rkShimmer 1.3s ease-in-out infinite;
+        }
+        .shimmer-dark {
+            background: linear-gradient(90deg, #1e293b 25%, #334155 37%, #1e293b 63%);
+            background-size: 200% 100%;
+            animation: rkShimmer 1.3s ease-in-out infinite;
+        }
+        .img-fade {
+            opacity: 0;
+            transition: opacity 0.35s ease-out;
+        }
+        .img-fade.loaded {
+            opacity: 1;
+        }
+
+        /* Exact 50% width per banner slide on desktop so it never clips */
+        .banner-slide {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+        @media (min-width: 768px) {
+            .banner-slide {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+        }
+
+        .search-tab.active {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            border-color: #bfdbfe;
+            box-shadow: 0 1px 2px rgba(37, 99, 235, 0.08);
+        }
+        .mobile-cat-btn.active .mobile-cat-box {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        .mobile-cat-btn.active .mobile-cat-label {
+            color: #1d4ed8;
+            font-weight: 800;
+        }
+        .filter-chip.active {
+            background-color: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+        .page-btn.active {
+            background-color: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+        .hidden-room {
+            display: none !important;
+        }
+        .banner-dot.active {
+            width: 24px;
+            background-color: #2563eb;
+        }
         #backToTop {
-            position: fixed; bottom: 90px; right: 20px; z-index: 50;
-            opacity: 0; transform: translateY(8px);
-            transition: opacity .25s ease, transform .25s ease;
+            position: fixed;
+            bottom: 84px;
+            right: 20px;
+            z-index: 40;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
             pointer-events: none;
         }
-        #backToTop.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
-
-        /* ── Floating dev button ── */
-        #floatingDev {
-            position: fixed; bottom: 24px; right: 20px; z-index: 100;
-            animation: floatIn .5s .3s cubic-bezier(.22,.61,.36,1) both;
+        @media (min-width: 768px) {
+            #backToTop { bottom: 30px; right: 24px; }
         }
-        @keyframes floatIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to   { opacity: 1; transform: translateY(0); }
+        #backToTop.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
         }
-
-        /* ── Pulse badge ── */
-        @keyframes pulse-soft { 0%,100% { opacity:1; } 50% { opacity:.65; } }
-        .pulse { animation: pulse-soft 2.5s ease-in-out infinite; }
-
-        /* ── Fade up ── */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(24px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .fu   { animation: fadeUp .55s ease both; }
-        .fu-1 { animation: fadeUp .55s .1s ease both; }
-        .fu-2 { animation: fadeUp .55s .2s ease both; }
-        .fu-3 { animation: fadeUp .55s .35s ease both; }
-
-        /* ── Modal ── */
-        #devModal {
-            display: none; position: fixed; inset: 0; z-index: 9999;
-            background: rgba(0,0,0,.45); backdrop-filter: blur(4px);
-            align-items: center; justify-content: center;
-        }
-        #devModal.open { display: flex; }
-        #devModal .modal-box {
-            animation: fadeUp .3s ease both;
-        }
-
-        /* ── Stat card shimmer ── */
-        .stat-card {
-            position: relative; overflow: hidden;
-        }
-        .stat-card::after {
-            content: ''; position: absolute; inset: 0;
-            background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,.08) 50%, transparent 70%);
-            transform: translateX(-100%);
-            transition: transform .6s ease;
-        }
-        .stat-card:hover::after { transform: translateX(100%); }
-
-        /* ── Section fade-in on scroll ── */
-        .reveal { opacity: 0; transform: translateY(28px); transition: opacity .6s ease, transform .6s ease; }
-        .reveal.visible { opacity: 1; transform: translateY(0); }
-
-        /* ── Responsive image object ── */
-        img { max-width: 100%; }
-
-        /* ── Lucide icon sizing in buttons ── */
-        [data-lucide] { display: inline-block; }
-        #floatingDev [data-lucide] { width: 14px; height: 14px; }
-        .dev-close-btn [data-lucide] { width: 14px; height: 14px; }
-        .dev-modal-icon-ring [data-lucide] { width: 28px; height: 28px; color: #2563eb; }
-        .dev-status-pill [data-lucide] { width: 11px; height: 11px; }
     </style>
 </head>
-<body class="bg-white">
+<body class="bg-white antialiased pb-16 md:pb-0">
 
-{{-- Navbar --}}
 @include('landing.navbar')
 
-{{-- ════════════════════════════════════
-     HERO
-════════════════════════════════════ --}}
-<section class="relative bg-gradient-to-br from-blue-50 via-white to-cyan-50 pt-24 sm:pt-28 pb-14 sm:pb-20 overflow-hidden">
-    {{-- Decorative blobs --}}
-    <div class="absolute -top-16 -right-16 w-72 sm:w-96 h-72 sm:h-96 bg-blue-100 rounded-full opacity-40 blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-0 -left-10 w-52 sm:w-72 h-52 sm:h-72 bg-cyan-100 rounded-full opacity-30 blur-3xl pointer-events-none"></div>
+{{-- ══════════════════════════════════════════════════════════════════
+     LAYAR 1: HERO SEARCH + BANNER PROMO BERJALAN (PAS 1 LAYAR PENUH, KOTA TIDAK KE-SPILL)
+══════════════════════════════════════════════════════════════════ --}}
+<div class="first-screen-section flex flex-col bg-white border-b border-slate-200/80">
 
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+    {{-- Bagian Atas Layar 1: Hero & Search --}}
+    <section id="search-section" class="relative flex-1 flex flex-col justify-center overflow-hidden bg-slate-900 pt-24 sm:pt-28 pb-8 sm:pb-10">
+        <img src="{{ asset('images/hero-kos.webp') }}"
+             alt="RumahKos"
+             fetchpriority="high"
+             decoding="sync"
+             onerror="this.onerror=null;this.src='{{ asset('images/default-room.webp') }}';"
+             class="
+             absolute inset-0 w-full h-full object-cover object-center pointer-events-none">
 
-        <span class="inline-flex items-center gap-2 bg-blue-100 text-blue-700 text-xs sm:text-sm font-semibold px-4 py-2 rounded-full mb-5 pulse fu">
-            <i class="fas fa-map-marker-alt text-blue-500 text-xs"></i>
-            Lokasi di {{ $propertyLocation }}
-        </span>
+        {{-- Gradasi atas & bawah agar navbar putih dan judul sangat jelas terbaca --}}
+        <div class="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-slate-900/30 to-slate-950/70 pointer-events-none"></div>
 
-        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black leading-[1.12] tracking-tight mb-5 fu-1">
-            Kos Nyaman untuk<br>
-            <span class="gradient-text">Mahasiswa & Pekerja</span>
-        </h1>
-
-        <p class="text-gray-500 text-sm sm:text-base lg:text-lg max-w-xl mx-auto mb-8 leading-relaxed fu-2">
-            Fasilitas lengkap, WiFi cepat, kamar mandi dalam & keamanan 24 jam.
-            Mulai dari <strong class="text-blue-600 font-bold">Rp {{ number_format($minPrice / 1000000, 1) }}jt</strong>/bulan.
-        </p>
-
-        <div class="flex flex-col xs:flex-row gap-3 justify-center mb-10 fu-3">
-            <a href="#kamar"
-               class="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold px-6 py-3.5 rounded-2xl shadow-lg hover:shadow-blue-200 transition-all text-sm sm:text-base">
-                <i class="fas fa-bed"></i> Lihat Kamar Tersedia
-            </a>
-            <a href="#kontak"
-               class="inline-flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 active:scale-95 font-bold px-6 py-3.5 rounded-2xl transition-all text-sm sm:text-base">
-                <i class="fab fa-whatsapp text-green-500"></i> Hubungi Kami
-            </a>
-        </div>
-
-        {{-- Hero image --}}
-        <div class="rounded-3xl overflow-hidden shadow-2xl fu-3 ring-1 ring-black/5">
-            <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&h=560&fit=crop"
-                 alt="Interior Kosan"
-                 class="w-full h-48 sm:h-72 lg:h-96 object-cover">
-        </div>
-
-        {{-- Stats --}}
-        <div class="grid grid-cols-3 gap-3 sm:gap-4 mt-8 max-w-lg mx-auto">
-            @php $stats_items = [
-                ['val' => $availableRooms, 'label' => 'Kamar Tersedia', 'icon' => 'fa-bed'],
-                ['val' => $minPrice > 0 ? number_format($minPrice/1000000,1).'jt' : 'N/A', 'label' => 'Mulai /bulan', 'icon' => 'fa-tag'],
-                ['val' => '24/7', 'label' => 'Keamanan', 'icon' => 'fa-shield-halved'],
-            ]; @endphp
-            @foreach($stats_items as $s)
-            <div class="stat-card bg-white border border-gray-100 rounded-2xl p-3 sm:p-5 shadow-sm text-center hover:border-blue-200 transition-colors">
-                <i class="fas {{ $s['icon'] }} text-blue-500 text-sm mb-1 block"></i>
-                <div class="text-xl sm:text-3xl font-black text-blue-600">{{ $s['val'] }}</div>
-                <div class="text-gray-400 text-[10px] sm:text-xs mt-1 font-medium">{{ $s['label'] }}</div>
+        <div class="max-w-5xl w-full mx-auto px-4 sm:px-6 relative z-10">
+            {{-- Headline --}}
+            <div class="text-center mb-6 md:mb-12">
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-3 drop-shadow-md leading-tight">
+                    Rantau kuliah, kerja, atau berkeluarga?
+                </h1>
+                <p class="text-white/95 text-xs sm:text-sm md:text-base max-w-xl mx-auto drop-shadow font-medium leading-relaxed">
+                    Temukan kos & co-living aesthetic yang siap huni di berbagai kota. Dekat kampus & pusat kantor, harga transparan tanpa ribet.
+                </p>
             </div>
-            @endforeach
+
+            {{-- ═══ A. TAMPILAN KHUSUS MOBILE (< md): App-Style 4 Icon Grid + Compact Search Card ═══ --}}
+            <div class="md:hidden bg-white rounded-2xl shadow-2xl border border-slate-200/90 p-3.5">
+                <div class="grid grid-cols-4 gap-2 mb-3 pb-3 border-b border-slate-100">
+                    <button type="button" onclick="setSearchTypeTab('all')" id="mobTabAll" class="mobile-cat-btn active flex flex-col items-center gap-1">
+                        <div class="mobile-cat-box w-11 h-11 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center transition-all">
+                            <img src="{{ asset('images/icons/cat-semua.webp') }}" alt="Semua" class="w-6 h-6 object-contain">
+                        </div>
+                        <span class="mobile-cat-label text-[10px] font-semibold text-slate-600">Semua Kos</span>
+                    </button>
+                    <button type="button" onclick="setSearchTypeTab('campur')" id="mobTabCampur" class="mobile-cat-btn flex flex-col items-center gap-1">
+                        <div class="mobile-cat-box w-11 h-11 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center transition-all">
+                            <img src="{{ asset('images/icons/cat-campur.webp') }}" alt="Campur" class="w-6 h-6 object-contain">
+                        </div>
+                        <span class="mobile-cat-label text-[10px] font-semibold text-slate-600">Kos Campur</span>
+                    </button>
+                    <button type="button" onclick="setSearchTypeTab('putri')" id="mobTabPutri" class="mobile-cat-btn flex flex-col items-center gap-1">
+                        <div class="mobile-cat-box w-11 h-11 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center transition-all">
+                            <img src="{{ asset('images/icons/cat-putri.webp') }}" alt="Putri" class="w-6 h-6 object-contain">
+                        </div>
+                        <span class="mobile-cat-label text-[10px] font-semibold text-slate-600">Kos Putri</span>
+                    </button>
+                    <button type="button" onclick="setSearchTypeTab('putra')" id="mobTabPutra" class="mobile-cat-btn flex flex-col items-center gap-1">
+                        <div class="mobile-cat-box w-11 h-11 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center transition-all">
+                            <img src="{{ asset('images/icons/cat-putra.webp') }}" alt="Putra" class="w-6 h-6 object-contain">
+                        </div>
+                        <span class="mobile-cat-label text-[10px] font-semibold text-slate-600">Kos Putra</span>
+                    </button>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2">
+                            <img src="{{ asset('images/icons/ic-location.webp') }}" alt="" class="w-4 h-4 object-contain mr-2 shrink-0">
+                            <select onchange="syncMobileCity(this.value)" id="mobileFilterCity"
+                                    class="w-full bg-transparent border-0 p-0 text-xs font-bold text-slate-800 focus:ring-0 focus:outline-none truncate">
+                                <option value="all">Semua Kota</option>
+                                @foreach($availableCities ?? ['Bandung', 'Jakarta', 'Yogyakarta', 'Surabaya'] as $city)
+                                    <option value="{{ strtolower($city) }}">{{ $city }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2">
+                            <img src="{{ asset('images/icons/ic-price.webp') }}" alt="" class="w-4 h-4 object-contain mr-2 shrink-0">
+                            <select onchange="syncMobileBudget(this.value)" id="mobileFilterBudget"
+                                    class="w-full bg-transparent border-0 p-0 text-xs font-bold text-slate-800 focus:ring-0 focus:outline-none truncate">
+                                <option value="all">Semua Harga</option>
+                                <option value="under-15">&lt; Rp 1,5 Jt</option>
+                                <option value="15-25">Rp 1,5 - 2,5 Jt</option>
+                                <option value="above-25">&gt; Rp 2,5 Jt</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex items-stretch gap-2">
+                        <div class="flex-1 flex items-center bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2">
+                            <img src="{{ asset('images/icons/ic-search-building.webp') }}" alt="" class="w-4 h-4 object-contain mr-2 shrink-0">
+                            <input type="text" placeholder="Cari kosan..."
+                                   oninput="syncHeroKeyword(this.value)"
+                                   class="w-full bg-transparent border-0 p-0 text-xs font-semibold text-slate-800 placeholder-slate-400 focus:ring-0 focus:outline-none">
+                        </div>
+                        <button type="button" onclick="scrollToRooms()"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 shrink-0">
+                            <span>Cari</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ═══ B. TAMPILAN KHUSUS DESKTOP (md+): Floating Category Dock + Connected Search Bar ═══ --}}
+            <div class="hidden md:block bg-white rounded-2xl shadow-2xl border border-slate-200/90 px-6 pb-6 pt-4 max-w-4xl mx-auto relative">
+
+                {{-- Floating OTA Category Bar --}}
+                <div class="-mt-10 mb-5 flex justify-center">
+                    <div class="inline-flex items-center gap-2 bg-white rounded-full shadow-lg border border-slate-200/90 p-1.5">
+                        <button type="button" onclick="setSearchTypeTab('all')" id="tabAll"
+                                class="search-tab active flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-bold border border-transparent text-slate-700 hover:bg-slate-50 transition-all">
+                            <img src="{{ asset('images/icons/cat-semua.webp') }}" alt="" class="w-5 h-5 object-contain shrink-0">
+                            <span>Semua Kos</span>
+                        </button>
+                        <button type="button" onclick="setSearchTypeTab('campur')" id="tabCampur"
+                                class="search-tab flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-bold border border-transparent text-slate-700 hover:bg-slate-50 transition-all">
+                            <img src="{{ asset('images/icons/cat-campur.webp') }}" alt="" class="w-5 h-5 object-contain shrink-0">
+                            <span>Kos Campur</span>
+                        </button>
+                        <button type="button" onclick="setSearchTypeTab('putri')" id="tabPutri"
+                                class="search-tab flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-bold border border-transparent text-slate-700 hover:bg-slate-50 transition-all">
+                            <img src="{{ asset('images/icons/cat-putri.webp') }}" alt="" class="w-5 h-5 object-contain shrink-0">
+                            <span>Kos Putri</span>
+                        </button>
+                        <button type="button" onclick="setSearchTypeTab('putra')" id="tabPutra"
+                                class="search-tab flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-bold border border-transparent text-slate-700 hover:bg-slate-50 transition-all">
+                            <img src="{{ asset('images/icons/cat-putra.webp') }}" alt="" class="w-5 h-5 object-contain shrink-0">
+                            <span>Kos Putra</span>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Desktop Column Labels --}}
+                <div class="grid grid-cols-12 gap-0 mb-2 px-1">
+                    <div class="col-span-4 text-xs font-semibold text-slate-500">Kota, tujuan, atau lokasi</div>
+                    <div class="col-span-4 text-xs font-semibold text-slate-500 pl-3.5">Rentang Harga Bulanan</div>
+                    <div class="col-span-4 text-xs font-semibold text-slate-500 pl-3.5">Nama Kos atau Area</div>
+                </div>
+
+                {{-- Connected Input Bar --}}
+                <div class="border border-slate-200 rounded-xl overflow-hidden grid grid-cols-12 divide-x divide-slate-200 bg-slate-50/50">
+
+                    <div class="col-span-4 flex items-center px-3.5 py-3 hover:bg-white transition-colors">
+                        <img src="{{ asset('images/icons/ic-location.webp') }}" alt="" class="w-5 h-5 object-contain shrink-0 mr-2.5">
+                        <select id="filterCity" onchange="applyFilters(true)"
+                                class="w-full bg-transparent border-0 p-0 text-xs sm:text-sm font-bold text-slate-800 focus:ring-0 focus:outline-none cursor-pointer truncate">
+                            <option value="all">Semua Kota di Indonesia</option>
+                            @foreach($availableCities ?? ['Bandung', 'Jakarta', 'Yogyakarta', 'Surabaya'] as $city)
+                                <option value="{{ strtolower($city) }}">{{ $city }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-span-4 flex items-center px-3.5 py-3 hover:bg-white transition-colors">
+                        <img src="{{ asset('images/icons/ic-price.webp') }}" alt="" class="w-5 h-5 object-contain shrink-0 mr-2.5">
+                        <select id="filterBudget" onchange="applyFilters(true)"
+                                class="w-full bg-transparent border-0 p-0 text-xs sm:text-sm font-bold text-slate-800 focus:ring-0 focus:outline-none cursor-pointer truncate">
+                            <option value="all">Semua Rentang Harga</option>
+                            <option value="under-15">Di bawah Rp 1.500.000 / bln</option>
+                            <option value="15-25">Rp 1.500.000 - Rp 2.500.000 / bln</option>
+                            <option value="above-25">Di atas Rp 2.500.000 / bln</option>
+                        </select>
+                    </div>
+
+                    <div class="col-span-4 flex items-stretch">
+                        <div class="flex-1 flex items-center px-3.5 py-3 hover:bg-white transition-colors">
+                            <img src="{{ asset('images/icons/ic-search-building.webp') }}" alt="" class="w-5 h-5 object-contain shrink-0 mr-2.5">
+                            <input id="heroKeywordInput" type="text" placeholder="Cari kosan ..."
+                                   oninput="syncHeroKeyword(this.value)"
+                                   class="w-full bg-transparent border-0 p-0 text-xs sm:text-sm font-bold text-slate-800 placeholder-slate-400 focus:ring-0 focus:outline-none">
+                        </div>
+                        <button type="button" onclick="scrollToRooms()" aria-label="Cari Kos"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 flex items-center justify-center gap-1.5 transition-colors shrink-0 text-xs sm:text-sm">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <span>Cari</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
-    </div>
-</section>
+    </section>
 
-{{-- ════════════════════════════════════
-     FASILITAS
-════════════════════════════════════ --}}
-<section id="fasilitas" class="py-14 sm:py-20 bg-white">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    {{-- Bagian Bawah Layar 1: Banner Promo Berjalan Otomatis --}}
+    <section id="promo" class="bg-white py-4 sm:py-5">
+        <div class="max-w-6xl w-full mx-auto px-4 sm:px-6">
+            <div class="flex items-center justify-between mb-3">
+                <div>
+                    <h2 class="text-base sm:text-lg font-extrabold text-slate-900">Penawaran Spesial</h2>
+                    <p class="text-slate-500 text-xs mt-0.5">Klik banner untuk melihat pilihan kamar kos yang sesuai.</p>
+                </div>
 
-        <div class="text-center mb-10 reveal">
-            <span class="text-xs font-bold text-blue-500 uppercase tracking-widest">Fasilitas</span>
-            <h2 class="text-2xl sm:text-3xl font-black text-gray-900 mt-1 mb-2">Semua Sudah Tersedia</h2>
-            <p class="text-gray-400 text-sm sm:text-base">Tinggal bawa diri, semua sudah siap</p>
+                {{-- Slider Controls (Prev / Next Buttons) --}}
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="moveBannerSlide(-1)" aria-label="Banner Sebelumnya"
+                            class="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center shadow-sm transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <button type="button" onclick="moveBannerSlide(1)" aria-label="Banner Berikutnya"
+                            class="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center shadow-sm transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Auto-Sliding Banner Viewport --}}
+            <div class="relative overflow-hidden rounded-2xl"
+                 onmouseenter="pauseBannerAutoPlay()"
+                 onmouseleave="startBannerAutoPlay()"
+                 ontouchstart="pauseBannerAutoPlay()"
+                 ontouchend="startBannerAutoPlay()">
+
+                <div id="bannerTrack" class="flex -mx-1.5 transition-transform duration-700 ease-out">
+                    {{-- Slide 1 --}}
+                    <div class="banner-slide px-1.5">
+                        <div onclick="applyPromoFilter('under-15', 'all')"
+                             class="shimmer-bg group cursor-pointer rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-all">
+                            <img src="{{ asset('images/banners/promo-rantau.webp') }}"
+                                 alt="Promo Anak Rantau & Kuliah"
+                                 width="800" height="320"
+                                 decoding="sync"
+                                 onload="this.parentElement.classList.remove('shimmer-bg')"
+                                 class="w-full aspect-[5/2] object-cover block group-hover:scale-[1.02] transition-transform duration-300">
+                        </div>
+                    </div>
+
+                    {{-- Slide 2 --}}
+                    <div class="banner-slide px-1.5">
+                        <div onclick="applyPromoFilter('15-25', 'all')"
+                             class="shimmer-bg group cursor-pointer rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-all">
+                            <img src="{{ asset('images/banners/promo-pekerja.webp') }}"
+                                 alt="Paket Kerja & WFH Nyaman"
+                                 width="800" height="320"
+                                 decoding="sync"
+                                 onload="this.parentElement.classList.remove('shimmer-bg')"
+                                 class="w-full aspect-[5/2] object-cover block group-hover:scale-[1.02] transition-transform duration-300">
+                        </div>
+                    </div>
+
+                    {{-- Slide 3 --}}
+                    <div class="banner-slide px-1.5">
+                        <div onclick="applyPromoFilter('all', 'campur')"
+                             class="shimmer-bg group cursor-pointer rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-all">
+                            <img src="{{ asset('images/banners/promo-tahunan.webp') }}"
+                                 alt="Hemat Sewa & Keluarga Muda"
+                                 width="800" height="320"
+                                 decoding="sync"
+                                 onload="this.parentElement.classList.remove('shimmer-bg')"
+                                 class="w-full aspect-[5/2] object-cover block group-hover:scale-[1.02] transition-transform duration-300">
+                        </div>
+                    </div>
+
+                    {{-- Slide 4 --}}
+                    <div class="banner-slide px-1.5">
+                        <div onclick="applyPromoFilter('under-15', 'putri')"
+                             class="shimmer-bg group cursor-pointer rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-all">
+                            <img src="{{ asset('images/banners/promo-kampus.webp') }}"
+                                 alt="Kos Dekat Kampus Pilihan"
+                                 width="800" height="320"
+                                 decoding="sync"
+                                 onload="this.parentElement.classList.remove('shimmer-bg')"
+                                 class="w-full aspect-[5/2] object-cover block group-hover:scale-[1.02] transition-transform duration-300">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Indicator Dots --}}
+                <div class="flex items-center justify-center gap-1.5 mt-3" id="bannerDots">
+                    <button type="button" onclick="goToBannerSlide(0)" class="banner-dot active h-2 w-2 rounded-full bg-slate-300 transition-all"></button>
+                    <button type="button" onclick="goToBannerSlide(1)" class="banner-dot h-2 w-2 rounded-full bg-slate-300 transition-all"></button>
+                    <button type="button" onclick="goToBannerSlide(2)" class="banner-dot h-2 w-2 rounded-full bg-slate-300 transition-all"></button>
+                    <button type="button" onclick="goToBannerSlide(3)" class="banner-dot md:hidden h-2 w-2 rounded-full bg-slate-300 transition-all"></button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+{{-- ══════════════════════════════════════════════════════════════════
+     SECTION 2: KOTA POPULER (UKURAN BESAR & PROPORSIONAL)
+══════════════════════════════════════════════════════════════════ --}}
+<section id="kota" class="bg-white py-12 sm:py-16 border-b border-slate-200/80">
+    <div class="max-w-6xl w-full mx-auto px-4 sm:px-6">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-2">
+            <div>
+                <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900">Kota Populer Pilihan Perantau</h2>
+                <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Pilih kota tujuan untuk melihat kos & co-living yang tersedia.</p>
+            </div>
+            <a href="{{ route('rooms.search') }}"
+               class="text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-700 self-start sm:self-auto shrink-0">
+                Eksplorasi Semua Kota →
+            </a>
         </div>
 
         @php
-            $facilitiesCollection = $allFacilities ?? $FacilityAll ?? collect();
-            $facList = $facilitiesCollection->count() > 0
-                ? $facilitiesCollection->take(8)->map(fn($f) => ['icon'=>$f->icon,'name'=>$f->name])->toArray()
-                : [
-                    ['icon'=>'fas fa-bed',            'name'=>'Kasur & Lemari'],
-                    ['icon'=>'fas fa-wifi',            'name'=>'WiFi 100Mbps'],
-                    ['icon'=>'fas fa-shower',          'name'=>'K. Mandi Dalam'],
-                    ['icon'=>'fas fa-square-parking',  'name'=>'Parkir Motor'],
-                    ['icon'=>'fas fa-shield-halved',   'name'=>'Keamanan 24/7'],
-                    ['icon'=>'fas fa-kitchen-set',     'name'=>'Dapur Bersama'],
-                    ['icon'=>'fas fa-jug-detergent',   'name'=>'Laundry'],
-                    ['icon'=>'fas fa-snowflake',       'name'=>'AC (Opsional)'],
-                  ];
+            $cityCards = $popularCities ?? collect([
+                ['name' => 'Bandung', 'rooms_count' => 12, 'available_count' => 10, 'min_price' => 1400000, 'image' => asset('images/cities/bandung.webp')],
+                ['name' => 'Jakarta', 'rooms_count' => 2, 'available_count' => 2, 'min_price' => 2700000, 'image' => asset('images/cities/jakarta.webp')],
+                ['name' => 'Yogyakarta', 'rooms_count' => 2, 'available_count' => 2, 'min_price' => 1300000, 'image' => asset('images/cities/yogyakarta.webp')],
+                ['name' => 'Surabaya', 'rooms_count' => 2, 'available_count' => 2, 'min_price' => 1850000, 'image' => asset('images/cities/surabaya.webp')],
+            ]);
         @endphp
 
-        {{-- Mobile horizontal scroll --}}
-        <div class="sm:hidden h-scroll -mx-4 px-4">
-            @foreach($facList as $f)
-            <div class="flex flex-col items-center justify-center text-center bg-gradient-to-b from-blue-50 to-white border border-blue-100 rounded-2xl w-28 p-4 gap-2 shadow-sm">
-                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                    <i class="{{ $f['icon'] }} text-blue-600 text-sm"></i>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
+            @foreach($cityCards as $c)
+            <div onclick="selectCityFilter('{{ strtolower($c['name']) }}')"
+                 class="shimmer-dark group relative h-52 sm:h-64 lg:h-72 rounded-2xl overflow-hidden cursor-pointer border border-slate-200 bg-slate-800 shadow-sm hover:shadow-lg transition-all">
+                <img src="{{ $c['image'] }}"
+                     alt="Kos {{ $c['name'] }}"
+                     decoding="sync"
+                     onload="this.parentElement.classList.remove('shimmer-dark')"
+                     onerror="this.onerror=null;this.src='{{ asset('images/default-room.webp') }}';this.parentElement.classList.remove('shimmer-dark');"
+                     class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"></div>
+                <div class="absolute inset-0 p-4 sm:p-5 flex flex-col justify-end text-white">
+                    <h3 class="text-base sm:text-xl font-extrabold text-white leading-tight">{{ $c['name'] }}</h3>
+                    <p class="text-xs sm:text-sm text-slate-200 mt-1">{{ $c['available_count'] }} kamar tersedia</p>
+                    <p class="text-[11px] sm:text-xs text-sky-300 font-semibold mt-0.5">Mulai Rp {{ number_format($c['min_price'] / 1000000, 1) }}jt/bln</p>
                 </div>
-                <span class="text-xs font-semibold text-gray-700 leading-tight">{{ $f['name'] }}</span>
-            </div>
-            @endforeach
-        </div>
-
-        {{-- Desktop grid --}}
-        <div class="hidden sm:grid grid-cols-4 gap-4 reveal">
-            @foreach($facList as $f)
-            <div class="group flex flex-col items-center text-center bg-gradient-to-b from-blue-50 to-white border border-blue-100 rounded-2xl p-5 sm:p-6 gap-3 hover:shadow-lg hover:border-blue-300 hover:-translate-y-1 transition-all duration-300">
-                <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-110 transition-all duration-300">
-                    <i class="{{ $f['icon'] }} text-blue-600 text-lg"></i>
-                </div>
-                <span class="text-sm font-semibold text-gray-700">{{ $f['name'] }}</span>
             </div>
             @endforeach
         </div>
     </div>
 </section>
 
-{{-- ════════════════════════════════════
-     KAMAR
-════════════════════════════════════ --}}
-<section id="kamar" class="py-14 sm:py-20 bg-gray-50">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+{{-- ══════════════════════════════════════════════════════════════════
+     SECTION 3: DAFTAR KAMAR KOS (COMPACT CARDS: 4 KOLOM DESKTOP, 2 KOLOM MOBILE)
+══════════════════════════════════════════════════════════════════ --}}
+<section id="kamar" class="full-screen-section flex flex-col justify-center bg-slate-50 py-10 sm:py-12 border-b border-slate-200/80">
+    <div class="max-w-6xl w-full mx-auto px-3.5 sm:px-6">
 
-        <div class="text-center mb-8 reveal">
-            <span class="text-xs font-bold text-blue-500 uppercase tracking-widest">Kamar</span>
-            <h2 class="text-2xl sm:text-3xl font-black text-gray-900 mt-1 mb-2">Pilih Kamarmu</h2>
-            <p class="text-gray-400 text-sm sm:text-base">Temukan yang paling cocok untukmu</p>
+        {{-- Header & Controls Row --}}
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-5 gap-3">
+            <div>
+                <h2 class="text-lg sm:text-2xl font-extrabold text-slate-900">Rekomendasi Kamar Kos</h2>
+                <p class="text-slate-500 text-xs sm:text-sm mt-0.5">
+                    Menampilkan <span id="displayCount" class="font-bold text-slate-800">{{ $rooms->count() }}</span> pilihan kamar siap huni
+                </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                {{-- Search Input --}}
+                <div class="relative w-full sm:w-60">
+                    <input id="keywordInput" type="text" placeholder="Cari kosan..."
+                           oninput="applyFilters(true)"
+                           class="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600">
+                    <button type="button" onclick="clearKeyword()" id="clearKeywordBtn"
+                            class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-semibold">
+                        Hapus
+                    </button>
+                </div>
+
+                {{-- Filter Chips --}}
+                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                    <button type="button" onclick="setChipFilter('all')" data-chip="all"
+                            class="filter-chip active px-3 py-2 rounded-lg text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:border-slate-300 shrink-0">
+                        Semua
+                    </button>
+                    <button type="button" onclick="setChipFilter('available')" data-chip="available"
+                            class="filter-chip px-3 py-2 rounded-lg text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:border-slate-300 shrink-0">
+                        Tersedia
+                    </button>
+                    <button type="button" onclick="toggleSort('price-asc')" id="sortPriceBtn"
+                            class="filter-chip px-3 py-2 rounded-lg text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:border-slate-300 shrink-0">
+                        Harga Terendah
+                    </button>
+                </div>
+            </div>
         </div>
 
-        {{-- Search & Filter --}}
-        <div class="max-w-2xl mx-auto mb-6 space-y-3 reveal">
-            <div class="relative">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
-                <input id="searchInput" type="text" placeholder="Cari nama kamar..."
-                       oninput="searchRooms()"
-                       class="w-full pl-11 pr-4 py-3 sm:py-3.5 border border-gray-200 bg-white rounded-2xl text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-            </div>
-            <div class="flex flex-wrap gap-2 justify-center">
-                <button id="btnAvailable" onclick="filterAvailable()"
-                        class="filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:bg-blue-50 transition-all active:scale-95">
-                    <i class="fas fa-check-circle mr-1.5 text-green-500"></i>Hanya Tersedia
-                </button>
-                <button onclick="sortRooms('name-asc')"
-                        class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:bg-blue-50 transition-all active:scale-95">
-                    <i class="fas fa-arrow-down-a-z mr-1.5 text-blue-400"></i>A–Z
-                </button>
-                <button onclick="sortRooms('price-asc')"
-                        class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:bg-blue-50 transition-all active:scale-95">
-                    <i class="fas fa-tag mr-1.5 text-blue-400"></i>Harga Terendah
-                </button>
-            </div>
-        </div>
-
-        {{-- Count --}}
-        <p class="text-center text-xs sm:text-sm text-gray-400 mb-6">
-            Menampilkan <strong id="displayCount" class="text-gray-700">0</strong> dari
-            <strong id="totalCount" class="text-gray-700">0</strong> kamar
-        </p>
-
-        {{-- Grid --}}
-        <div id="roomsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            @forelse($rooms as $room)
-                @php
-                    $avg   = $room->reviews->avg('rating') ?? 0;
-                    $rcnt  = $room->reviews->count();
-                    $cycle = match($room->billing_cycle ?? '') {
-                        'daily'   => 'hari',
-                        'weekly'  => 'minggu',
-                        'monthly' => 'bulan',
-                        default   => 'tahun'
-                    };
-                @endphp
-
-                <a href="{{ route('rooms.detail', $room->id) }}"
-                   class="room-card bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden block group"
-                   data-status="{{ $room->status }}"
-                   data-name="{{ strtolower($room->name) }}"
-                   data-price="{{ $room->price }}">
-
-                    {{-- Image --}}
-                    <div class="relative h-44 sm:h-48 overflow-hidden bg-gray-100">
-                        @if($room->image)
-                            <img loading="lazy" decoding="async" src="{{ asset('storage/'.$room->image) }}" alt="{{ $room->name }}"
-                                 loading="lazy" decoding="async" class="card-img w-full h-full object-cover">
-                        @else
-                            <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&h=400&fit=crop"
-                                 alt="{{ $room->name }}" loading="lazy" decoding="async" class="card-img w-full h-full object-cover">
-                        @endif
-
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
-
-                        {{-- Status badge --}}
-                        <div class="absolute top-3 right-3">
-                            @if($room->status == 'available')
-                                <span class="inline-flex items-center gap-1.5 bg-green-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow">
-                                    <span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>Tersedia
-                                </span>
-                            @elseif($room->status == 'occupied')
-                                <span class="inline-flex items-center gap-1.5 bg-red-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow">
-                                    <span class="w-1.5 h-1.5 bg-white rounded-full"></span>Terisi
-                                </span>
-                            @else
-                                <span class="inline-flex items-center gap-1.5 bg-orange-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow">
-                                    <i class="fas fa-tools text-[9px]"></i>Perbaikan
-                                </span>
-                            @endif
+        {{-- Lightweight Shimmer Skeleton Grid (Shown briefly on load & filter transitions) --}}
+        <div id="roomsShimmerGrid" class="hidden grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            @for($s = 0; $s < 8; $s++)
+                <div class="bg-white rounded-xl border border-slate-200/80 overflow-hidden flex flex-col">
+                    <div class="h-28 sm:h-32 shimmer-bg"></div>
+                    <div class="p-2.5 sm:p-3 space-y-2">
+                        <div class="flex justify-between gap-2">
+                            <div class="h-3 w-24 rounded shimmer-bg"></div>
+                            <div class="h-3 w-8 rounded shimmer-bg"></div>
                         </div>
-
-                        {{-- Property name --}}
-                        <div class="absolute bottom-3 left-3">
-                            <span class="text-[11px] text-white bg-black/55 px-2.5 py-1 rounded-full backdrop-blur-sm font-medium">
-                                <i class="fas fa-building mr-1 opacity-70 text-[9px]"></i>{{ $room->property?->name ?? 'RumahKos' }}
-                            </span>
+                        <div class="h-3.5 w-3/4 rounded shimmer-bg"></div>
+                        <div class="h-2.5 w-1/2 rounded shimmer-bg"></div>
+                        <div class="pt-2 border-t border-slate-100 flex justify-between items-center">
+                            <div class="h-4 w-24 rounded shimmer-bg"></div>
+                            <div class="h-3 w-10 rounded shimmer-bg"></div>
                         </div>
                     </div>
+                </div>
+            @endfor
+        </div>
 
-                    {{-- Body --}}
-                    <div class="p-4 space-y-2.5">
+        {{-- Compact Grid: 2 Columns on Mobile, 3 on Tablet, 4 on Desktop (8 per page) --}}
+        <div id="roomsContainer" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            @forelse($rooms as $room)
+                @php
+                    $avgRating = round($room->reviews->avg('rating') ?? 4.9, 1);
+                    $cycle = match($room->billing_cycle ?? 'monthly') {
+                        'daily'   => 'hr',
+                        'weekly'  => 'mgg',
+                        'monthly' => 'bln',
+                        default   => 'thn'
+                    };
+                    $cityName = $room->property?->city ?? 'Bandung';
+                    $propType = $room->property?->type ?? 'campur';
+                    $propName = $room->property?->name ?? 'RumahKos';
+                @endphp
 
-                        {{-- Name + rating --}}
-                        <div class="flex items-start justify-between gap-2">
-                            <h3 class="font-bold text-gray-900 text-sm sm:text-base leading-snug line-clamp-1 flex-1">{{ $room->name }}</h3>
-                            @if($rcnt > 0)
-                            <div class="flex items-center gap-1 bg-yellow-50 border border-yellow-100 px-2 py-0.5 rounded-lg shrink-0">
-                                <i class="fas fa-star text-yellow-400 text-[10px]"></i>
-                                <span class="text-xs font-bold text-gray-800">{{ number_format($avg,1) }}</span>
-                                <span class="text-[10px] text-gray-400">({{ $rcnt }})</span>
+                <a href="{{ route('rooms.detail', $room) }}"
+                   class="room-card bg-white rounded-xl border border-slate-200/90 hover:border-blue-300 hover:shadow-md transition-all overflow-hidden flex flex-col group"
+                   data-name="{{ strtolower($room->name) }}"
+                   data-city="{{ strtolower($cityName) }}"
+                   data-type="{{ strtolower($propType) }}"
+                   data-status="{{ $room->status }}"
+                   data-price="{{ $room->price }}"
+                   data-rating="{{ $avgRating }}">
+
+                    {{-- Compact Image with Shimmer Loader (Clean, No Badges) --}}
+                    <div class="relative h-28 sm:h-32 overflow-hidden bg-slate-100 shimmer-bg">
+                        @php
+                            $roomImgUrl = (!empty($room->image) && file_exists(public_path('storage/' . $room->image)))
+                                ? asset('storage/' . $room->image)
+                                : asset('images/default-room.webp');
+                        @endphp
+                        <img src="{{ $roomImgUrl }}"
+                             alt="{{ $room->name }}"
+                             decoding="sync"
+                             onload="this.parentElement.classList.remove('shimmer-bg')"
+                             onerror="this.onerror=null;this.src='{{ asset('images/default-room.webp') }}';this.parentElement.classList.remove('shimmer-bg');"
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+
+                    {{-- Compact Card Body --}}
+                    <div class="p-2.5 sm:p-3 flex-1 flex flex-col justify-between gap-2">
+                        <div>
+                            <div class="flex items-center justify-between gap-1 text-[10px] sm:text-[11px] text-slate-500 mb-0.5">
+                                <span class="font-semibold text-blue-600 truncate">{{ $cityName }} • Kos {{ ucfirst($propType) }}</span>
+                                <span class="font-bold text-slate-700 shrink-0">★ {{ number_format($avgRating, 1) }}</span>
                             </div>
-                            @endif
+                            <h3 class="font-bold text-slate-900 text-xs sm:text-[13px] group-hover:text-blue-600 transition-colors line-clamp-1">
+                                {{ $room->name }}
+                            </h3>
+                            <p class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 line-clamp-1">
+                                {{ $room->size ? $room->size . ' • ' : '' }}AC • WiFi • K. Mandi Dalam
+                            </p>
                         </div>
 
-                        {{-- Meta --}}
-                        <div class="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400">
-                            @if($room->size)
-                                <span><i class="fas fa-ruler-combined mr-1"></i>{{ $room->size }}</span>
-                            @endif
-                            <span><i class="fas fa-layer-group mr-1"></i>Lantai {{ $room->floor }}</span>
-                        </div>
-
-                        {{-- Facility tags --}}
-                        <div class="flex flex-wrap gap-1.5">
-                            @if($room->facilities->count() > 0)
-                                @foreach($room->facilities->take(3) as $fac)
-                                <span class="text-[11px] bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-lg font-semibold">
-                                    <i class="{{ $fac->icon }} mr-1 text-[9px]"></i>{{ $fac->name }}
-                                </span>
-                                @endforeach
-                                @if($room->facilities->count() > 3)
-                                <span class="text-[11px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-lg font-semibold">
-                                    +{{ $room->facilities->count() - 3 }}
-                                </span>
-                                @endif
-                            @else
-                                <span class="text-[11px] bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-lg font-semibold"><i class="fas fa-bed mr-1 text-[9px]"></i>Kasur</span>
-                                <span class="text-[11px] bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-lg font-semibold"><i class="fas fa-bath mr-1 text-[9px]"></i>K. Mandi</span>
-                            @endif
-                        </div>
-
-                        {{-- Price bar --}}
-                        <div class="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl px-4 py-3 mt-1">
+                        <div class="pt-2 border-t border-slate-100 flex items-baseline justify-between">
                             <div>
-                                <div class="text-white font-black text-sm sm:text-base leading-none">
+                                <span class="text-blue-600 font-extrabold text-xs sm:text-sm">
                                     Rp {{ number_format($room->price, 0, ',', '.') }}
-                                </div>
-                                <div class="text-blue-200 text-[11px] mt-0.5">per {{ $cycle }}</div>
+                                </span>
+                                <span class="text-[10px] text-slate-400">/{{ $cycle }}</span>
                             </div>
-                            <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/30 group-hover:translate-x-1 transition-all">
-                                <i class="fas fa-arrow-right text-white text-sm"></i>
-                            </div>
+                            <span class="hidden sm:inline text-[11px] font-bold text-slate-600 group-hover:text-blue-600">Lihat →</span>
                         </div>
-
-                        @if($room->status != 'available')
-                        <p class="text-center text-[11px] text-gray-400 italic">
-                            <i class="fas fa-info-circle mr-1"></i>Klik untuk info lebih lanjut
-                        </p>
-                        @endif
                     </div>
                 </a>
             @empty
-                <div class="col-span-full text-center py-16">
-                    <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-bed text-2xl text-blue-300"></i>
-                    </div>
-                    <h3 class="font-bold text-gray-800 mb-1">Belum Ada Kamar</h3>
-                    <p class="text-gray-500 text-sm mb-5">Silakan hubungi kami untuk info lebih lanjut.</p>
-                    <a href="https://wa.me/6283841806357"
-                       class="inline-flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition text-sm font-bold">
-                        <i class="fab fa-whatsapp"></i> Hubungi Kami
-                    </a>
+                <div class="col-span-full text-center py-12">
+                    <p class="text-slate-500 text-sm">Belum ada kamar yang terdaftar.</p>
                 </div>
             @endforelse
         </div>
 
-        {{-- No results --}}
-        <div id="noResults" class="hidden text-center py-14">
-            <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <i class="fas fa-search text-xl text-gray-300"></i>
-            </div>
-            <h3 class="font-bold text-gray-700 mb-1">Tidak ada hasil</h3>
-            <p class="text-sm text-gray-400">Coba kata kunci lain</p>
+        {{-- Pagination Controls & Link ke Halaman Cari & Daftar Kos --}}
+        <div id="paginationContainer" class="mt-5 flex items-center justify-center gap-1.5"></div>
+
+        <div class="mt-6 flex items-center justify-center">
+            <a href="{{ route('rooms.search') }}"
+               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-2xs transition-all">
+                <span>Lihat &amp; Filter Seluruh Daftar Kos</span>
+                <span>→</span>
+            </a>
         </div>
+
+        <div id="noResultsState" class="hidden text-center py-10">
+            <p class="text-slate-600 text-xs sm:text-sm font-medium mb-3">Tidak ada kamar kos yang sesuai filter.</p>
+            <button type="button" onclick="resetAllFilters()"
+                    class="bg-blue-600 text-white font-semibold text-xs px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                Reset Filter
+            </button>
+        </div>
+
     </div>
 </section>
 
-{{-- ════════════════════════════════════
-     LOKASI
-════════════════════════════════════ --}}
-<section id="lokasi" class="py-14 sm:py-20 bg-white">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+{{-- ══════════════════════════════════════════════════════════════════
+     SECTION 4: FASILITAS UMUM + KONTAK + FOOTER
+══════════════════════════════════════════════════════════════════ --}}
+<div class="full-screen-section flex flex-col justify-between bg-white">
 
-        <div class="text-center mb-10 reveal">
-            <span class="text-xs font-bold text-blue-500 uppercase tracking-widest">Lokasi</span>
-            <h2 class="text-2xl sm:text-3xl font-black text-gray-900 mt-1 mb-2">Lokasi Strategis</h2>
-            <p class="text-gray-400 text-sm sm:text-base max-w-lg mx-auto">Dekat kampus, minimarket, transportasi, dan area kuliner.</p>
-        </div>
+    {{-- Bagian Atas: Fasilitas Umum --}}
+    <section id="fasilitas" class="flex-1 flex flex-col justify-center py-8 sm:py-10">
+        <div class="max-w-6xl w-full mx-auto px-4 sm:px-6">
+            <div class="mb-5 text-center sm:text-left">
+                <h2 class="text-lg sm:text-2xl font-extrabold text-slate-900">Fasilitas Standar RumahKos</h2>
+                <p class="text-slate-500 text-xs sm:text-sm mt-0.5">Fasilitas penunjang kuliah, kerja, dan istirahat di setiap unit.</p>
+            </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch reveal">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                @php
+                    $mainFacilities = [
+                        ['name' => 'WiFi Cepat', 'desc' => 'Internet stabil 24 jam untuk kuliah & WFH.', 'icon' => asset('images/icons/fac-wifi.webp')],
+                        ['name' => 'AC Kamar', 'desc' => 'Pendingin ruangan dingin & rutin diservis.', 'icon' => asset('images/icons/fac-ac.webp')],
+                        ['name' => 'K. Mandi Dalam', 'desc' => 'Kamar mandi pribadi bersih + shower.', 'icon' => asset('images/icons/fac-bath.webp')],
+                        ['name' => 'Full Furnished', 'desc' => 'Kasur empuk, lemari, & meja belajar/kerja.', 'icon' => asset('images/icons/fac-bed.webp')],
+                        ['name' => 'Area Parkir', 'desc' => 'Parkir motor & mobil aman di dalam area.', 'icon' => asset('images/icons/fac-parking.webp')],
+                        ['name' => 'CCTV 24 Jam', 'desc' => 'Keamanan terpantau kamera 24 jam penuh.', 'icon' => asset('images/icons/fac-cctv.webp')],
+                        ['name' => 'Dapur Bersama', 'desc' => 'Kompor, kulkas, & dispenser air minum.', 'icon' => asset('images/icons/fac-kitchen.webp')],
+                        ['name' => 'Cuci & Jemur', 'desc' => 'Tersedia area cuci dan ruang jemur pakaian.', 'icon' => asset('images/icons/fac-laundry.webp')],
+                    ];
+                @endphp
 
-            {{-- Location list --}}
-            <div class="space-y-3">
-                @php $locs = [
-                    ['icon'=>'fas fa-graduation-cap','bg'=>'bg-blue-50','ic'=>'text-blue-600','title'=>'Kampus ITB','sub'=>'5 menit berkendara'],
-                    ['icon'=>'fas fa-shop','bg'=>'bg-green-50','ic'=>'text-green-600','title'=>'Minimarket','sub'=>'2 menit jalan kaki'],
-                    ['icon'=>'fas fa-bus','bg'=>'bg-purple-50','ic'=>'text-purple-600','title'=>'Transportasi Umum','sub'=>'Mudah diakses'],
-                    ['icon'=>'fas fa-utensils','bg'=>'bg-orange-50','ic'=>'text-orange-600','title'=>'Area Kuliner','sub'=>'Banyak tempat makan'],
-                ]; @endphp
-                @foreach($locs as $loc)
-                <div class="flex items-center gap-4 p-4 sm:p-5 rounded-2xl bg-gray-50 border border-gray-100 hover:bg-white hover:shadow-md hover:border-gray-200 transition-all group">
-                    <div class="w-12 h-12 sm:w-14 sm:h-14 {{ $loc['bg'] }} rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <i class="{{ $loc['icon'] }} {{ $loc['ic'] }} text-lg sm:text-xl"></i>
+                @foreach($mainFacilities as $fac)
+                <div class="p-3.5 sm:p-4 rounded-xl border border-slate-200/90 bg-slate-50/70 hover:bg-white hover:border-slate-300 transition-all flex items-start gap-3">
+                    <img src="{{ $fac['icon'] }}" alt="{{ $fac['name'] }}" width="40" height="40" loading="lazy" decoding="async" class="w-9 h-9 sm:w-10 sm:h-10 object-contain shrink-0">
+                    <div class="min-w-0">
+                        <h4 class="font-bold text-slate-900 text-xs sm:text-sm">{{ $fac['name'] }}</h4>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-snug">{{ $fac['desc'] }}</p>
                     </div>
-                    <div>
-                        <div class="font-bold text-gray-900 text-sm sm:text-base">{{ $loc['title'] }}</div>
-                        <div class="text-gray-400 text-xs sm:text-sm mt-0.5">{{ $loc['sub'] }}</div>
-                    </div>
-                    <i class="fas fa-chevron-right text-gray-300 ml-auto text-xs group-hover:text-blue-400 transition-colors"></i>
                 </div>
                 @endforeach
             </div>
+        </div>
+    </section>
 
-            {{-- Map --}}
-            <div class="rounded-2xl overflow-hidden shadow-lg border border-gray-100 h-60 sm:h-80 lg:h-full min-h-[280px]">
-                @if(!empty($mapsEmbed?->maps_embed))
-                    {!! $mapsEmbed->maps_embed !!}
-                @elseif(!empty($globalProperty?->maps_embed))
-                    {!! $globalProperty->maps_embed !!}
-                @else
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126748.42371987557!2d107.5731165!3d-6.9034443!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e6398252477f%3A0x146a1f93d3e815b2!2sBandung%2C%20Bandung%20City%2C%20West%20Java!5e0!3m2!1sen!2sid!4v1700000000000!5m2!1sen!2sid" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
-                @endif
+    {{-- Bagian Tengah & Bawah: Kontak Bar + Footer --}}
+    <div id="kontak" class="bg-slate-900 text-white">
+        <div class="border-b border-slate-800 py-6 px-4 sm:px-6">
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+                <div>
+                    <h2 class="text-base sm:text-lg font-bold text-white">
+                        Mau tanya ketersediaan kamar atau jadwal survei lokasi?
+                    </h2>
+                    <p class="text-slate-400 text-xs sm:text-sm mt-0.5">
+                        Tim admin kami siap bantu rekomendasikan kos sesuai kampus, kantor, atau budgetmu.
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center justify-center gap-2.5 shrink-0">
+                    <a href="https://wa.me/{{ !empty($globalProperty?->whatsapp) ? preg_replace('/[^0-9]/', '', $globalProperty->whatsapp) : '6283841806357' }}?text=Halo%20RumahKos,%20saya%20butuh%20info%20kamar%20kos"
+                       target="_blank"
+                       class="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors text-xs sm:text-sm">
+                        <span>Chat WhatsApp</span>
+                    </a>
+                    <a href="#kamar"
+                       class="inline-flex items-center justify-center gap-2 border border-slate-700 hover:bg-slate-800 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors text-xs sm:text-sm">
+                        <span>Lihat Kamar</span>
+                    </a>
+                </div>
             </div>
         </div>
+
+        @include('landing.footer')
     </div>
-</section>
 
-{{-- ════════════════════════════════════
-     CTA
-════════════════════════════════════ --}}
-<section id="kontak" class="py-14 sm:py-20 relative overflow-hidden bg-blue-600">
-    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px); background-size: 40px 40px;"></div>
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 text-center relative">
-        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-3">
-            Tertarik untuk Ngekos?
-        </h2>
-        <p class="text-blue-100 text-sm sm:text-base lg:text-lg mb-8 max-w-lg mx-auto">
-            Hubungi kami sekarang atau jadwalkan kunjungan langsung ke lokasi.
-        </p>
-        <div class="flex flex-col xs:flex-row gap-3 justify-center">
-             <a href="https://wa.me/{{ !empty($contact?->whatsapp) ? preg_replace('/[^0-9]/', '', $contact->whatsapp) : (!empty($globalProperty?->whatsapp) ? preg_replace('/[^0-9]/', '', $globalProperty->whatsapp) : '6283841806357') }}?text=Halo,%20saya%20ingin%20info%20lengkap%20tentang%20kos"
-                class="inline-flex items-center justify-center gap-2 bg-white text-blue-700 font-bold px-7 py-3.5 rounded-2xl hover:bg-blue-50 active:scale-95 transition-all shadow-md text-sm sm:text-base">
-                <i class="fab fa-whatsapp text-green-500 text-lg"></i> Chat WhatsApp
-            </a>
-            <a href="tel:+6283841806357"
-               class="inline-flex items-center justify-center gap-2 border-2 border-white/50 text-white font-bold px-7 py-3.5 rounded-2xl hover:bg-white/10 active:scale-95 transition-all text-sm sm:text-base">
-                <i class="fas fa-phone"></i> Telepon
-            </a>
-        </div>
-    </div>
-</section>
+</div>
 
-{{-- Footer --}}
-@include('landing.footer')
+{{-- ══════════════════════════════════════════════════════════════════
+     KHUSUS MOBILE (< md): STICKY BOTTOM APP NAVIGATION BAR
+══════════════════════════════════════════════════════════════════ --}}
+<nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1.5 grid grid-cols-5 text-center shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+    <a href="{{ route('landing') }}" class="flex flex-col items-center justify-center gap-0.5 text-blue-600">
+        <img src="{{ asset('images/icons/logo-rumahkos.webp') }}" alt="" class="w-5 h-5 object-contain">
+        <span class="text-[10px] font-bold">Beranda</span>
+    </a>
+    <a href="{{ route('rooms.search') }}" class="flex flex-col items-center justify-center gap-0.5 text-slate-500 hover:text-blue-600">
+        <img src="{{ asset('images/icons/ic-search-building.webp') }}" alt="" class="w-5 h-5 object-contain">
+        <span class="text-[10px] font-semibold">Cari Kos</span>
+    </a>
+    <a href="#promo" class="flex flex-col items-center justify-center gap-0.5 text-slate-500 hover:text-blue-600">
+        <img src="{{ asset('images/icons/ic-price.webp') }}" alt="" class="w-5 h-5 object-contain">
+        <span class="text-[10px] font-semibold">Promo</span>
+    </a>
+    <a href="#kota" class="flex flex-col items-center justify-center gap-0.5 text-slate-500 hover:text-blue-600">
+        <img src="{{ asset('images/icons/ic-location.webp') }}" alt="" class="w-5 h-5 object-contain">
+        <span class="text-[10px] font-semibold">Kota</span>
+    </a>
+    @auth('tenant')
+        <a href="{{ route('tenant.dashboard') }}" class="flex flex-col items-center justify-center gap-0.5 text-slate-500 hover:text-blue-600">
+            <img src="{{ asset('images/icons/cat-putra.webp') }}" alt="" class="w-5 h-5 object-contain">
+            <span class="text-[10px] font-semibold">Akun</span>
+        </a>
+    @else
+        <a href="{{ route('tenant.login') }}" class="flex flex-col items-center justify-center gap-0.5 text-slate-500 hover:text-blue-600">
+            <img src="{{ asset('images/icons/cat-putra.webp') }}" alt="" class="w-5 h-5 object-contain">
+            <span class="text-[10px] font-semibold">Masuk</span>
+        </a>
+    @endauth
+</nav>
 
-@include('landing.floating-message')
-
-{{-- ════════════════════════════════════
-     BACK TO TOP
-════════════════════════════════════ --}}
-<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})"
-        class="w-11 h-11 rounded-full bg-white border border-gray-200 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-gray-600 shadow-lg flex items-center justify-center transition-all active:scale-95">
-    <i class="fas fa-arrow-up text-sm"></i>
+<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Kembali ke atas"
+        class="w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-blue-600 hover:text-white shadow-md flex items-center justify-center transition-all">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+    </svg>
 </button>
 
-{{-- ════════════════════════════════════
-     SCRIPTS
-════════════════════════════════════ --}}
-<script src="https://unpkg.com/lucide@latest"></script>
 <script>
-    lucide.createIcons();
+    let activeType = 'all';
+    let activeChip = 'all';
+    let currentSort = null;
+    let currentPage = 1;
+    const perPage = 8;
 
-    let isAvailableFilter = false;
+    // ═══ AUTO-SLIDING BANNER CAROUSEL LOGIC ═══
+    let bannerIndex = 0;
+    let bannerTimer = null;
+    const totalBanners = 4;
+
+    function getMaxBannerIndex() {
+        return window.innerWidth >= 768 ? totalBanners - 2 : totalBanners - 1;
+    }
+
+    function updateBannerCarousel() {
+        const track = document.getElementById('bannerTrack');
+        if (!track || !track.children.length) return;
+        const maxIdx = getMaxBannerIndex();
+        if (bannerIndex > maxIdx) bannerIndex = 0;
+        if (bannerIndex < 0) bannerIndex = maxIdx;
+
+        const slideWidth = track.children[0].getBoundingClientRect().width;
+        track.style.transform = `translate3d(-${Math.round(bannerIndex * slideWidth)}px, 0, 0)`;
+
+        document.querySelectorAll('#bannerDots .banner-dot').forEach((dot, idx) => {
+            dot.classList.toggle('active', idx === bannerIndex);
+        });
+    }
+
+    function moveBannerSlide(delta) {
+        bannerIndex += delta;
+        updateBannerCarousel();
+    }
+
+    function goToBannerSlide(idx) {
+        bannerIndex = idx;
+        updateBannerCarousel();
+    }
+
+    function startBannerAutoPlay() {
+        stopBannerAutoPlay();
+        bannerTimer = setInterval(() => {
+            bannerIndex++;
+            updateBannerCarousel();
+        }, 3200);
+    }
+
+    function stopBannerAutoPlay() {
+        if (bannerTimer) {
+            clearInterval(bannerTimer);
+            bannerTimer = null;
+        }
+    }
+
+    function pauseBannerAutoPlay() {
+        stopBannerAutoPlay();
+    }
+
+    window.addEventListener('resize', updateBannerCarousel, { passive: true });
+
+    let shimmerTimer = null;
+
+    function triggerRoomsShimmer(matchingCount) {
+        const shimmerEl = document.getElementById('roomsShimmerGrid');
+        const containerEl = document.getElementById('roomsContainer');
+        const noResultsEl = document.getElementById('noResultsState');
+        if (!shimmerEl || !containerEl) return;
+
+        if (shimmerTimer) clearTimeout(shimmerTimer);
+
+        if (matchingCount === 0) {
+            shimmerEl.classList.add('hidden');
+            containerEl.classList.add('hidden');
+            noResultsEl?.classList.remove('hidden');
+            return;
+        }
+
+        noResultsEl?.classList.add('hidden');
+
+        // Cek apakah gambar di kartu yang tampil sudah ada di cache browser (complete).
+        // Kalau sudah ke-load di cache, tampilkan langsung TANPA blink shimmer!
+        const visibleImgs = Array.from(containerEl.querySelectorAll('.room-card:not(.hidden-room) img'));
+        const pendingImgs = visibleImgs.filter(img => !img.complete);
+
+        if (pendingImgs.length === 0) {
+            shimmerEl.classList.add('hidden');
+            containerEl.classList.remove('hidden');
+            return;
+        }
+
+        containerEl.classList.add('hidden');
+        shimmerEl.classList.remove('hidden');
+        shimmerEl.classList.add('grid');
+
+        const finishShimmer = () => {
+            if (shimmerTimer) clearTimeout(shimmerTimer);
+            shimmerEl.classList.add('hidden');
+            shimmerEl.classList.remove('grid');
+            containerEl.classList.remove('hidden');
+        };
+
+        let remaining = pendingImgs.length;
+        pendingImgs.forEach(img => {
+            const onDone = () => {
+                remaining--;
+                if (remaining <= 0) finishShimmer();
+            };
+            img.addEventListener('load', onDone, { once: true });
+            img.addEventListener('error', onDone, { once: true });
+        });
+
+        shimmerTimer = setTimeout(finishShimmer, 280);
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
-        updateCount();
-        initReveal();
+        // Strip shimmer background dari semua gambar yang sudah ada di cache browser
+        document.querySelectorAll('img').forEach(img => {
+            if (img.complete && img.parentElement) {
+                img.parentElement.classList.remove('shimmer-bg', 'shimmer-dark');
+            }
+        });
+
+        applyFilters(false, true);
+        updateBannerCarousel();
+        startBannerAutoPlay();
     });
 
     window.addEventListener('scroll', () => {
-        document.getElementById('backToTop').classList.toggle('show', window.scrollY > 350);
+        const btn = document.getElementById('backToTop');
+        if (btn) {
+            btn.classList.toggle('show', window.scrollY > 350);
+        }
     }, { passive: true });
 
-    function searchRooms() {
-        const term = document.getElementById('searchInput').value.toLowerCase().trim();
-        let visible = 0;
-        document.querySelectorAll('.room-card').forEach(card => {
-            const match = card.dataset.name.includes(term) &&
-                          (!isAvailableFilter || card.dataset.status === 'available');
-            card.classList.toggle('hidden-filter', !match);
-            if (match) visible++;
+    function scrollToRooms() {
+        const cityVal = (document.getElementById('filterCity')?.value || 'all').toLowerCase();
+        const budgetVal = document.getElementById('filterBudget')?.value || 'all';
+        const kwVal = (document.getElementById('heroKeywordInput')?.value || document.getElementById('keywordInput')?.value || '').trim();
+
+        const params = new URLSearchParams();
+        if (cityVal !== 'all') params.set('city', cityVal);
+        if (activeType !== 'all') params.set('type', activeType);
+        if (budgetVal !== 'all') params.set('budget', budgetVal);
+        if (kwVal) params.set('q', kwVal);
+
+        const qs = params.toString();
+        window.location.href = '{{ route("rooms.search") }}' + (qs ? '?' + qs : '');
+    }
+
+    function setSearchTypeTab(type) {
+        activeType = type;
+        currentPage = 1;
+        ['all', 'campur', 'putri', 'putra'].forEach(t => {
+            const cap = t.charAt(0).toUpperCase() + t.slice(1);
+            document.getElementById('tab' + cap)?.classList.toggle('active', t === type);
+            document.getElementById('mobTab' + cap)?.classList.toggle('active', t === type);
         });
-        updateCount();
-        document.getElementById('noResults').classList.toggle('hidden', visible > 0);
-        document.getElementById('roomsContainer').classList.toggle('hidden', visible === 0);
+        applyFilters();
     }
 
-    function filterAvailable() {
-        isAvailableFilter = !isAvailableFilter;
-        document.getElementById('btnAvailable').classList.toggle('active', isAvailableFilter);
-        searchRooms();
+    function syncMobileCity(val) {
+        const select = document.getElementById('filterCity');
+        if (select) select.value = val;
+        applyFilters(true);
     }
 
-    function sortRooms(by) {
-        const c = document.getElementById('roomsContainer');
-        [...document.querySelectorAll('.room-card')]
-            .sort((a, b) => by === 'name-asc'
-                ? a.dataset.name.localeCompare(b.dataset.name)
-                : +a.dataset.price - +b.dataset.price)
-            .forEach(el => c.appendChild(el));
+    function syncMobileBudget(val) {
+        const select = document.getElementById('filterBudget');
+        if (select) select.value = val;
+        applyFilters(true);
     }
 
-    function updateCount() {
-        document.getElementById('displayCount').textContent =
-            document.querySelectorAll('.room-card:not(.hidden-filter)').length;
-        document.getElementById('totalCount').textContent =
-            document.querySelectorAll('.room-card').length;
+    function applyPromoFilter(budgetVal, typeVal) {
+        const budgetSelect = document.getElementById('filterBudget');
+        const mobBudgetSelect = document.getElementById('mobileFilterBudget');
+        if (budgetSelect) budgetSelect.value = budgetVal;
+        if (mobBudgetSelect) mobBudgetSelect.value = budgetVal;
+        setSearchTypeTab(typeVal);
+        document.getElementById('kamar')?.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function initReveal() {
-        const obs = new IntersectionObserver((entries) => {
-            entries.forEach(e => {
-                if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
-            });
-        }, { threshold: 0.12 });
-        document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+    function selectCityFilter(cityName) {
+        const val = cityName.toLowerCase();
+        const select = document.getElementById('filterCity');
+        const mobSelect = document.getElementById('mobileFilterCity');
+        if (select) select.value = val;
+        if (mobSelect) mobSelect.value = val;
+        currentPage = 1;
+        applyFilters();
+        document.getElementById('kamar')?.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetCityFilter() {
+        const select = document.getElementById('filterCity');
+        const mobSelect = document.getElementById('mobileFilterCity');
+        if (select) select.value = 'all';
+        if (mobSelect) mobSelect.value = 'all';
+        currentPage = 1;
+        applyFilters();
+        document.getElementById('kamar')?.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function setChipFilter(chip) {
+        activeChip = chip;
+        currentPage = 1;
+        document.querySelectorAll('.filter-chip[data-chip]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.chip === chip);
+        });
+        applyFilters();
+    }
+
+    function toggleSort(type) {
+        const btn = document.getElementById('sortPriceBtn');
+        if (currentSort === type) {
+            currentSort = null;
+            btn?.classList.remove('active');
+        } else {
+            currentSort = type;
+            btn?.classList.add('active');
+        }
+        currentPage = 1;
+        applyFilters();
+    }
+
+    function syncHeroKeyword(val) {
+        const input = document.getElementById('keywordInput');
+        if (input) input.value = val;
+        currentPage = 1;
+        applyFilters();
+    }
+
+    function clearKeyword() {
+        const input = document.getElementById('keywordInput');
+        const heroInput = document.getElementById('heroKeywordInput');
+        if (input) input.value = '';
+        if (heroInput) heroInput.value = '';
+        document.getElementById('clearKeywordBtn')?.classList.add('hidden');
+        currentPage = 1;
+        applyFilters();
+    }
+
+    function resetAllFilters() {
+        ['filterCity', 'mobileFilterCity', 'filterBudget', 'mobileFilterBudget'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = 'all';
+        });
+        const keywordInput = document.getElementById('keywordInput');
+        const heroKeywordInput = document.getElementById('heroKeywordInput');
+        if (keywordInput) keywordInput.value = '';
+        if (heroKeywordInput) heroKeywordInput.value = '';
+
+        setSearchTypeTab('all');
+        activeChip = 'all';
+        currentSort = null;
+        currentPage = 1;
+
+        document.querySelectorAll('.filter-chip[data-chip]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.chip === 'all');
+        });
+        document.getElementById('sortPriceBtn')?.classList.remove('active');
+        document.getElementById('clearKeywordBtn')?.classList.add('hidden');
+
+        applyFilters();
+    }
+
+    function goToPage(page) {
+        currentPage = page;
+        applyFilters(false);
+        document.getElementById('kamar')?.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderPagination(totalMatching) {
+        const pagEl = document.getElementById('paginationContainer');
+        if (!pagEl) return;
+
+        const totalPages = Math.ceil(totalMatching / perPage);
+        if (totalPages <= 1) {
+            pagEl.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        for (let i = 1; i <= totalPages; i++) {
+            const activeClass = (i === currentPage) ? 'active' : 'bg-white text-slate-700 hover:bg-slate-100';
+            html += `<button type="button" onclick="goToPage(${i})" class="page-btn ${activeClass} w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs font-bold border border-slate-200 transition-colors">${i}</button>`;
+        }
+        pagEl.innerHTML = html;
+    }
+
+    function applyFilters(resetPage = false, withShimmer = true) {
+        if (resetPage) currentPage = 1;
+
+        const cityVal = (document.getElementById('filterCity')?.value || 'all').toLowerCase();
+        const budgetVal = document.getElementById('filterBudget')?.value || 'all';
+        const keywordVal = (document.getElementById('keywordInput')?.value || '').toLowerCase().trim();
+
+        const mobCity = document.getElementById('mobileFilterCity');
+        const mobBudget = document.getElementById('mobileFilterBudget');
+        if (mobCity && mobCity.value !== cityVal) mobCity.value = cityVal;
+        if (mobBudget && mobBudget.value !== budgetVal) mobBudget.value = budgetVal;
+
+        document.getElementById('clearKeywordBtn')?.classList.toggle('hidden', keywordVal.length === 0);
+
+        const cards = Array.from(document.querySelectorAll('.room-card'));
+
+        if (currentSort === 'price-asc') {
+            const container = document.getElementById('roomsContainer');
+            if (container) {
+                cards.sort((a, b) => (parseFloat(a.dataset.price) || 0) - (parseFloat(b.dataset.price) || 0))
+                     .forEach(card => container.appendChild(card));
+            }
+        }
+
+        const matchingCards = cards.filter(card => {
+            const cardName = card.dataset.name || '';
+            const cardCity = (card.dataset.city || '').toLowerCase();
+            const cardType = (card.dataset.type || '').toLowerCase();
+            const cardStatus = card.dataset.status || '';
+            const cardPrice = parseFloat(card.dataset.price) || 0;
+
+            const matchCity = (cityVal === 'all') || (cardCity === cityVal);
+            const matchTypeTab = (activeType === 'all') || (cardType === activeType);
+
+            let matchBudget = true;
+            if (budgetVal === 'under-15') matchBudget = cardPrice < 1500000;
+            else if (budgetVal === '15-25') matchBudget = cardPrice >= 1500000 && cardPrice <= 2500000;
+            else if (budgetVal === 'above-25') matchBudget = cardPrice > 2500000;
+
+            const matchChip = (activeChip !== 'available') || (cardStatus === 'available');
+            const matchKeyword = !keywordVal || cardName.includes(keywordVal) || cardCity.includes(keywordVal) || cardType.includes(keywordVal);
+
+            return matchCity && matchTypeTab && matchBudget && matchChip && matchKeyword;
+        });
+
+        const totalPages = Math.max(1, Math.ceil(matchingCards.length / perPage));
+        if (currentPage > totalPages) currentPage = 1;
+
+        const startIdx = (currentPage - 1) * perPage;
+        const endIdx = startIdx + perPage;
+        const visibleSet = new Set(matchingCards.slice(startIdx, endIdx));
+
+        cards.forEach(card => {
+            card.classList.toggle('hidden-room', !visibleSet.has(card));
+        });
+
+        const kamarSection = document.getElementById('kamar');
+        if (kamarSection) {
+            kamarSection.classList.toggle('full-screen-section', visibleSet.size > 4);
+        }
+
+        renderPagination(matchingCards.length);
+
+        const displayCountEl = document.getElementById('displayCount');
+        const noResultsEl = document.getElementById('noResultsState');
+        const containerEl = document.getElementById('roomsContainer');
+
+        if (displayCountEl) displayCountEl.textContent = matchingCards.length;
+
+        if (withShimmer) {
+            triggerRoomsShimmer(matchingCards.length);
+        } else if (noResultsEl && containerEl) {
+            noResultsEl.classList.toggle('hidden', matchingCards.length > 0);
+            containerEl.classList.toggle('hidden', matchingCards.length === 0);
+        }
     }
 </script>
 

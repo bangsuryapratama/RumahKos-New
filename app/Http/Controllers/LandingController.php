@@ -46,6 +46,37 @@ class LandingController extends Controller
             $propertyLocation = 'Bandung';
         }
 
+        $popularCities = Property::whereNotNull('city')
+            ->select('city')
+            ->distinct()
+            ->pluck('city')
+            ->map(function($city) {
+                $propertyIds = Property::where('city', $city)->pluck('id');
+                $roomsCount = Room::whereIn('property_id', $propertyIds)->count();
+                $availableCount = Room::whereIn('property_id', $propertyIds)->where('status', 'available')->count();
+                $minPrice = Room::whereIn('property_id', $propertyIds)->where('status', 'available')->min('price') 
+                    ?? Room::whereIn('property_id', $propertyIds)->min('price') 
+                    ?? 0;
+
+                return [
+                    'name' => $city,
+                    'rooms_count' => $roomsCount,
+                    'available_count' => $availableCount,
+                    'min_price' => $minPrice,
+                    'image' => match(strtolower($city)) {
+                        'jakarta' => asset('images/cities/jakarta.webp'),
+                        'bandung' => asset('images/cities/bandung.webp'),
+                        'yogyakarta', 'jogja' => asset('images/cities/yogyakarta.webp'),
+                        'surabaya' => asset('images/cities/surabaya.webp'),
+                        default => asset('images/cities/bandung.webp')
+                    }
+                ];
+            })
+            ->filter(fn($c) => $c['rooms_count'] > 0)
+            ->values();
+
+        $availableCities = $popularCities->pluck('name')->toArray();
+
         return view('landing.index', compact(
             'rooms',
             'availableRooms',
@@ -57,13 +88,86 @@ class LandingController extends Controller
             'FacilityAll',
             'properties',
             'propertyLocation',
+            'popularCities',
+            'availableCities',
+        ));
+    }
+
+    public function search(Request $request)
+    {
+        $rooms = Room::with(['property', 'facilities', 'reviews'])
+            ->orderBy('floor')
+            ->orderByRaw("CAST(REGEXP_REPLACE(name, '[^0-9]', '') AS UNSIGNED)")
+            ->get();
+
+        $allFacilities = Facility::whereHas('rooms')->orderBy('name')->get();
+        $properties = Property::with([
+            'rooms' => fn($q) => $q->with(['facilities', 'reviews'])->orderBy('floor'),
+        ])->withCount([
+            'rooms',
+            'rooms as available_rooms_count' => fn($q) => $q->where('status', 'available')
+        ])->get();
+
+        $popularCities = Property::whereNotNull('city')
+            ->select('city')
+            ->distinct()
+            ->pluck('city')
+            ->map(function($city) {
+                $propertyIds = Property::where('city', $city)->pluck('id');
+                return [
+                    'name' => $city,
+                    'rooms_count' => Room::whereIn('property_id', $propertyIds)->count(),
+                    'available_count' => Room::whereIn('property_id', $propertyIds)->where('status', 'available')->count(),
+                    'min_price' => Room::whereIn('property_id', $propertyIds)->min('price') ?? 0,
+                    'image' => match(strtolower($city)) {
+                        'jakarta' => asset('images/cities/jakarta.webp'),
+                        'bandung' => asset('images/cities/bandung.webp'),
+                        'yogyakarta', 'jogja' => asset('images/cities/yogyakarta.webp'),
+                        'surabaya' => asset('images/cities/surabaya.webp'),
+                        default => asset('images/cities/bandung.webp')
+                    }
+                ];
+            })
+            ->filter(fn($c) => $c['rooms_count'] > 0)
+            ->values();
+
+        $availableCities = $popularCities->pluck('name')->toArray();
+
+        $initialFilters = [
+            'city'   => strtolower($request->query('city', 'all')),
+            'type'   => strtolower($request->query('type', 'all')),
+            'budget' => $request->query('budget', 'all'),
+            'status' => $request->query('status', 'all'),
+            'sort'   => $request->query('sort', 'recommended'),
+            'view'   => $request->query('view', 'grid'),
+            'q'      => trim($request->query('q', '')),
+        ];
+
+        return view('landing.search', compact(
+            'rooms',
+            'allFacilities',
+            'properties',
+            'popularCities',
+            'availableCities',
+            'initialFilters'
         ));
     }
 
     public function roomDetail(Request $request, Room $room)
     {
         // Load relationships
-        $room->load(['property', 'facilities', 'reviews.user']);
+        $room->load(['property', 'facilities', 'reviews.user', 'reviews.latestReply']);
+
+        // Ensure room has a slug
+        if (empty($room->slug)) {
+            $room->slug = Room::generateUniqueSlug($room);
+            $room->saveQuietly();
+        }
+
+        // 301 Permanent Redirect if accessed via numeric ID or legacy /rooms/{id} path
+        if ($request->routeIs('rooms.show') || $request->segment(1) !== 'kamar' || $request->segment(2) !== $room->slug) {
+            return redirect()->route('rooms.detail', $room->slug, 301);
+        }
 
         // Get all reviews for rating calculation
         $allReviews = $room->reviews;
@@ -172,12 +276,43 @@ class LandingController extends Controller
             $reviewMessage = 'Silakan masuk ke akun Anda terlebih dahulu untuk memberikan ulasan.';
         }
 
-        // Similar rooms
+        // Similar rooms (prioritize same city/property first, then other available rooms)
         $similarRooms = Room::where('id', '!=', $room->id)
             ->where('status', 'available')
-            ->with(['facilities'])
-            ->take(3)
+            ->with(['property', 'facilities', 'reviews'])
+            ->orderByRaw('CASE WHEN property_id = ? THEN 0 ELSE 1 END', [$room->property_id])
+            ->take(4)
             ->get();
+
+        // Gallery images for professional Bento photo showcase
+        $mainImgUrl = (!empty($room->image) && file_exists(public_path('storage/' . $room->image)))
+            ? asset('storage/' . $room->image)
+            : asset('images/default-room.webp');
+
+        $citySlug = strtolower($room->property?->city ?? 'bandung');
+        $cityBannerMap = [
+            'bandung'    => asset('images/cities/bandung.webp'),
+            'jakarta'    => asset('images/cities/jakarta.webp'),
+            'yogyakarta' => asset('images/cities/yogyakarta.webp'),
+            'surabaya'   => asset('images/cities/surabaya.webp'),
+        ];
+        $cityBannerUrl = $cityBannerMap[$citySlug] ?? asset('images/hero-kos.webp');
+
+        $otherRoomPhotos = Room::where('id', '!=', $room->id)
+            ->whereNotNull('image')
+            ->orderByRaw('CASE WHEN property_id = ? THEN 0 ELSE 1 END', [$room->property_id])
+            ->take(4)
+            ->get()
+            ->map(fn ($r) => file_exists(public_path('storage/' . $r->image)) ? asset('storage/' . $r->image) : null)
+            ->filter()
+            ->values()
+            ->all();
+
+        $galleryPhotos = array_values(array_unique(array_filter(array_merge(
+            [$mainImgUrl],
+            $otherRoomPhotos,
+            [$cityBannerUrl, asset('images/hero-kos.webp')]
+        ))));
 
         return view('landing.room-detail', compact(
             'room',
@@ -190,6 +325,8 @@ class LandingController extends Controller
             'similarRooms',
             'canReview',
             'reviewMessage',
+            'galleryPhotos',
+            'cityBannerUrl'
         ));
     }
 

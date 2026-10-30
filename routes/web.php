@@ -43,8 +43,11 @@ Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
 */
 
 Route::get('/', [LandingController::class, 'index'])->name('landing');
-Route::get('/rooms/{room}', [LandingController::class, 'roomDetail'])->name('rooms.show');
-Route::get('/room/{room}', [LandingController::class, 'roomDetail'])->name('rooms.detail'); // Alias backward compatibility
+Route::get('/cari-kos', [LandingController::class, 'search'])->name('rooms.search');
+Route::get('/daftar-kos', fn(\Illuminate\Http\Request $r) => redirect()->route('rooms.search', $r->query()))->name('rooms.catalog');
+Route::get('/kamar/{room:slug}', [LandingController::class, 'roomDetail'])->name('rooms.detail');
+Route::get('/rooms/{room}', [LandingController::class, 'roomDetail'])->name('rooms.show'); // Backward compatibility & 301 SEO redirect
+Route::get('/room/{room}', [LandingController::class, 'roomDetail']); // Alias backward compatibility
 
 /*
 |--------------------------------------------------------------------------
@@ -140,8 +143,8 @@ Route::name('tenant.')->middleware('guest')->group(function () {
     Route::post('/register', [RegisterController::class, 'register']);
 
     // Social Login
-    Route::get('/auth/{provider}', [SocialAuthController::class, 'redirect'])->name('social.redirect');
-    Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
+    Route::get('/tenant/auth/{provider}', [SocialAuthController::class, 'redirect'])->name('social.redirect');
+    Route::get('/tenant/auth/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
 
     // Forgot / Reset Password
     Route::get('/password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');

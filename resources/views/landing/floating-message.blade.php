@@ -64,8 +64,8 @@
 /* ══ FAB ══════════════════════════════════════════════════════════ */
 #floating-dev-btn {
     position: fixed;
-    bottom: 24px;
-    right: 20px;
+    bottom: 74px;
+    right: 16px;
     z-index: 9999;
     display: flex;
     align-items: center;
@@ -73,9 +73,9 @@
     background: #111827;
     color: #fff;
     border: none;
-    padding: 11px 18px;
+    padding: 10px 16px;
     border-radius: 999px;
-    font-size: 13px;
+    font-size: 12px;
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -83,6 +83,14 @@
     box-shadow: 0 4px 24px rgba(0,0,0,.25), 0 1px 4px rgba(0,0,0,.15);
     transition: background .2s, transform .2s, box-shadow .2s;
     animation: fabFloatIn .5s .4s cubic-bezier(.22,.61,.36,1) both;
+}
+@media (min-width: 768px) {
+    #floating-dev-btn {
+        bottom: 24px;
+        right: 20px;
+        padding: 11px 18px;
+        font-size: 13px;
+    }
 }
 #floating-dev-btn:hover {
     background: #1f2937;

@@ -45,7 +45,7 @@
                                         <img loading="lazy" decoding="async" src="{{ asset('storage/' . $room->image) }}"
                                              alt="{{ $room->name }}" class="w-full h-full object-cover">
                                     @else
-                                        <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=200&h=200&fit=crop"
+                                        <img loading="lazy" decoding="async" src="{{ asset('images/default-room.webp') }}"
                                              alt="{{ $room->name }}" class="w-full h-full object-cover">
                                     @endif
                                 </div>

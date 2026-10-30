@@ -31,7 +31,7 @@ class SeoController extends Controller
 
         // 2. Each Available Room Detail
         foreach ($rooms as $room) {
-            $roomUrl = route('rooms.show', $room->id);
+            $roomUrl = route('rooms.detail', $room->slug ?: $room->id);
             $roomUpdated = $room->updated_at?->toAtomString() ?? now()->toAtomString();
             $roomImg = $room->image ? (str_starts_with($room->image, 'http') ? $room->image : asset('storage/' . $room->image)) : null;
 
@@ -83,6 +83,8 @@ class SeoController extends Controller
 
         $content = "User-agent: *\n";
         $content .= "Allow: /\n";
+        $content .= "Allow: /cari-kos\n";
+        $content .= "Allow: /kamar/\n";
         $content .= "Allow: /rooms/\n";
         $content .= "Disallow: /admin/\n";
         $content .= "Disallow: /tenant/dashboard\n";

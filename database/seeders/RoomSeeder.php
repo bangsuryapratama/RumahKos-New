@@ -162,6 +162,87 @@ class RoomSeeder extends Seeder
                 'title'         => 'Single Cozy E01',
                 'facilities'    => ['Kamar Mandi Dalam', 'WiFi Super Cepat 100Mbps', 'Kasur Springbed & Bantal', 'Lemari Pakaian 2 Pintu', 'Meja & Kursi Kerja', 'Parkir Motor Luas & Aman', 'Dapur Bersama Lengkap', 'Keamanan & CCTV 24 Jam'],
             ],
+            // Jakarta Rooms (Property 2)
+            [
+                'property_id'   => 2,
+                'name'          => 'Senopati Loft Suite J01',
+                'floor'         => 2,
+                'size'          => '4x5 m',
+                'status'        => 'available',
+                'price'         => 3200000,
+                'billing_cycle' => 'monthly',
+                'image_file'    => 'room_jakarta_1.webp',
+                'image_url'     => 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=1000&q=80',
+                'title'         => 'Senopati Loft Suite J01',
+                'facilities'    => ['Kamar Mandi Dalam', 'AC (Air Conditioner)', 'WiFi Super Cepat 100Mbps', 'Kasur Springbed & Bantal', 'Smart TV LED 32 Inch', 'Water Heater / Air Hangat', 'Keamanan & CCTV 24 Jam'],
+            ],
+            [
+                'property_id'   => 2,
+                'name'          => 'Senopati Studio J02',
+                'floor'         => 1,
+                'size'          => '3.5x4 m',
+                'status'        => 'available',
+                'price'         => 2700000,
+                'billing_cycle' => 'monthly',
+                'image_file'    => 'room_jakarta_2.webp',
+                'image_url'     => 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1000&q=80',
+                'title'         => 'Senopati Studio J02',
+                'facilities'    => ['Kamar Mandi Dalam', 'AC (Air Conditioner)', 'WiFi Super Cepat 100Mbps', 'Kasur Springbed & Bantal', 'Meja & Kursi Kerja', 'Water Heater / Air Hangat'],
+            ],
+            // Yogyakarta Rooms (Property 3)
+            [
+                'property_id'   => 3,
+                'name'          => 'Kalyana Deluxe Y01',
+                'floor'         => 1,
+                'size'          => '3.5x4.5 m',
+                'status'        => 'available',
+                'price'         => 1750000,
+                'billing_cycle' => 'monthly',
+                'image_file'    => 'room_jogja_1.webp',
+                'image_url'     => 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=1000&q=80',
+                'title'         => 'Kalyana Deluxe Y01',
+                'facilities'    => ['Kamar Mandi Dalam', 'AC (Air Conditioner)', 'WiFi Super Cepat 100Mbps', 'Kasur Springbed & Bantal', 'Meja & Kursi Kerja', 'Parkir Motor Luas & Aman'],
+            ],
+            [
+                'property_id'   => 3,
+                'name'          => 'Kalyana Standard Y02',
+                'floor'         => 2,
+                'size'          => '3x4 m',
+                'status'        => 'available',
+                'price'         => 1300000,
+                'billing_cycle' => 'monthly',
+                'image_file'    => 'room_jogja_2.webp',
+                'image_url'     => 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1000&q=80',
+                'title'         => 'Kalyana Standard Y02',
+                'facilities'    => ['Kamar Mandi Dalam', 'WiFi Super Cepat 100Mbps', 'Kasur Springbed & Bantal', 'Meja & Kursi Kerja', 'Dapur Bersama Lengkap'],
+            ],
+            // Surabaya Rooms (Property 4)
+            [
+                'property_id'   => 4,
+                'name'          => 'Gubeng Executive Suite S01',
+                'floor'         => 2,
+                'size'          => '4x5 m',
+                'status'        => 'available',
+                'price'         => 2400000,
+                'billing_cycle' => 'monthly',
+                'image_file'    => 'room_surabaya_1.webp',
+                'image_url'     => 'https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?w=1000&q=80',
+                'title'         => 'Gubeng Executive Suite S01',
+                'facilities'    => ['Kamar Mandi Dalam', 'AC (Air Conditioner)', 'WiFi Super Cepat 100Mbps', 'Kasur Springbed & Bantal', 'Smart TV LED 32 Inch', 'Water Heater / Air Hangat'],
+            ],
+            [
+                'property_id'   => 4,
+                'name'          => 'Gubeng Cozy Room S02',
+                'floor'         => 1,
+                'size'          => '3.5x4 m',
+                'status'        => 'available',
+                'price'         => 1850000,
+                'billing_cycle' => 'monthly',
+                'image_file'    => 'room_surabaya_2.webp',
+                'image_url'     => 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1000&q=80',
+                'title'         => 'Gubeng Cozy Room S02',
+                'facilities'    => ['Kamar Mandi Dalam', 'AC (Air Conditioner)', 'WiFi Super Cepat 100Mbps', 'Kasur Springbed & Bantal', 'Parkir Motor Luas & Aman'],
+            ],
         ];
 
         foreach ($roomsData as $item) {
@@ -178,10 +259,12 @@ class RoomSeeder extends Seeder
                 ]
             );
 
+            $assignedPropertyId = $item['property_id'] ?? $propertyId;
+
             $room = Room::updateOrCreate(
                 ['name' => $item['name']],
                 [
-                    'property_id'   => $propertyId,
+                    'property_id'   => $assignedPropertyId,
                     'floor'         => $item['floor'],
                     'size'          => $item['size'],
                     'status'        => $item['status'],

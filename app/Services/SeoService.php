@@ -13,10 +13,10 @@ class SeoService
      */
     public static function getMetadata($title = null, $description = null, $image = null, $type = 'website'): array
     {
-        $siteName = 'Cemara Living & Residence';
-        $defaultTitle = 'Cemara Living & Residence | Sewa Kost Eksklusif & Hotel-Grade Living Bandung';
-        $defaultDescription = 'Nikmati hunian eksklusif berfasilitas hotel bintang 5 di Bandung. Dilengkapi AC, WiFi 100Mbps, Water Heater, Smart TV, Kamar Mandi Dalam, Keamanan 24 Jam & Pembayaran Midtrans.';
-        $defaultImage = asset('images/hero-residence.webp');
+        $siteName = 'RumahKos';
+        $defaultTitle = 'RumahKos | Sewa Kos & Co-Living Aesthetic di Berbagai Kota';
+        $defaultDescription = 'Temukan kos & co-living aesthetic siap huni di Bandung, Jakarta, Yogyakarta, dan Surabaya. Dekat kampus & pusat kantor, harga transparan tanpa ribet.';
+        $defaultImage = asset('images/hero-kos.webp');
 
         // Normalize title
         if (is_object($title)) {
@@ -121,9 +121,10 @@ class SeoService
         $roomPrice = is_object($room) ? ($room->price ?? 2000000) : 2000000;
         $roomSize = is_object($room) ? ($room->size ?? 24) : 24;
         $roomId = is_object($room) ? ($room->id ?? 1) : 1;
+        $roomSlug = is_object($room) ? ($room->slug ?: $roomId) : $roomId;
         $roomStatus = is_object($room) ? ($room->status ?? 'available') : 'available';
 
-        $roomImg = asset('images/room-default.webp');
+        $roomImg = asset('images/default-room.webp');
         if (is_object($room) && !empty($room->image)) {
             $roomImg = str_starts_with($room->image, 'http') ? $room->image : asset('storage/' . $room->image);
         }
@@ -153,7 +154,7 @@ class SeoService
                 'priceCurrency' => 'IDR',
                 'availability' => $roomStatus === 'available' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
                 'validFrom' => now()->toDateString(),
-                'url' => url("/rooms/{$roomId}"),
+                'url' => url("/kamar/{$roomSlug}"),
             ],
             'aggregateRating' => [
                 '@type' => 'AggregateRating',

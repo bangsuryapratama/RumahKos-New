@@ -41,6 +41,8 @@ class Property extends Model
     protected $fillable = [
         'owner_id',
         'name',
+        'city',
+        'type',
         'address',
         'maps_embed',
         'phone',

@@ -6,6 +6,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>RumahKos - Admin</title>
+    <link rel="icon" type="image/webp" href="{{ asset('favicon.webp') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.webp') }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -53,7 +55,7 @@
 
                             {{-- Logo (Mobile Only) --}}
                             <div class="flex items-center gap-2 lg:hidden">
-                                <img loading="lazy" decoding="async" src="{{ asset('favicon.jpg') }}" alt="RumahKos logo" class="w-6 h-6 object-contain">
+                                <img loading="lazy" decoding="async" src="{{ asset('images/icons/logo-rumahkos.webp') }}" alt="RumahKos logo" class="w-7 h-7 rounded-lg object-contain">
                                 <span class="text-lg font-bold text-gray-900">
                                     Rumah<span class="text-blue-600">Kos</span>
                                 </span>
@@ -107,7 +109,7 @@
                                         <p class="text-sm font-semibold text-gray-900 truncate">{{ Auth::user()->name }}</p>
                                         <p class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</p>
                                     </div>
-                                    <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <a href="{{ route('admin.profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                         <i class="fas fa-user mr-2"></i>Profile
                                     </a>
                                     <div class="border-t border-gray-100 mt-2 pt-2">

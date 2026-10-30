@@ -4,11 +4,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 /**
  * @property int $id
  * @property int $property_id
  * @property string $name
+ * @property string|null $slug
  * @property int|null $floor
  * @property string|null $size
  * @property string $status
@@ -46,6 +48,7 @@ class Room extends Model
     protected $fillable = [
         'property_id',
         'name',
+        'slug',
         'floor',
         'size',
         'status',
@@ -58,6 +61,51 @@ class Room extends Model
         'price' => 'integer',
         'floor' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Room $room) {
+            if (empty($room->slug) || ($room->isDirty('name') && empty($room->getOriginal('slug')))) {
+                $room->slug = static::generateUniqueSlug($room);
+            }
+        });
+    }
+
+    public static function generateUniqueSlug(Room $room): string
+    {
+        $property = $room->relationLoaded('property') ? $room->property : Property::find($room->property_id);
+        $propPart = $property ? ($property->name . ' ' . ($property->city ?? '')) : '';
+        $baseSlug = Str::slug(trim($room->name . ' ' . $propPart));
+        if (empty($baseSlug)) {
+            $baseSlug = 'kamar-kos-' . ($room->id ?? Str::random(5));
+        }
+
+        $slug = $baseSlug;
+        $counter = 2;
+        while (static::withTrashed()
+            ->where('slug', $slug)
+            ->when($room->id, fn ($q) => $q->where('id', '!=', $room->id))
+            ->exists()) {
+            $slug = $baseSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Resolve route binding by SEO slug OR numeric ID so both public slug URLs and admin numeric routes work seamlessly.
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field) {
+            return $this->where($field, $value)->firstOrFail();
+        }
+
+        return $this->where('slug', $value)
+            ->when(is_numeric($value), fn ($q) => $q->orWhere('id', $value))
+            ->firstOrFail();
+    }
 
     public function scopeAvailable($query)
     {
